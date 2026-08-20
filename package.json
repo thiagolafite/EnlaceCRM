@@ -6,9 +6,17 @@
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "test:backend": "cd backend && npm run test",
-    "seed:backend": "cd backend && npm run prisma:seed"
+    "seed:backend": "cd backend && npm run prisma:seed",
+    "sync": "git add . && git commit -m \"chore: auto-sync update\" && git push origin main",
+    "push": "git add . && git commit -m \"chore: auto-sync update\" && git push origin main"
   },
-  "keywords": ["crm", "enlace", "whatsapp", "email", "lgpd", "automation"],
-  "author": "Enlace Team",
+  "keywords": [
+    "crm",
+    "enlace",
+    "whatsapp",
+    "callmebot",
+    "automation"
+  ],
+  "author": "Thiago Lafite Lima",
   "license": "ISC"
 }
