@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 // Rota de Healthcheck
-app.get('/api/health', (req: Request, res: Response) => {
+app.get(['/api/health', '/health'], (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     system: 'Enlace CRM API',
@@ -16,8 +16,9 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// Rotas Principais
+// Rotas Principais (atende com ou sem prefixo /api para compatibilidade total com Vercel Serverless)
 app.use('/api', routes);
+app.use('/', routes);
 
 // Middleware de Tratamento de Erros Global
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
