@@ -1,0 +1,175 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN") // ADMIN, OPERATOR
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CompanySettings {
+  id                     String   @id @default("default_company")
+  companyName            String   @default("Empresa Enlace")
+  tradeName              String   @default("Enlace CRM")
+  document               String?  @default("")
+  contactEmail           String?  @default("contato@enlacecrm.com.br")
+  contactPhone           String?  @default("+5511999999999")
+  
+  // CallMeBot WhatsApp Notification Settings (para o dono/operador)
+  ownerWhatsappPhone     String?  @default("+5571981805744")
+  callmebotApiKey        String?  @default("")
+  callmebotEnabled       Boolean  @default(true)
+  callmebotSimulateMode  Boolean  @default(false)
+
+  // Scheduler Settings
+  schedulerHour          Int      @default(6) // 06:00
+  schedulerMinute        Int      @default(0)
+  schedulerEnabled       Boolean  @default(true)
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Client {
+  id               String         @id @default(uuid())
+  name             String
+  document         String?        // CPF ou CNPJ
+  email            String?
+  phone            String?        // Formato: +5571981805744
+  companyName      String?        // Empresa onde trabalha / PJ
+  birthDate        DateTime?      // Data de nascimento
+  
+  // Endereço do Cliente
+  zipCode          String?        // CEP (ex: 41810-010)
+  address          String?        // Logradouro / Rua / Avenida
+  addressNumber    String?        // Número
+  addressComplement String?       // Complemento (Apto, Sala, Bloco, etc.)
+  neighborhood     String?        // Bairro
+  city             String?        // Cidade
+  state            String?        // Estado / UF
+
+  status           String         @default("ACTIVE") // ACTIVE, INACTIVE
+  lgpdConsent      Boolean        @default(true) // Opt-in de comunicação
+  lgpdConsentDate  DateTime       @default(now())
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  familyMembers    FamilyMember[]
+  alerts           Alert[]
+}
+
+model FamilyMember {
+  id                String        @id @default(uuid())
+  clientId          String
+  client            Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name              String
+  relationship      String        // MOTHER, FATHER, SON, DAUGHTER, SPOUSE, BROTHER, SISTER, GRANDFATHER, GRANDMOTHER, OTHER
+  birthDate         DateTime      // Data de nascimento para cálculo do aniversário
+  phone             String?       // Opcional conforme princípio da minimização LGPD
+  email             String?       // Opcional conforme princípio da minimização LGPD
+  
+  // Endereço do Familiar
+  sameAddressAsClient Boolean     @default(false)
+  zipCode           String?
+  address           String?
+  addressNumber     String?
+  addressComplement String?
+  neighborhood      String?
+  city              String?
+  state             String?
+
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  alerts            Alert[]
+}
+
+model CommemorativeDate {
+  id             String            @id @default(uuid())
+  name           String            // ex: "Dia das Mães", "Natal", "Dia do Cliente"
+  day            Int               // 1-31
+  month          Int               // 1-12
+  year           Int?              // Nulo para anual recorrente, ou número específico
+  description    String?
+  category       String            @default("FIXED") // FIXED, CULTURAL, CORPORATE
+  targetAudience String            @default("ALL_CLIENTS") // ALL_CLIENTS, MOTHERS_ONLY, FATHERS_ONLY, CUSTOM
+  active         Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  templates      MessageTemplate[]
+  alerts         Alert[]
+}
+
+model MessageTemplate {
+  id                  String             @id @default(uuid())
+  name                String             // ex: "Aniversário do Cliente"
+  eventType           String             // CLIENT_BIRTHDAY, FAMILY_BIRTHDAY, FIXED_DATE
+  channel             String             @default("WHATSAPP")
+  commemorativeDateId String?
+  commemorativeDate   CommemorativeDate? @relation(fields: [commemorativeDateId], references: [id], onDelete: SetNull)
+  subject             String?            // Assunto opcional
+  content             String             // Mensagem com interpolação {{nome_cliente}}, etc.
+  active              Boolean            @default(true)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  alerts              Alert[]
+}
+
+model Alert {
+  id                  String             @id @default(uuid())
+  clientId            String
+  client              Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  familyMemberId      String?
+  familyMember        FamilyMember?      @relation(fields: [familyMemberId], references: [id], onDelete: SetNull)
+  commemorativeDateId String?
+  commemorativeDate   CommemorativeDate? @relation(fields: [commemorativeDateId], references: [id], onDelete: SetNull)
+  templateId          String?
+  template            MessageTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  
+  eventType           String             // CLIENT_BIRTHDAY, FAMILY_BIRTHDAY, FIXED_DATE
+  clientName          String
+  clientPhone         String?
+  targetName          String             // Nome do aniversariante (cliente ou familiar)
+  contextDescription  String             // Ex: "Aniversário do Cliente (36 anos)" ou "Aniversário da Mãe"
+  renderedMessage     String             // Texto final pronto para envio no WhatsApp
+  
+  // Status da notificação enviada ao dono via CallMeBot
+  notificationStatus  String             @default("PENDING") // PENDING, SENT, FAILED, SIMULATED
+  notificationError   String?
+  
+  // Controle de envio manual para o cliente final
+  sentToClientManual  Boolean            @default(false)
+  sentToClientManualAt DateTime?
+  
+  alertDate           DateTime           @default(now())
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
+
+model QueueJob {
+  id           String    @id @default(uuid())
+  type         String    // NOTIFY_OWNER, SCAN_DATES
+  payload      String    // JSON string
+  status       String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  attempts     Int       @default(0)
+  maxAttempts  Int       @default(3)
+  error        String?
+  scheduledFor DateTime  @default(now())
+  processedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}

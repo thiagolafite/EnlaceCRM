@@ -1,0 +1,14 @@
+{
+  "name": "enlace-crm",
+  "version": "1.0.0",
+  "description": "Sistema Enlace - CRM de Relacionamento e Felicitações Automáticas",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "test:backend": "cd backend && npm run test",
+    "seed:backend": "cd backend && npm run prisma:seed"
+  },
+  "keywords": ["crm", "enlace", "whatsapp", "email", "lgpd", "automation"],
+  "author": "Enlace Team",
+  "license": "ISC"
+}

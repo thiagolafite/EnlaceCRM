@@ -1,0 +1,9 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export const config = {
+  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 3333,
+  jwtSecret: process.env.JWT_SECRET || 'enlace_crm_super_secret_jwt_key_2026',
+  nodeEnv: process.env.NODE_ENV || 'development',
+};
