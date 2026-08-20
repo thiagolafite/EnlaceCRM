@@ -76,7 +76,7 @@ export interface MessageTemplate {
   id: string;
   name: string;
   eventType: 'CLIENT_BIRTHDAY' | 'FAMILY_BIRTHDAY' | 'FIXED_DATE';
-  channel: 'WHATSAPP';
+  channel: 'WHATSAPP' | 'EMAIL';
   commemorativeDateId?: string | null;
   commemorativeDate?: CommemorativeDate | null;
   subject?: string | null;
