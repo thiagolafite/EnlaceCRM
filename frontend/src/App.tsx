@@ -76,7 +76,7 @@ export function AppContent() {
       {currentTab === 'dashboard' && <Dashboard onNavigate={setCurrentTab} />}
       {currentTab === 'alerts' && <Alerts />}
       {currentTab === 'clients' && <Clients />}
-      {currentTab === 'dates' && <Calendar defaultTab="fixed" />}
+      {currentTab === 'dates' && <Calendar defaultTab="year" />}
       {(currentTab === 'timeline' || currentTab === 'calendar') && <Calendar defaultTab="agenda" />}
       {currentTab === 'templates' && <Templates />}
       {currentTab === 'automation' && <Automation defaultTab="run" />}
