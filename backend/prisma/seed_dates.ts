@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -203,60 +202,19 @@ export const DEFAULT_COMMEMORATIVE_DATES = [
   },
 ];
 
-async function main() {
-  console.log('🌱 Iniciando Seed do Enlace CRM...');
+export async function seedStandardDates() {
+  console.log('📅 Cadastrando datas comemorativas e feriados nacionais padrão no Supabase...');
 
-  // 1. Criar Usuário Admin Inicial
-  const adminPassword = await bcrypt.hash('admin123', 10);
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@enlace.com.br' },
-    update: {
-      passwordHash: adminPassword,
-    },
-    create: {
-      name: 'Administrador Enlace',
-      email: 'admin@enlace.com.br',
-      passwordHash: adminPassword,
-      role: 'ADMIN',
-    },
-  });
-  console.log(`👤 Usuário Admin criado: ${admin.email} (senha: admin123)`);
-
-  // 2. Criar Configurações Padrão da Empresa (com CallMeBot para o dono)
-  await prisma.companySettings.upsert({
-    where: { id: 'default_company' },
-    update: {
-      ownerWhatsappPhone: '+5571981805744',
-    },
-    create: {
-      id: 'default_company',
-      companyName: 'Enlace Tecnologia e Relacionamento',
-      tradeName: 'Enlace CRM',
-      document: '12.345.678/0001-90',
-      contactEmail: 'contato@enlacecrm.com.br',
-      contactPhone: '+5571981805744',
-      ownerWhatsappPhone: '+5571981805744',
-      callmebotApiKey: '',
-      callmebotEnabled: true,
-      callmebotSimulateMode: false,
-      schedulerHour: 6,
-      schedulerMinute: 0,
-      schedulerEnabled: true,
-    },
-  });
-  console.log('🏢 Configurações da Empresa criadas (CallMeBot)');
-
-  // 3. Cadastrar Todas as Datas Comemorativas e Feriados Padrão
   for (const dateData of DEFAULT_COMMEMORATIVE_DATES) {
     const existing = await prisma.commemorativeDate.findFirst({
-      where: { name: dateData.name, month: dateData.month, day: dateData.day },
+      where: {
+        name: dateData.name,
+        month: dateData.month,
+        day: dateData.day,
+      },
     });
 
-    if (!existing) {
-      await prisma.commemorativeDate.create({
-        data: dateData,
-      });
-    } else {
+    if (existing) {
       await prisma.commemorativeDate.update({
         where: { id: existing.id },
         data: {
@@ -266,110 +224,30 @@ async function main() {
           active: true,
         },
       });
-    }
-  }
-  console.log(`📅 ${DEFAULT_COMMEMORATIVE_DATES.length} Datas comemorativas e feriados nacionais cadastrados!`);
-
-  // 4. Criar Templates de Mensagens Padrão para WhatsApp
-  const templatesData = [
-    {
-      name: 'Aniversário do Cliente (WhatsApp)',
-      eventType: 'CLIENT_BIRTHDAY',
-      channel: 'WHATSAPP',
-      content: `Olá, {{primeiro_nome}}! 🎉🎂
-
-Hoje é um dia muito especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, repleto de saúde, conquistas e momentos inesquecíveis.
-
-É um imenso privilégio ter você conosco. Parabéns pelo seu dia! ✨🎈`,
-      active: true,
-    },
-    {
-      name: 'Aniversário de Familiar (WhatsApp)',
-      eventType: 'FAMILY_BIRTHDAY',
-      channel: 'WHATSAPP',
-      content: `Olá, {{primeiro_nome}}! 💐
-
-Soubemos que hoje {{parentesco_possessivo}}, {{nome_familiar}}, está comemorando aniversário! 🥳
-
-Nós da {{nome_empresa}} queremos estender nossos mais calorosos parabéns e desejar um dia maravilhoso e cheio de celebrações para toda a sua família! 🥂✨`,
-      active: true,
-    },
-    {
-      name: 'Data Fixa — Dia do Cliente (WhatsApp)',
-      eventType: 'FIXED_DATE',
-      channel: 'WHATSAPP',
-      content: `Olá, {{primeiro_nome}}! 🌟
-
-Hoje é o Dia do Cliente e queremos expressar nossa mais sincera gratidão pela sua confiança e parceria com a {{nome_empresa}}.
-
-Você é o motivo de buscarmos a excelência todos os dias. Muito obrigado por caminhar ao nosso lado! 🤝💙`,
-      active: true,
-    },
-    {
-      name: 'Data Fixa — Natal & Boas Festas (WhatsApp)',
-      eventType: 'FIXED_DATE',
-      channel: 'WHATSAPP',
-      content: `Prezado(a) {{primeiro_nome}}! 🎄✨
-
-Ao encerrarmos mais um ciclo, nós da {{nome_empresa}} queremos desejar a você e toda sua família um Feliz Natal e um Ano Novo repleto de realizações, saúde e sucesso!
-
-Que o próximo ano seja ainda mais brilhante! 🥂🎆`,
-      active: true,
-    },
-    {
-      name: 'Data Fixa — Dia das Mães (WhatsApp)',
-      eventType: 'FIXED_DATE',
-      channel: 'WHATSAPP',
-      content: `Olá, {{primeiro_nome}}! 🌸💐
-
-Neste Dia das Mães, nós da {{nome_empresa}} queremos desejar a você e sua família um dia repleto de amor, carinho e momentos especiais.
-
-Parabéns a todas as mães que inspiram nossas vidas todos os dias! 💖✨`,
-      active: true,
-    },
-    {
-      name: 'Data Fixa — Dia dos Pais (WhatsApp)',
-      eventType: 'FIXED_DATE',
-      channel: 'WHATSAPP',
-      content: `Olá, {{primeiro_nome}}! 👔🌟
-
-Neste Dia dos Pais, a equipe da {{nome_empresa}} deseja a você e sua família um domingo abençoado, com muitas alegrias e celebração.
-
-Feliz Dia dos Pais! 🥂👏`,
-      active: true,
-    },
-  ];
-
-  for (const tpl of templatesData) {
-    const existing = await prisma.messageTemplate.findFirst({
-      where: { name: tpl.name },
-    });
-
-    if (!existing) {
-      await prisma.messageTemplate.create({
-        data: tpl,
-      });
     } else {
-      await prisma.messageTemplate.update({
-        where: { id: existing.id },
+      await prisma.commemorativeDate.create({
         data: {
-          content: tpl.content,
-          eventType: tpl.eventType,
-          channel: tpl.channel,
-          active: tpl.active,
+          name: dateData.name,
+          day: dateData.day,
+          month: dateData.month,
+          description: dateData.description,
+          category: dateData.category,
+          targetAudience: dateData.targetAudience,
+          active: true,
         },
       });
     }
   }
-  console.log(`📝 ${templatesData.length} Templates de Mensagem criados com sucesso!`);
-  console.log('\n✨ Seed finalizado com sucesso! Base limpa de clientes e com o calendário nacional completo.');
+
+  console.log(`✅ ${DEFAULT_COMMEMORATIVE_DATES.length} datas comemorativas e feriados cadastrados com sucesso!`);
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Erro no seed:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (require.main === module) {
+  seedStandardDates()
+    .catch((e) => {
+      console.error('Erro ao cadastrar datas padrão:', e);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}
