@@ -17,6 +17,20 @@ export class AuthController {
     }
   }
 
+  static async register(req: Request, res: Response) {
+    try {
+      const { name, email, password } = req.body;
+      if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios' });
+      }
+
+      const result = await AuthService.register(name, email, password);
+      return res.status(201).json(result);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message || 'Erro ao criar conta' });
+    }
+  }
+
   static async me(req: AuthenticatedRequest, res: Response) {
     try {
       if (!req.user?.id) {

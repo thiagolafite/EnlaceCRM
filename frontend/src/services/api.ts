@@ -53,6 +53,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(credentials),
     }),
+  register: (data: { name: string; email: string; password: string }) =>
+    request<{ user: User; token: string }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   getMe: () => request<User>('/auth/me'),
 
   // Dashboard & Stats

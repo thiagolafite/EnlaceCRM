@@ -16,6 +16,7 @@ const routes = Router();
 // Rotas Públicas
 // ==========================================
 routes.post('/auth/login', AuthController.login);
+routes.post('/auth/register', AuthController.register);
 
 // ==========================================
 // Rotas Protegidas (JWT)
