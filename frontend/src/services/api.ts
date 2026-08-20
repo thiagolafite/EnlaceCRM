@@ -10,7 +10,7 @@ import {
   CompanySettings,
 } from '../types';
 
-const BASE_URL = '/api';
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 function getAuthHeader(): Record<string, string> {
   const token = localStorage.getItem('enlace_token');
