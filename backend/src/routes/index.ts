@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/AuthController';
+import { UserController } from '../controllers/UserController';
 import { ClientController } from '../controllers/ClientController';
 import { FamilyMemberController } from '../controllers/FamilyMemberController';
 import { CommemorativeDateController } from '../controllers/CommemorativeDateController';
@@ -21,8 +22,15 @@ routes.post('/auth/login', AuthController.login);
 // ==========================================
 routes.use(authMiddleware as any);
 
-// Usuário
+// Usuário Conectado
 routes.get('/auth/me', AuthController.me as any);
+
+// Gestão de Usuários do Sistema
+routes.get('/users', UserController.list);
+routes.get('/users/:id', UserController.getById);
+routes.post('/users', UserController.create);
+routes.put('/users/:id', UserController.update);
+routes.delete('/users/:id', UserController.delete);
 
 // Alertas & Dashboard Stats
 routes.get('/alerts/stats', AlertController.getStats);

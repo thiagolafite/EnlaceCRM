@@ -17,6 +17,7 @@ import {
   Sparkles,
   Bell,
   Send,
+  UserCog,
 } from 'lucide-react';
 import { User } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -85,6 +86,7 @@ export function Layout({
     {
       category: 'Sistema',
       items: [
+        { id: 'users', label: 'Usuários do Sistema', icon: UserCog },
         { id: 'settings', label: 'Configurações (WhatsApp)', icon: Settings },
       ],
     },

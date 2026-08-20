@@ -10,7 +10,7 @@ import {
   CompanySettings,
 } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api';
 
 function getAuthHeader(): Record<string, string> {
   const token = localStorage.getItem('enlace_token');
@@ -212,5 +212,26 @@ export const api = {
     request<{ success: boolean; simulated?: boolean; error?: string }>('/settings/test-callmebot', {
       method: 'POST',
       body: JSON.stringify({ phone, apiKey }),
+    }),
+
+  // Users Management
+  getUsers: () => request<User[]>('/users'),
+  getUserById: (id: string) => request<User>(`/users/${id}`),
+  createUser: (data: { name: string; email: string; password?: string; role?: 'ADMIN' | 'OPERATOR' }) =>
+    request<User>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateUser: (
+    id: string,
+    data: { name?: string; email?: string; password?: string; role?: 'ADMIN' | 'OPERATOR' }
+  ) =>
+    request<User>(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteUser: (id: string) =>
+    request<{ success: boolean }>(`/users/${id}`, {
+      method: 'DELETE',
     }),
 };
