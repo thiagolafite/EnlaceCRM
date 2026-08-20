@@ -18,7 +18,7 @@ export class CommemorativeDateService {
       orderBy: [{ month: 'asc' }, { day: 'asc' }],
       include: {
         _count: {
-          select: { templates: true, sendHistory: true },
+          select: { templates: true, alerts: true },
         },
       },
     });

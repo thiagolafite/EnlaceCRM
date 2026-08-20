@@ -16,6 +16,7 @@ import {
   PartyPopper,
   CalendarDays,
   List,
+  RefreshCw,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CommemorativeDate, UpcomingEvent } from '../types';
@@ -77,8 +78,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         api.getDates(),
         api.getUpcomingEvents(60),
       ]);
-      setDates(datesData);
-      setUpcoming(upcomingData);
+      setDates(Array.isArray(datesData) ? datesData : []);
+      setUpcoming(Array.isArray(upcomingData) ? upcomingData : []);
     } catch (err) {
       console.error('Erro ao carregar datas:', err);
     } finally {
@@ -170,16 +171,36 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     return days;
   };
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryTheme = (category: string) => {
     switch (category) {
       case 'FIXED':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+        return {
+          badge: 'bg-purple-600 text-white shadow-purple-600/30',
+          card: 'bg-purple-50/90 text-purple-950 dark:bg-purple-950/70 dark:text-purple-200 border-purple-200 dark:border-purple-800/80',
+          dot: 'bg-purple-600',
+          tag: 'Feriado Nacional',
+        };
       case 'CULTURAL':
-        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+        return {
+          badge: 'bg-indigo-600 text-white shadow-indigo-600/30',
+          card: 'bg-indigo-50/90 text-indigo-950 dark:bg-indigo-950/70 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800/80',
+          dot: 'bg-indigo-600',
+          tag: 'Comemorativa / Cultural',
+        };
       case 'CORPORATE':
-        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+        return {
+          badge: 'bg-emerald-600 text-white shadow-emerald-600/30',
+          card: 'bg-emerald-50/90 text-emerald-950 dark:bg-emerald-950/70 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800/80',
+          dot: 'bg-emerald-600',
+          tag: 'Corporativa',
+        };
       default:
-        return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700';
+        return {
+          badge: 'bg-slate-700 text-white shadow-slate-700/30',
+          card: 'bg-slate-50 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700',
+          dot: 'bg-slate-600',
+          tag: 'Geral',
+        };
     }
   };
 
@@ -227,7 +248,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <List className="w-3.5 h-3.5" /> Lista de Datas
+              <List className="w-3.5 h-3.5" /> Lista ({dates.length})
             </button>
           </div>
 
@@ -264,20 +285,28 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 <ChevronRight className="w-4 h-4" />
               </button>
               <span className="text-xs text-slate-500 font-medium">
-                ({dates.length} datas cadastradas no ano)
+                ({dates.length} datas e feriados cadastrados)
               </span>
+
+              <button
+                onClick={() => loadData()}
+                title="Atualizar dados"
+                className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
 
             {/* Legenda de Categorias */}
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-              <span className="flex items-center gap-1 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
-                <span className="w-2 h-2 rounded-full bg-purple-600"></span> Feriados Nacionais
+              <span className="flex items-center gap-1.5 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-600 shadow-sm"></span> Feriados Nacionais
               </span>
-              <span className="flex items-center gap-1 text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                <span className="w-2 h-2 rounded-full bg-indigo-600"></span> Culturais / Familiares
+              <span className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 shadow-sm"></span> Culturais / Familiares
               </span>
-              <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-600"></span> Corporativos / Clientes
+              <span className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shadow-sm"></span> Corporativos / Clientes
               </span>
             </div>
           </div>
@@ -287,7 +316,11 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             {MONTHS_PT.map((monthName, monthIndex) => {
               const monthNum = monthIndex + 1;
               const monthEvents = dates
-                .filter((d) => d.month === monthNum && (d.year === null || d.year === currentYear))
+                .filter(
+                  (d) =>
+                    d.month === monthNum &&
+                    (d.year === null || d.year === undefined || Number(d.year) === currentYear)
+                )
                 .sort((a, b) => a.day - b.day);
 
               const matrix = getMonthMatrix(currentYear, monthIndex);
@@ -295,25 +328,25 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               return (
                 <div
                   key={monthName}
-                  className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm flex flex-col justify-between transition-all group"
+                  className="p-4 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm flex flex-col justify-between transition-all group"
                 >
                   <div>
                     {/* Month Header */}
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
                       <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
                         {monthName}
                       </h3>
 
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                        {monthEvents.length} evento(s)
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80">
+                        {monthEvents.length} comemoraç{monthEvents.length === 1 ? 'ão' : 'ões'}
                       </span>
                     </div>
 
                     {/* Mini Calendar Grid Matrix */}
-                    <div className="mb-4 bg-slate-50 dark:bg-slate-950/70 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                    <div className="mb-3 bg-slate-50 dark:bg-slate-950/70 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-800/80">
                       {/* Weekday headers */}
-                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5">
+                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1">
                         {WEEKDAYS_SHORT.map((wd, i) => (
                           <span key={i} className={i === 0 ? 'text-rose-400' : ''}>
                             {wd}
@@ -334,6 +367,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             new Date().getMonth() === monthIndex &&
                             new Date().getFullYear() === currentYear;
 
+                          const theme = hasEvent ? getCategoryTheme(hasEvent.category) : null;
+
                           return (
                             <button
                               key={idx}
@@ -342,10 +377,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                                 if (hasEvent) handleOpenModal(hasEvent);
                                 else handleOpenModal(undefined, monthNum, cell.day || undefined);
                               }}
-                              title={hasEvent ? `${cell.day}/${monthNum} - ${hasEvent.name}` : `Criar data em ${cell.day}/${monthNum}`}
-                              className={`h-6 w-full rounded-md text-[11px] font-bold flex items-center justify-center transition-all ${
+                              title={
                                 hasEvent
-                                  ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-400/40 hover:scale-110 font-extrabold'
+                                  ? `${cell.day}/${monthNum} - ${hasEvent.name}`
+                                  : `Criar data em ${cell.day}/${monthNum}`
+                              }
+                              className={`h-6 w-full rounded-md text-[11px] font-bold flex items-center justify-center transition-all ${
+                                hasEvent && theme
+                                  ? `${theme.badge} shadow-sm ring-2 ring-indigo-400/40 hover:scale-110 font-extrabold`
                                   : isToday
                                   ? 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300 border border-amber-300'
                                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
@@ -361,44 +400,41 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     {/* Preenchimento das Comemorações do Mês */}
                     <div className="space-y-2">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                        Comemorações de {monthName}:
+                        Comemorações em {monthName}:
                       </div>
 
                       {monthEvents.length === 0 ? (
-                        <div className="text-xs text-slate-400 italic py-2">
-                          Nenhuma comemoração fixa neste mês.
+                        <div className="text-xs text-slate-400 italic py-2 text-center">
+                          Nenhuma data fixa cadastrada.
                         </div>
                       ) : (
-                        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                          {monthEvents.map((evt) => (
-                            <button
-                              key={evt.id}
-                              type="button"
-                              onClick={() => handleOpenModal(evt)}
-                              className={`w-full p-2 rounded-xl border text-left text-xs transition-all hover:scale-[1.01] flex items-start gap-2 ${getCategoryColor(
-                                evt.category
-                              )}`}
-                            >
-                              <span className="font-mono font-black text-[11px] shrink-0 bg-white/70 dark:bg-slate-900/70 px-1.5 py-0.5 rounded border border-current">
-                                {String(evt.day).padStart(2, '0')}
-                              </span>
-                              <div className="min-w-0 flex-1">
-                                <span className="font-bold block truncate">{evt.name}</span>
-                                {evt.description && (
-                                  <span className="text-[10px] opacity-80 line-clamp-1 block">
-                                    {evt.description}
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-                          ))}
+                        <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                          {monthEvents.map((evt) => {
+                            const theme = getCategoryTheme(evt.category);
+                            return (
+                              <button
+                                key={evt.id}
+                                type="button"
+                                onClick={() => handleOpenModal(evt)}
+                                className={`w-full p-2 rounded-xl border text-left text-xs transition-all hover:scale-[1.01] flex items-start gap-2 shadow-xs ${theme.card}`}
+                              >
+                                <span className="font-mono font-black text-[11px] shrink-0 bg-white/80 dark:bg-slate-900/90 px-1.5 py-0.5 rounded-lg border border-current shadow-xs">
+                                  {String(evt.day).padStart(2, '0')}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-bold truncate text-[11px]">{evt.name}</div>
+                                  <div className="text-[10px] opacity-75 truncate">{theme.tag}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Add event button inside month */}
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                  <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                     <button
                       type="button"
                       onClick={() => handleOpenModal(undefined, monthNum)}
@@ -477,58 +513,67 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       {/* ==================================================================== */}
       {selectedTab === 'fixed' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {dates.map((item) => (
-            <div
-              key={item.id}
-              className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="text-center w-12 py-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                    <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">
-                      {MONTHS_PT[item.month - 1].substring(0, 3)}
-                    </span>
-                    <span className="block text-base font-extrabold text-indigo-600 dark:text-indigo-400">
-                      {String(item.day).padStart(2, '0')}
+          {dates.map((item) => {
+            const theme = getCategoryTheme(item.category);
+            return (
+              <div
+                key={item.id}
+                className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="text-center w-12 py-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                      <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">
+                        {MONTHS_PT[item.month - 1].substring(0, 3)}
+                      </span>
+                      <span className="block text-base font-extrabold text-indigo-600 dark:text-indigo-400">
+                        {String(item.day).padStart(2, '0')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenModal(item)}
+                        className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id, item.name)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${theme.card}`}>
+                      {theme.tag}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleOpenModal(item)}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id, item.name)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{item.name}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                    {item.description || 'Sem descrição informada.'}
+                  </p>
                 </div>
 
-                <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{item.name}</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                  {item.description || 'Sem descrição informada.'}
-                </p>
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
+                  <span>Público: {item.targetAudience === 'ALL_CLIENTS' ? 'Todos os Clientes' : item.targetAudience}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      item.active
+                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {item.active ? 'Ativa' : 'Inativa'}
+                  </span>
+                </div>
               </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
-                <span>Público: {item.targetAudience === 'ALL_CLIENTS' ? 'Todos os Clientes' : item.targetAudience}</span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    item.active
-                      ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  {item.active ? 'Ativa' : 'Inativa'}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
