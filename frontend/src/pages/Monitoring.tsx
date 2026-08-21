@@ -394,93 +394,147 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <p className="text-xs">O sistema está operando perfeitamente com os filtros selecionados.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 uppercase font-bold border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3.5 px-5">Data / Hora</th>
-                  <th className="py-3.5 px-5">Nível</th>
-                  <th className="py-3.5 px-5">Ação / Categoria</th>
-                  <th className="py-3.5 px-5">Mensagem do Evento</th>
-                  <th className="py-3.5 px-5">Usuário / Empresa</th>
-                  <th className="py-3.5 px-5">IP Origem</th>
-                  <th className="py-3.5 px-5 text-right">Detalhes</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
-                {logs.map((log) => {
-                  const theme = getLevelBadge(log.level);
-                  const Icon = theme.icon;
+          <>
+            {/* 1. VISÃO EM TABELA (DESKTOP >= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 uppercase font-bold border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="py-3.5 px-5">Data / Hora</th>
+                    <th className="py-3.5 px-5">Nível</th>
+                    <th className="py-3.5 px-5">Ação / Categoria</th>
+                    <th className="py-3.5 px-5">Mensagem do Evento</th>
+                    <th className="py-3.5 px-5">Usuário / Empresa</th>
+                    <th className="py-3.5 px-5">IP Origem</th>
+                    <th className="py-3.5 px-5 text-right">Detalhes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+                  {logs.map((log) => {
+                    const theme = getLevelBadge(log.level);
+                    const Icon = theme.icon;
 
-                  const formattedDate = new Date(log.createdAt).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                  });
+                    const formattedDate = new Date(log.createdAt).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    });
 
-                  return (
-                    <tr
-                      key={log.id}
-                      className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
-                      onClick={() => {
-                        setSelectedLog(log);
-                        setIsDetailModalOpen(true);
-                      }}
-                    >
-                      <td className="py-3.5 px-5 font-mono whitespace-nowrap text-slate-500 dark:text-slate-400">
-                        {formattedDate}
-                      </td>
+                    return (
+                      <tr
+                        key={log.id}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setSelectedLog(log);
+                          setIsDetailModalOpen(true);
+                        }}
+                      >
+                        <td className="py-3.5 px-5 font-mono whitespace-nowrap text-slate-500 dark:text-slate-400">
+                          {formattedDate}
+                        </td>
 
-                      <td className="py-3.5 px-5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${theme.badge}`}>
-                          <Icon className="w-3 h-3" /> {log.level}
-                        </span>
-                      </td>
+                        <td className="py-3.5 px-5 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${theme.badge}`}>
+                            <Icon className="w-3 h-3" /> {log.level}
+                          </span>
+                        </td>
 
-                      <td className="py-3.5 px-5 whitespace-nowrap font-mono">
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{log.action}</span>
-                        <span className="text-[10px] text-slate-400 block">{log.category}</span>
-                      </td>
+                        <td className="py-3.5 px-5 whitespace-nowrap font-mono">
+                          <span className="font-bold text-slate-900 dark:text-slate-100">{log.action}</span>
+                          <span className="text-[10px] text-slate-400 block">{log.category}</span>
+                        </td>
 
-                      <td className="py-3.5 px-5 max-w-md">
-                        <div className="font-medium truncate text-slate-800 dark:text-slate-200" title={log.message}>
-                          {log.message}
-                        </div>
-                      </td>
+                        <td className="py-3.5 px-5 max-w-md">
+                          <div className="font-medium truncate text-slate-800 dark:text-slate-200" title={log.message}>
+                            {log.message}
+                          </div>
+                        </td>
 
-                      <td className="py-3.5 px-5 whitespace-nowrap text-slate-500 dark:text-slate-400">
-                        <div>{log.userEmail || 'Anônimo / Sistema'}</div>
-                        {log.companyId && (
-                          <div className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400">{log.companyId}</div>
-                        )}
-                      </td>
+                        <td className="py-3.5 px-5 whitespace-nowrap text-slate-500 dark:text-slate-400">
+                          <div>{log.userEmail || 'Anônimo / Sistema'}</div>
+                          {log.companyId && (
+                            <div className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400">{log.companyId}</div>
+                          )}
+                        </td>
 
-                      <td className="py-3.5 px-5 whitespace-nowrap font-mono text-[11px] text-slate-500">
-                        {log.ipAddress || '—'}
-                      </td>
+                        <td className="py-3.5 px-5 whitespace-nowrap font-mono text-[11px] text-slate-500">
+                          {log.ipAddress || '—'}
+                        </td>
 
-                      <td className="py-3.5 px-5 text-right whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedLog(log);
-                            setIsDetailModalOpen(true);
-                          }}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <td className="py-3.5 px-5 text-right whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedLog(log);
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 2. VISÃO EM CARDS TOUCH (MOBILE < 768px) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+              {logs.map((log) => {
+                const theme = getLevelBadge(log.level);
+                const Icon = theme.icon;
+
+                const formattedDate = new Date(log.createdAt).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+
+                return (
+                  <div
+                    key={log.id}
+                    onClick={() => {
+                      setSelectedLog(log);
+                      setIsDetailModalOpen(true);
+                    }}
+                    className="p-4 space-y-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${theme.badge}`}>
+                        <Icon className="w-3 h-3" /> {log.level}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">{formattedDate}</span>
+                    </div>
+
+                    <div>
+                      <div className="font-bold text-xs text-slate-900 dark:text-white font-mono flex items-center justify-between">
+                        <span>{log.action}</span>
+                        <span className="text-[10px] text-slate-400 font-sans font-normal">{log.category}</span>
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 line-clamp-2">
+                        {log.message}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500 border-t border-slate-100 dark:border-slate-800/60">
+                      <span className="truncate">{log.userEmail || 'Sistema'}</span>
+                      <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1">
+                        Ver detalhes ➔
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
 
         {/* Pagination & Clear */}

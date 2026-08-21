@@ -457,134 +457,226 @@ export function Clients() {
             <p className="text-xs">Cadastre seu primeiro cliente para iniciar os alertas.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-4 px-6">Cliente / Empresa</th>
-                  <th className="py-4 px-6">Contatos</th>
-                  <th className="py-4 px-6">Endereço</th>
-                  <th className="py-4 px-6">Aniversário</th>
-                  <th className="py-4 px-6">Familiares</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6">LGPD</th>
-                  <th className="py-4 px-6 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
-                {clients.map((client) => {
-                  const bDateFormatted = client.birthDate
-                    ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
-                    : 'Não informada';
+          <>
+            {/* 1. VISÃO EM TABELA (DESKTOP / TABLET >= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="py-4 px-6">Cliente / Empresa</th>
+                    <th className="py-4 px-6">Contatos</th>
+                    <th className="py-4 px-6">Endereço</th>
+                    <th className="py-4 px-6">Aniversário</th>
+                    <th className="py-4 px-6">Familiares</th>
+                    <th className="py-4 px-6">Status</th>
+                    <th className="py-4 px-6">LGPD</th>
+                    <th className="py-4 px-6 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+                  {clients.map((client) => {
+                    const bDateFormatted = client.birthDate
+                      ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+                      : 'Não informada';
 
-                  const locationStr = [client.neighborhood, client.city, client.state]
-                    .filter(Boolean)
-                    .join(', ');
+                    const locationStr = [client.neighborhood, client.city, client.state]
+                      .filter(Boolean)
+                      .join(', ');
 
-                  return (
-                    <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                      <td className="py-4 px-6">
-                        <div className="font-bold text-slate-900 dark:text-slate-100">{client.name}</div>
+                    return (
+                      <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="py-4 px-6">
+                          <div className="font-bold text-slate-900 dark:text-slate-100">{client.name}</div>
+                          {client.companyName && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                              <Building2 className="w-3 h-3 text-slate-400" /> {client.companyName}
+                            </div>
+                          )}
+                          {client.document && (
+                            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{client.document}</div>
+                          )}
+                        </td>
+
+                        <td className="py-4 px-6 space-y-1 text-xs">
+                          {client.phone && (
+                            <a
+                              href={`https://wa.me/${client.phone.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Conversar no WhatsApp"
+                              className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-mono transition-colors group"
+                            >
+                              <Phone className="w-3 h-3 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                              <span className="underline-offset-2 hover:underline">{client.phone}</span>
+                            </a>
+                          )}
+                          {client.email && (
+                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                              <Mail className="w-3 h-3 text-indigo-600 dark:text-indigo-400" /> {client.email}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="py-4 px-6">
+                          {locationStr || client.address ? (
+                            <div className="text-xs space-y-0.5 max-w-[180px]">
+                              {client.address && (
+                                <div className="text-slate-800 dark:text-slate-200 font-medium truncate" title={`${client.address}, ${client.addressNumber || 'S/N'}`}>
+                                  {client.address}, {client.addressNumber || 'S/N'}
+                                </div>
+                              )}
+                              {locationStr && (
+                                <div className="text-[11px] text-slate-400 flex items-center gap-1 truncate" title={locationStr}>
+                                  <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
+                                  <span className="truncate">{locationStr}</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Não informado</span>
+                          )}
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                            <span>{bDateFormatted}</span>
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <button
+                            onClick={() => handleOpenFamilyModal(client)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-950/80 border border-pink-200 dark:border-pink-800/40 text-pink-700 dark:text-pink-300 text-xs font-semibold transition-all"
+                          >
+                            <Heart className="w-3.5 h-3.5 text-pink-500 dark:text-pink-400" />
+                            <span>{client.familyMembers?.length || 0} familiar(es)</span>
+                          </button>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <StatusBadge status={client.status} />
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <LgpdBadge
+                            consent={client.lgpdConsent}
+                            onToggle={() => handleToggleLgpd(client)}
+                          />
+                        </td>
+
+                        <td className="py-4 px-6 text-right space-x-2">
+                          <button
+                            onClick={() => handleOpenClientModal(client)}
+                            title="Editar cliente"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClient(client.id, client.name)}
+                            title="Remover cliente"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 2. VISÃO EM CARDS TOUCH (MOBILE < 768px) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+              {clients.map((client) => {
+                const bDateFormatted = client.birthDate
+                  ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+                  : 'Não informada';
+
+                return (
+                  <div key={client.id} className="p-4 space-y-3">
+                    {/* Header do Card */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+                          {client.name}
+                        </h4>
                         {client.companyName && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                            <Building2 className="w-3 h-3 text-slate-400" /> {client.companyName}
+                          <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" /> {client.companyName}
                           </div>
                         )}
                         {client.document && (
-                          <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{client.document}</div>
+                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">{client.document}</div>
                         )}
-                      </td>
+                      </div>
 
-                      <td className="py-4 px-6 space-y-1 text-xs">
+                      <div className="flex items-center gap-1">
+                        <StatusBadge status={client.status} />
+                      </div>
+                    </div>
+
+                    {/* Contatos & Aniversário */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Aniversário</span>
+                        <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-amber-500" /> {bDateFormatted}
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Familiares</span>
+                        <button
+                          onClick={() => handleOpenFamilyModal(client)}
+                          className="font-bold text-pink-600 dark:text-pink-400 flex items-center gap-1 hover:underline"
+                        >
+                          <Heart className="w-3.5 h-3.5 text-pink-500" /> {client.familyMembers?.length || 0} pessoa(s)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Botões Rápidos de Ação */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                      <div className="flex items-center gap-2">
                         {client.phone && (
                           <a
                             href={`https://wa.me/${client.phone.replace(/\D/g, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            title="Conversar no WhatsApp"
-                            className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-mono transition-colors group"
+                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow-sm"
                           >
-                            <Phone className="w-3 h-3 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
-                            <span className="underline-offset-2 hover:underline">{client.phone}</span>
+                            <Phone className="w-3.5 h-3.5" /> WhatsApp
                           </a>
                         )}
-                        {client.email && (
-                          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                            <Mail className="w-3 h-3 text-indigo-600 dark:text-indigo-400" /> {client.email}
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="py-4 px-6">
-                        {locationStr || client.address ? (
-                          <div className="text-xs space-y-0.5 max-w-[180px]">
-                            {client.address && (
-                              <div className="text-slate-800 dark:text-slate-200 font-medium truncate" title={`${client.address}, ${client.addressNumber || 'S/N'}`}>
-                                {client.address}, {client.addressNumber || 'S/N'}
-                              </div>
-                            )}
-                            {locationStr && (
-                              <div className="text-[11px] text-slate-400 flex items-center gap-1 truncate" title={locationStr}>
-                                <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
-                                <span className="truncate">{locationStr}</span>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-400 italic">Não informado</span>
-                        )}
-                      </td>
-
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                          <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                          <span>{bDateFormatted}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-6">
-                        <button
-                          onClick={() => handleOpenFamilyModal(client)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-950/80 border border-pink-200 dark:border-pink-800/40 text-pink-700 dark:text-pink-300 text-xs font-semibold transition-all"
-                        >
-                          <Heart className="w-3.5 h-3.5 text-pink-500 dark:text-pink-400" />
-                          <span>{client.familyMembers?.length || 0} familiar(es)</span>
-                        </button>
-                      </td>
-
-                      <td className="py-4 px-6">
-                        <StatusBadge status={client.status} />
-                      </td>
-
-                      <td className="py-4 px-6">
                         <LgpdBadge
                           consent={client.lgpdConsent}
                           onToggle={() => handleToggleLgpd(client)}
                         />
-                      </td>
+                      </div>
 
-                      <td className="py-4 px-6 text-right space-x-2">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => handleOpenClientModal(client)}
-                          title="Editar cliente"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteClient(client.id, client.name)}
-                          title="Remover cliente"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
