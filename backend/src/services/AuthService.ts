@@ -3,10 +3,13 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 import { config } from '../config';
 
+const MASTER_EMAIL = 'tigolafite@gmail.com';
+
 export class AuthService {
   static async login(email: string, password: string) {
+    const cleanEmail = email.toLowerCase().trim();
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: cleanEmail },
     });
 
     if (!user) {
@@ -18,12 +21,23 @@ export class AuthService {
       throw new Error('Credenciais inválidas');
     }
 
+    // Se for o e-mail master, garantir role MASTER
+    let role = user.role;
+    if (cleanEmail === MASTER_EMAIL && role !== 'MASTER') {
+      role = 'MASTER';
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'MASTER' },
+      });
+    }
+
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role,
+        companyId: user.companyId || 'default_company',
       },
       config.jwtSecret,
       { expiresIn: '7d' }
@@ -34,7 +48,8 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role,
+        companyId: user.companyId || 'default_company',
       },
       token,
     };
@@ -57,13 +72,21 @@ export class AuthService {
       throw new Error('Já existe uma conta cadastrada com este e-mail');
     }
 
+    const isMaster = cleanEmail === MASTER_EMAIL;
+    const role = isMaster ? 'MASTER' : 'ADMIN';
     const passwordHash = await bcrypt.hash(password, 10);
+    
+    // Cada novo cadastro gera sua própria empresa/tenant isolada
+    const tempId = 'comp_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    const companyId = isMaster ? 'default_company' : tempId;
+
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
         email: cleanEmail,
         passwordHash,
-        role: 'ADMIN',
+        role,
+        companyId,
       },
     });
 
@@ -73,6 +96,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role,
+        companyId: user.companyId,
       },
       config.jwtSecret,
       { expiresIn: '7d' }
@@ -84,6 +108,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        companyId: user.companyId,
       },
       token,
     };
@@ -97,6 +122,7 @@ export class AuthService {
         name: true,
         email: true,
         role: true,
+        companyId: true,
         createdAt: true,
       },
     });

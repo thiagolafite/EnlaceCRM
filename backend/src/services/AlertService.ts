@@ -12,9 +12,12 @@ export interface ListAlertsParams {
 
 export class AlertService {
   /**
-   * Lista os alertas com filtros avançados
+   * Lista os alertas com filtros avançados e isolamento por empresa
    */
-  static async listAlerts(params: ListAlertsParams = {}) {
+  static async listAlerts(
+    params: ListAlertsParams = {},
+    currentUser?: { id: string; role: string; companyId?: string | null }
+  ) {
     const {
       date,
       sentToClientManual,
@@ -25,6 +28,11 @@ export class AlertService {
     } = params;
 
     const where: any = {};
+
+    // Isolamento multi-tenant
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
+      where.companyId = currentUser.companyId;
+    }
 
     if (date) {
       const startOfDay = new Date(`${date}T00:00:00.000Z`);
@@ -42,10 +50,10 @@ export class AlertService {
 
     if (search && search.trim()) {
       where.OR = [
-        { clientName: { contains: search } },
-        { targetName: { contains: search } },
+        { clientName: { contains: search, mode: 'insensitive' } },
+        { targetName: { contains: search, mode: 'insensitive' } },
         { clientPhone: { contains: search } },
-        { renderedMessage: { contains: search } },
+        { renderedMessage: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -81,10 +89,18 @@ export class AlertService {
   /**
    * Alterna a marcação de "Enviado ao cliente manualmente"
    */
-  static async toggleSentManual(id: string, sentManual?: boolean) {
+  static async toggleSentManual(
+    id: string,
+    sentManual?: boolean,
+    currentUser?: { id: string; role: string; companyId?: string | null }
+  ) {
     const existing = await prisma.alert.findUnique({ where: { id } });
     if (!existing) {
       throw new Error('Alerta não encontrado');
+    }
+
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId && existing.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este alerta');
     }
 
     const newStatus = typeof sentManual === 'boolean' ? sentManual : !existing.sentToClientManual;
@@ -108,119 +124,123 @@ export class AlertService {
   /**
    * Reenvia o resumo consolidado de alertas do dia para o WhatsApp do dono via CallMeBot
    */
-  static async resendDailyNotification(date: Date = new Date()) {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+  static async resendDailyNotification(
+    targetDateStr?: string,
+    currentUser?: { id: string; role: string; companyId?: string | null }
+  ) {
+    const targetDate = targetDateStr ? new Date(targetDateStr) : new Date();
+    const dateOnly = targetDate.toISOString().split('T')[0];
+
+    const startOfDay = new Date(`${dateOnly}T00:00:00.000Z`);
+    const endOfDay = new Date(`${dateOnly}T23:59:59.999Z`);
+
+    const where: any = {
+      alertDate: { gte: startOfDay, lte: endOfDay },
+    };
+
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
+      where.companyId = currentUser.companyId;
+    }
 
     const alerts = await prisma.alert.findMany({
-      where: {
-        alertDate: { gte: startOfDay, lte: endOfDay },
-      },
+      where,
+      include: { client: true, familyMember: true },
       orderBy: { createdAt: 'asc' },
     });
 
     if (alerts.length === 0) {
       return {
-        success: false,
-        message: 'Nenhum alerta registrado para esta data.',
+        success: true,
+        message: 'Nenhum alerta pendente para a data informada.',
+        alertsCount: 0,
       };
     }
 
-    const settings = await prisma.companySettings.findFirst();
-    if (!settings || !settings.ownerWhatsappPhone) {
-      return {
-        success: false,
-        message: 'Número de WhatsApp do dono não configurado no sistema.',
-      };
-    }
-
-    const formattedAlerts = alerts.map((a) => ({
-      clientName: a.clientName,
-      targetName: a.targetName,
-      context: a.contextDescription,
-      phone: a.clientPhone,
-      renderedMessage: a.renderedMessage,
-    }));
-
-    const result = await CallMeBotProvider.sendDailySummary({
-      ownerPhone: settings.ownerWhatsappPhone,
-      apiKey: settings.callmebotApiKey || '',
-      date,
-      alerts: formattedAlerts,
+    // Buscar configurações da empresa
+    const company = await prisma.companySettings.findFirst({
+      where: currentUser?.companyId ? { id: currentUser.companyId } : {},
     });
 
-    // Atualiza status nos alertas do dia
-    const newStatus = result.simulated ? 'SIMULATED' : result.success ? 'SENT' : 'FAILED';
-    await prisma.alert.updateMany({
-      where: {
-        id: { in: alerts.map((a) => a.id) },
-      },
-      data: {
-        notificationStatus: newStatus,
-        notificationError: result.error || null,
-      },
-    });
+    const apiKey = company?.callmebotApiKey || '';
+    const ownerPhone = company?.ownerWhatsappPhone || '';
+    const isSimulate = company?.callmebotSimulateMode ?? true;
+
+    // Disparar notificação consolidada
+    const result = await CallMeBotProvider.sendDailySummary(
+      alerts,
+      ownerPhone,
+      apiKey,
+      isSimulate
+    );
 
     return {
       success: result.success,
-      simulated: result.simulated,
+      simulated: isSimulate,
+      message: result.message,
       error: result.error,
       alertsCount: alerts.length,
     };
   }
 
   /**
-   * Retorna os KPIs do Dashboard
+   * Estatísticas de alertas para o Dashboard
    */
-  static async getDashboardStats() {
-    const today = new Date();
-    const startOfDay = new Date(today);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(today);
-    endOfDay.setHours(23, 59, 59, 999);
+  static async getStats(currentUser?: { id: string; role: string; companyId?: string | null }) {
+    const today = new Date().toISOString().split('T')[0];
+    const startOfToday = new Date(`${today}T00:00:00.000Z`);
+    const endOfToday = new Date(`${today}T23:59:59.999Z`);
+
+    const whereBase: any = {};
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
+      whereBase.companyId = currentUser.companyId;
+    }
 
     const [
-      totalClients,
-      totalFamilyMembers,
-      todayAlerts,
-      todaySentManual,
-      todayPendingManual,
+      totalToday,
+      sentToday,
+      pendingToday,
+      birthdaysToday,
+      fixedDatesToday,
     ] = await Promise.all([
-      prisma.client.count({ where: { status: 'ACTIVE' } }),
-      prisma.familyMember.count(),
       prisma.alert.count({
-        where: { alertDate: { gte: startOfDay, lte: endOfDay } },
+        where: { ...whereBase, alertDate: { gte: startOfToday, lte: endOfToday } },
       }),
       prisma.alert.count({
         where: {
-          alertDate: { gte: startOfDay, lte: endOfDay },
+          ...whereBase,
+          alertDate: { gte: startOfToday, lte: endOfToday },
           sentToClientManual: true,
         },
       }),
       prisma.alert.count({
         where: {
-          alertDate: { gte: startOfDay, lte: endOfDay },
+          ...whereBase,
+          alertDate: { gte: startOfToday, lte: endOfToday },
           sentToClientManual: false,
+        },
+      }),
+      prisma.alert.count({
+        where: {
+          ...whereBase,
+          alertDate: { gte: startOfToday, lte: endOfToday },
+          eventType: { in: ['CLIENT_BIRTHDAY', 'FAMILY_BIRTHDAY'] },
+        },
+      }),
+      prisma.alert.count({
+        where: {
+          ...whereBase,
+          alertDate: { gte: startOfToday, lte: endOfToday },
+          eventType: 'FIXED_DATE',
         },
       }),
     ]);
 
-    // Próximos aniversariantes / alertas de hoje
-    const todayAlertsList = await prisma.alert.findMany({
-      where: { alertDate: { gte: startOfDay, lte: endOfDay } },
-      include: { client: true, familyMember: true },
-      orderBy: { createdAt: 'asc' },
-    });
-
     return {
-      totalClients,
-      totalFamilyMembers,
-      todayAlerts,
-      todaySentManual,
-      todayPendingManual,
-      todayAlertsList,
+      totalToday,
+      sentToday,
+      pendingToday,
+      birthdaysToday,
+      fixedDatesToday,
     };
   }
 }

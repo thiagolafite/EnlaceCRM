@@ -13,7 +13,8 @@ model User {
   name         String
   email        String   @unique
   passwordHash String
-  role         String   @default("ADMIN") // ADMIN, OPERATOR
+  role         String   @default("ADMIN") // MASTER, ADMIN, OPERATOR
+  companyId    String?  @default("default_company")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -60,6 +61,7 @@ model Client {
   state            String?        // Estado / UF
 
   status           String         @default("ACTIVE") // ACTIVE, INACTIVE
+  companyId        String?        @default("default_company")
   lgpdConsent      Boolean        @default(true) // Opt-in de comunicação
   lgpdConsentDate  DateTime       @default(now())
   notes            String?
@@ -119,6 +121,7 @@ model MessageTemplate {
   name                String             // ex: "Aniversário do Cliente"
   eventType           String             // CLIENT_BIRTHDAY, FAMILY_BIRTHDAY, FIXED_DATE
   channel             String             @default("WHATSAPP")
+  companyId           String?            // Nulo para templates globais do sistema, ou específico da empresa
   commemorativeDateId String?
   commemorativeDate   CommemorativeDate? @relation(fields: [commemorativeDateId], references: [id], onDelete: SetNull)
   subject             String?            // Assunto opcional
@@ -132,6 +135,7 @@ model MessageTemplate {
 
 model Alert {
   id                  String             @id @default(uuid())
+  companyId           String?            @default("default_company")
   clientId            String
   client              Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
   familyMemberId      String?

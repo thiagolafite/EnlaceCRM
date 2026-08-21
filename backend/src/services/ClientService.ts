@@ -18,6 +18,7 @@ export interface CreateClientDTO {
   state?: string;
 
   status?: 'ACTIVE' | 'INACTIVE';
+  companyId?: string;
   lgpdConsent?: boolean;
   notes?: string;
   familyMembers?: Array<{
@@ -39,29 +40,37 @@ export interface CreateClientDTO {
 }
 
 export class ClientService {
-  static async list(params: {
-    search?: string;
-    status?: string;
-    lgpdConsent?: boolean;
-    page?: number;
-    limit?: number;
-  }) {
+  static async list(
+    params: {
+      search?: string;
+      status?: string;
+      lgpdConsent?: boolean;
+      page?: number;
+      limit?: number;
+    },
+    currentUser?: { id: string; role: string; companyId?: string | null }
+  ) {
     const page = params.page && params.page > 0 ? Number(params.page) : 1;
     const limit = params.limit && params.limit > 0 ? Number(params.limit) : 50;
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
+    // Isolamento multi-tenant: Se não for MASTER, restringe à empresa do usuário
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
+      where.companyId = currentUser.companyId;
+    }
+
     if (params.search) {
       const s = params.search.trim();
       where.OR = [
-        { name: { contains: s } },
+        { name: { contains: s, mode: 'insensitive' } },
         { document: { contains: s } },
-        { email: { contains: s } },
+        { email: { contains: s, mode: 'insensitive' } },
         { phone: { contains: s } },
-        { companyName: { contains: s } },
-        { city: { contains: s } },
-        { neighborhood: { contains: s } },
+        { companyName: { contains: s, mode: 'insensitive' } },
+        { city: { contains: s, mode: 'insensitive' } },
+        { neighborhood: { contains: s, mode: 'insensitive' } },
       ];
     }
 
@@ -97,7 +106,7 @@ export class ClientService {
     };
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, currentUser?: { id: string; role: string; companyId?: string | null }) {
     const client = await prisma.client.findUnique({
       where: { id },
       include: {
@@ -115,15 +124,20 @@ export class ClientService {
       throw new Error('Cliente não encontrado');
     }
 
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId && client.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este cliente');
+    }
+
     return client;
   }
 
-  static async create(data: CreateClientDTO) {
+  static async create(data: CreateClientDTO, currentUser?: { id: string; role: string; companyId?: string | null }) {
     if (!data.name || !data.name.trim()) {
       throw new Error('O nome do cliente é obrigatório');
     }
 
     const birthDate = data.birthDate ? new Date(data.birthDate) : null;
+    const targetCompanyId = currentUser?.companyId || 'default_company';
 
     const client = await prisma.client.create({
       data: {
@@ -143,6 +157,7 @@ export class ClientService {
         state: data.state?.trim() || null,
 
         status: data.status || 'ACTIVE',
+        companyId: targetCompanyId,
         lgpdConsent: typeof data.lgpdConsent === 'boolean' ? data.lgpdConsent : true,
         notes: data.notes?.trim() || null,
         familyMembers: data.familyMembers?.length
@@ -174,10 +189,14 @@ export class ClientService {
     return client;
   }
 
-  static async update(id: string, data: Partial<CreateClientDTO>) {
+  static async update(id: string, data: Partial<CreateClientDTO>, currentUser?: { id: string; role: string; companyId?: string | null }) {
     const existing = await prisma.client.findUnique({ where: { id } });
     if (!existing) {
       throw new Error('Cliente não encontrado');
+    }
+
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId && existing.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este cliente');
     }
 
     const updateData: any = {};
@@ -214,17 +233,30 @@ export class ClientService {
     return updated;
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, currentUser?: { id: string; role: string; companyId?: string | null }) {
     const existing = await prisma.client.findUnique({ where: { id } });
     if (!existing) {
       throw new Error('Cliente não encontrado');
+    }
+
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId && existing.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este cliente');
     }
 
     await prisma.client.delete({ where: { id } });
     return { success: true };
   }
 
-  static async toggleLgpdConsent(id: string, consent: boolean) {
+  static async toggleLgpdConsent(id: string, consent: boolean, currentUser?: { id: string; role: string; companyId?: string | null }) {
+    const existing = await prisma.client.findUnique({ where: { id } });
+    if (!existing) {
+      throw new Error('Cliente não encontrado');
+    }
+
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId && existing.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este cliente');
+    }
+
     const client = await prisma.client.update({
       where: { id },
       data: {
@@ -236,12 +268,19 @@ export class ClientService {
     return client;
   }
 
-  static async getStats() {
+  static async getStats(currentUser?: { id: string; role: string; companyId?: string | null }) {
+    const where: any = {};
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
+      where.companyId = currentUser.companyId;
+    }
+
     const [totalClients, activeClients, totalFamilyMembers, optOutCount] = await Promise.all([
-      prisma.client.count(),
-      prisma.client.count({ where: { status: 'ACTIVE', lgpdConsent: true } }),
-      prisma.familyMember.count(),
-      prisma.client.count({ where: { lgpdConsent: false } }),
+      prisma.client.count({ where }),
+      prisma.client.count({ where: { ...where, status: 'ACTIVE', lgpdConsent: true } }),
+      prisma.familyMember.count({
+        where: currentUser?.role !== 'MASTER' && currentUser?.companyId ? { client: { companyId: currentUser.companyId } } : {},
+      }),
+      prisma.client.count({ where: { ...where, lgpdConsent: false } }),
     ]);
 
     return {

@@ -5,17 +5,28 @@ export interface CreateUserDTO {
   name: string;
   email: string;
   password?: string;
-  role?: 'ADMIN' | 'OPERATOR';
+  role?: 'MASTER' | 'ADMIN' | 'OPERATOR';
+  companyId?: string;
 }
 
 export class UserService {
-  static async list() {
+  static async list(currentUser?: { id: string; role: string; companyId?: string | null }) {
+    const isMaster = currentUser?.role === 'MASTER';
+    const where: any = {};
+
+    // Se não for MASTER, lista apenas usuários da mesma empresa/tenant
+    if (!isMaster && currentUser?.companyId) {
+      where.companyId = currentUser.companyId;
+    }
+
     return prisma.user.findMany({
+      where,
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        companyId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -23,7 +34,7 @@ export class UserService {
     });
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, currentUser?: { id: string; role: string; companyId?: string | null }) {
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
@@ -31,6 +42,7 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        companyId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -40,10 +52,14 @@ export class UserService {
       throw new Error('Usuário não encontrado');
     }
 
+    if (currentUser?.role !== 'MASTER' && currentUser?.companyId && user.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este usuário');
+    }
+
     return user;
   }
 
-  static async create(data: CreateUserDTO) {
+  static async create(data: CreateUserDTO, currentUser?: { id: string; role: string; companyId?: string | null }) {
     if (!data.name || !data.name.trim()) {
       throw new Error('Nome do usuário é obrigatório');
     }
@@ -62,19 +78,32 @@ export class UserService {
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
+    
+    // Se o criador for MASTER e informar companyId, usa. Senão, herda do criador.
+    let targetCompanyId = currentUser?.companyId || 'default_company';
+    if (currentUser?.role === 'MASTER' && data.companyId) {
+      targetCompanyId = data.companyId;
+    }
+
+    let role = data.role || 'ADMIN';
+    if (role === 'MASTER' && currentUser?.role !== 'MASTER') {
+      role = 'ADMIN';
+    }
 
     const user = await prisma.user.create({
       data: {
         name: data.name.trim(),
         email,
         passwordHash,
-        role: data.role || 'ADMIN',
+        role,
+        companyId: targetCompanyId,
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        companyId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -83,10 +112,15 @@ export class UserService {
     return user;
   }
 
-  static async update(id: string, data: Partial<CreateUserDTO>) {
+  static async update(id: string, data: Partial<CreateUserDTO>, currentUser?: { id: string; role: string; companyId?: string | null }) {
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
       throw new Error('Usuário não encontrado');
+    }
+
+    const isMaster = currentUser?.role === 'MASTER';
+    if (!isMaster && currentUser?.companyId && existing.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este usuário');
     }
 
     const updateData: any = {};
@@ -110,7 +144,14 @@ export class UserService {
     }
 
     if (data.role !== undefined) {
+      if (data.role === 'MASTER' && !isMaster) {
+        throw new Error('Apenas o MASTER pode atribuir este perfil');
+      }
       updateData.role = data.role;
+    }
+
+    if (data.companyId !== undefined && isMaster) {
+      updateData.companyId = data.companyId;
     }
 
     if (data.password && data.password.trim()) {
@@ -128,6 +169,7 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        companyId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -136,20 +178,23 @@ export class UserService {
     return updated;
   }
 
-  static async delete(id: string, currentUserId?: string) {
-    if (id === currentUserId) {
+  static async delete(id: string, currentUser?: { id: string; role: string; companyId?: string | null }) {
+    if (id === currentUser?.id) {
       throw new Error('Você não pode excluir sua própria conta enquanto estiver conectado');
     }
 
-    const totalAdmins = await prisma.user.count({ where: { role: 'ADMIN' } });
     const targetUser = await prisma.user.findUnique({ where: { id } });
-
     if (!targetUser) {
       throw new Error('Usuário não encontrado');
     }
 
-    if (targetUser.role === 'ADMIN' && totalAdmins <= 1) {
-      throw new Error('Não é possível excluir o único administrador do sistema');
+    const isMaster = currentUser?.role === 'MASTER';
+    if (!isMaster && currentUser?.companyId && targetUser.companyId !== currentUser.companyId) {
+      throw new Error('Acesso não permitido a este usuário');
+    }
+
+    if (targetUser.role === 'MASTER') {
+      throw new Error('O usuário MASTER principal não pode ser excluído');
     }
 
     await prisma.user.delete({ where: { id } });

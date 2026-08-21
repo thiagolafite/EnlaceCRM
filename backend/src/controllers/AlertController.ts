@@ -12,19 +12,23 @@ export class AlertController {
         page,
         limit,
       } = req.query;
+      const currentUser = (req as any).user;
 
       let sentManualBool: boolean | undefined = undefined;
       if (sentToClientManual === 'true') sentManualBool = true;
       if (sentToClientManual === 'false') sentManualBool = false;
 
-      const result = await AlertService.listAlerts({
-        date: date ? String(date) : undefined,
-        sentToClientManual: sentManualBool,
-        eventType: eventType ? String(eventType) : undefined,
-        search: search ? String(search) : undefined,
-        page: page ? Number(page) : 1,
-        limit: limit ? Number(limit) : 50,
-      });
+      const result = await AlertService.listAlerts(
+        {
+          date: date ? String(date) : undefined,
+          sentToClientManual: sentManualBool,
+          eventType: eventType ? String(eventType) : undefined,
+          search: search ? String(search) : undefined,
+          page: page ? Number(page) : 1,
+          limit: limit ? Number(limit) : 50,
+        },
+        currentUser
+      );
 
       return res.json(result);
     } catch (err: any) {
@@ -36,8 +40,9 @@ export class AlertController {
     try {
       const { id } = req.params;
       const { sentManual } = req.body;
+      const currentUser = (req as any).user;
 
-      const updated = await AlertService.toggleSentManual(id, sentManual);
+      const updated = await AlertService.toggleSentManual(id, sentManual, currentUser);
       return res.json(updated);
     } catch (err: any) {
       return res.status(400).json({ error: err.message || 'Erro ao atualizar status de envio do alerta' });
@@ -47,9 +52,9 @@ export class AlertController {
   static async resendNotification(req: Request, res: Response) {
     try {
       const { date } = req.body;
-      const targetDate = date ? new Date(date) : new Date();
+      const currentUser = (req as any).user;
 
-      const result = await AlertService.resendDailyNotification(targetDate);
+      const result = await AlertService.resendDailyNotification(date ? String(date) : undefined, currentUser);
       return res.json(result);
     } catch (err: any) {
       return res.status(400).json({ error: err.message || 'Erro ao reenviar notificação' });
@@ -58,7 +63,8 @@ export class AlertController {
 
   static async getStats(req: Request, res: Response) {
     try {
-      const stats = await AlertService.getDashboardStats();
+      const currentUser = (req as any).user;
+      const stats = await AlertService.getStats(currentUser);
       return res.json(stats);
     } catch (err: any) {
       return res.status(400).json({ error: err.message || 'Erro ao buscar métricas do dashboard' });

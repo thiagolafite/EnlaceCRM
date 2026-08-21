@@ -16,6 +16,9 @@ import {
   Mail,
   User,
   Sparkles,
+  Crown,
+  Building2,
+  ShieldAlert,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { User as UserType } from '../types';
@@ -36,16 +39,20 @@ export function Users({ currentUser }: UsersProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const isMaster = currentUser?.role === 'MASTER' || currentUser?.email === 'tigolafite@gmail.com';
+
   const [form, setForm] = useState<{
     name: string;
     email: string;
-    role: 'ADMIN' | 'OPERATOR';
+    role: 'MASTER' | 'ADMIN' | 'OPERATOR';
+    companyId: string;
     password: string;
     confirmPassword: string;
   }>({
     name: '',
     email: '',
     role: 'ADMIN',
+    companyId: '',
     password: '',
     confirmPassword: '',
   });
@@ -54,7 +61,7 @@ export function Users({ currentUser }: UsersProps) {
     try {
       setLoading(true);
       const data = await api.getUsers();
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Erro ao carregar usuários:', err);
     } finally {
@@ -74,6 +81,7 @@ export function Users({ currentUser }: UsersProps) {
         name: userToEdit.name,
         email: userToEdit.email,
         role: userToEdit.role,
+        companyId: userToEdit.companyId || '',
         password: '',
         confirmPassword: '',
       });
@@ -83,6 +91,7 @@ export function Users({ currentUser }: UsersProps) {
         name: '',
         email: '',
         role: 'ADMIN',
+        companyId: '',
         password: '',
         confirmPassword: '',
       });
@@ -114,12 +123,15 @@ export function Users({ currentUser }: UsersProps) {
         if (form.password) {
           payload.password = form.password;
         }
+        if (isMaster && form.companyId) {
+          payload.companyId = form.companyId;
+        }
         await api.updateUser(editingUser.id, payload);
       } else {
         await api.createUser({
           name: form.name,
           email: form.email,
-          role: form.role,
+          role: form.role as any,
           password: form.password,
         });
       }
@@ -139,6 +151,11 @@ export function Users({ currentUser }: UsersProps) {
       return;
     }
 
+    if (userToDelete.role === 'MASTER') {
+      alert('O usuário MASTER principal não pode ser excluído.');
+      return;
+    }
+
     if (!confirm(`Deseja realmente remover o usuário "${userToDelete.name}" (${userToDelete.email})?`)) {
       return;
     }
@@ -154,11 +171,37 @@ export function Users({ currentUser }: UsersProps) {
   const filteredUsers = users.filter((u) => {
     const s = search.toLowerCase().trim();
     if (!s) return true;
-    return u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
+    return (
+      u.name.toLowerCase().includes(s) ||
+      u.email.toLowerCase().includes(s) ||
+      (u.companyId && u.companyId.toLowerCase().includes(s))
+    );
   });
 
   return (
     <div className="space-y-6">
+      {/* Master Mode Banner if master user */}
+      {isMaster && (
+        <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-indigo-500/15 border border-amber-500/30 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/30">
+              <Crown className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-amber-950 dark:text-amber-200 flex items-center gap-2">
+                Painel Master Ativado — Acesso Global Irrestrito
+              </h3>
+              <p className="text-xs text-amber-800/90 dark:text-amber-300/80">
+                Você está conectado como **MASTER ({currentUser?.email})**. Você possui privilégios para visualizar todas as empresas, alterar senhas e gerenciar qualquer conta do sistema.
+              </p>
+            </div>
+          </div>
+          <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-sm">
+            SUPER_ADMIN
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -167,7 +210,7 @@ export function Users({ currentUser }: UsersProps) {
             Usuários do Sistema
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Cadastre administradores e operadores para gerenciar os alertas e contatos do Enlace CRM.
+            Cadastre administradores e operadores para gerenciar os contatos e mensagens do Enlace CRM.
           </p>
         </div>
 
@@ -187,7 +230,7 @@ export function Users({ currentUser }: UsersProps) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar usuário por nome ou e-mail..."
+            placeholder="Buscar usuário por nome, e-mail ou empresa..."
             className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
           />
         </div>
@@ -210,6 +253,7 @@ export function Users({ currentUser }: UsersProps) {
                 <tr>
                   <th className="py-4 px-6">Usuário</th>
                   <th className="py-4 px-6">Perfil de Acesso</th>
+                  {isMaster && <th className="py-4 px-6">Empresa / Tenant</th>}
                   <th className="py-4 px-6">Data de Cadastro</th>
                   <th className="py-4 px-6 text-right">Ações</th>
                 </tr>
@@ -231,8 +275,14 @@ export function Users({ currentUser }: UsersProps) {
                     <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center font-bold text-sm text-indigo-600 dark:text-indigo-400 shrink-0 shadow-sm">
-                            {u.name.charAt(0).toUpperCase()}
+                          <div
+                            className={`w-10 h-10 rounded-2xl border flex items-center justify-center font-bold text-sm shrink-0 shadow-sm ${
+                              u.role === 'MASTER'
+                                ? 'bg-amber-50 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/20'
+                                : 'bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400'
+                            }`}
+                          >
+                            {u.role === 'MASTER' ? <Crown className="w-5 h-5 text-amber-500" /> : u.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -251,7 +301,12 @@ export function Users({ currentUser }: UsersProps) {
                       </td>
 
                       <td className="py-4 px-6">
-                        {u.role === 'ADMIN' ? (
+                        {u.role === 'MASTER' ? (
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/80 text-amber-800 dark:text-amber-300 text-xs font-black shadow-xs">
+                            <Crown className="w-3.5 h-3.5 text-amber-500" />
+                            <span>MASTER GLOBAL</span>
+                          </div>
+                        ) : u.role === 'ADMIN' ? (
                           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-semibold">
                             <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                             <span>Administrador</span>
@@ -264,6 +319,14 @@ export function Users({ currentUser }: UsersProps) {
                         )}
                       </td>
 
+                      {isMaster && (
+                        <td className="py-4 px-6 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                            {u.companyId || 'default_company'}
+                          </span>
+                        </td>
+                      )}
+
                       <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 font-mono">
                         {formattedDate}
                       </td>
@@ -271,17 +334,23 @@ export function Users({ currentUser }: UsersProps) {
                       <td className="py-4 px-6 text-right space-x-2">
                         <button
                           onClick={() => handleOpenModal(u)}
-                          title="Editar usuário"
+                          title="Editar usuário / Redefinir senha"
                           className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(u)}
-                          disabled={Boolean(isCurrent)}
-                          title={isCurrent ? 'Não é possível excluir o próprio usuário' : 'Excluir usuário'}
-                          className={`p-2 rounded-xl transition-colors ${
+                          disabled={Boolean(isCurrent || u.role === 'MASTER')}
+                          title={
                             isCurrent
+                              ? 'Não é possível excluir o próprio usuário'
+                              : u.role === 'MASTER'
+                              ? 'Usuário MASTER não pode ser excluído'
+                              : 'Excluir usuário'
+                          }
+                          className={`p-2 rounded-xl transition-colors ${
+                            isCurrent || u.role === 'MASTER'
                               ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
                               : 'text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                           }`}
@@ -302,7 +371,7 @@ export function Users({ currentUser }: UsersProps) {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingUser ? 'Editar Usuário' : 'Novo Usuário do Sistema'}
+        title={editingUser ? 'Editar Usuário / Redefinir Senha' : 'Novo Usuário do Sistema'}
         subtitle="Defina o perfil de permissão, e-mail de acesso e senha de segurança"
         maxWidth="lg"
       >
@@ -341,15 +410,37 @@ export function Users({ currentUser }: UsersProps) {
             </div>
           </div>
 
+          {/* Role selector */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Perfil de Acesso / Permissão *
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${isMaster ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              {isMaster && (
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, role: 'MASTER' })}
+                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                    form.role === 'MASTER'
+                      ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 ring-2 ring-amber-500/30'
+                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <Crown className="w-5 h-5 text-amber-500" />
+                    {form.role === 'MASTER' && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
+                  </div>
+                  <div className="font-bold text-xs">MASTER</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                    Acesso global a todas empresas.
+                  </div>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: 'ADMIN' })}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                   form.role === 'ADMIN'
                     ? 'border-purple-500 bg-purple-50/70 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 ring-2 ring-purple-500/20'
                     : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
@@ -360,15 +451,15 @@ export function Users({ currentUser }: UsersProps) {
                   {form.role === 'ADMIN' && <CheckCircle2 className="w-4 h-4 text-purple-600" />}
                 </div>
                 <div className="font-bold text-xs">Administrador</div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                  Acesso total a cadastros, configurações e automações.
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                  Acesso total a cadastros e automações.
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: 'OPERATOR' })}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                   form.role === 'OPERATOR'
                     ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20'
                     : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
@@ -379,17 +470,36 @@ export function Users({ currentUser }: UsersProps) {
                   {form.role === 'OPERATOR' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
                 </div>
                 <div className="font-bold text-xs">Operador</div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                  Operação diária de alertas, agenda e envio de mensagens.
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                  Operação diária de alertas e agenda.
                 </div>
               </button>
             </div>
           </div>
 
+          {/* Master Company Tenant Edit */}
+          {isMaster && editingUser && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                ID da Empresa / Tenant (Controle Master)
+              </label>
+              <div className="relative">
+                <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={form.companyId}
+                  onChange={(e) => setForm({ ...form, companyId: e.target.value })}
+                  placeholder="default_company ou ID da empresa"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-10 pr-3 text-xs text-slate-900 dark:text-slate-100 font-mono outline-none"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {editingUser ? 'Redefinir Senha (Deixe em branco para manter)' : 'Senha de Acesso *'}
+                {editingUser ? 'Redefinir Senha do Usuário' : 'Senha de Acesso *'}
               </label>
               <button
                 type="button"
@@ -409,7 +519,7 @@ export function Users({ currentUser }: UsersProps) {
                   required={!editingUser}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder={editingUser ? 'Nova senha (opcional)' : 'Mínimo 6 dígitos'}
+                  placeholder={editingUser ? 'Digitar nova senha' : 'Mínimo 6 dígitos'}
                   className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-9 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none font-mono"
                 />
               </div>
@@ -421,7 +531,7 @@ export function Users({ currentUser }: UsersProps) {
                   required={Boolean(form.password)}
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                  placeholder="Confirme a senha"
+                  placeholder="Confirme a nova senha"
                   className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-9 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none font-mono"
                 />
               </div>

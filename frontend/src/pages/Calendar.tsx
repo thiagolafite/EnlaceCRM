@@ -20,10 +20,16 @@ import {
   Cake,
   Users,
   MessageCircle,
+  Mail,
+  Copy,
   ExternalLink,
+  Search,
+  Check,
+  Send,
+  Sliders,
 } from 'lucide-react';
 import { api } from '../services/api';
-import { CommemorativeDate, UpcomingEvent, Client } from '../types';
+import { CommemorativeDate, UpcomingEvent, Client, MessageTemplate } from '../types';
 import { Modal } from '../components/Modal';
 import { EventTypeBadge } from '../components/Badge';
 
@@ -59,6 +65,17 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
   OTHER: 'Familiar',
 };
 
+const RELATIONSHIP_POSSESSIVE: Record<string, string> = {
+  SPOUSE: 'seu(sua) cônjuge',
+  CHILD: 'seu(sua) filho(a)',
+  SON: 'seu filho',
+  DAUGHTER: 'sua filha',
+  MOTHER: 'sua mãe',
+  FATHER: 'seu pai',
+  SIBLING: 'seu(sua) irmão(ã)',
+  OTHER: 'seu familiar',
+};
+
 export interface UnifiedCalendarEvent {
   id: string;
   name: string;
@@ -72,7 +89,10 @@ export interface UnifiedCalendarEvent {
   clientId?: string;
   clientName?: string;
   familyMemberId?: string;
+  familyMemberName?: string;
+  relationship?: string;
   phone?: string | null;
+  email?: string | null;
   isCustomDate?: boolean;
   rawDateObject?: CommemorativeDate;
 }
@@ -100,14 +120,44 @@ function parseDayAndMonth(dateStr: string | Date | null | undefined): { day: num
   return null;
 }
 
+function interpolateMessage(
+  templateText: string,
+  data: {
+    nome_cliente?: string;
+    primeiro_nome?: string;
+    nome_familiar?: string;
+    parentesco?: string;
+    parentesco_possessivo?: string;
+    nome_empresa?: string;
+    ano_atual?: string;
+  }
+): string {
+  let result = templateText;
+  const company = data.nome_empresa || 'Enlace CRM';
+  const currentYear = data.ano_atual || String(new Date().getFullYear());
+
+  result = result.replace(/\{\{nome_cliente\}\}/g, data.nome_cliente || 'Cliente');
+  result = result.replace(/\{\{primeiro_nome\}\}/g, data.primeiro_nome || data.nome_cliente?.split(' ')[0] || 'Cliente');
+  result = result.replace(/\{\{nome_familiar\}\}/g, data.nome_familiar || 'seu familiar');
+  result = result.replace(/\{\{parentesco\}\}/g, data.parentesco || 'familiar');
+  result = result.replace(/\{\{parentesco_possessivo\}\}/g, data.parentesco_possessivo || 'seu familiar');
+  result = result.replace(/\{\{nome_empresa\}\}/g, company);
+  result = result.replace(/\{\{ano_atual\}\}/g, currentYear);
+  return result;
+}
+
 export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   const [dates, setDates] = useState<CommemorativeDate[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [upcoming, setUpcoming] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'year' | 'agenda' | 'fixed'>(defaultTab);
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'BIRTHDAYS' | 'FIXED'>('ALL');
+
+  // Copy Feedback
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Modal para criar/editar data fixa
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -123,9 +173,17 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     active: true,
   });
 
-  // Modal de Detalhes do Aniversariante
+  // Modal de Envio Rápido de Aniversário (Item 3)
   const [selectedBirthday, setSelectedBirthday] = useState<UnifiedCalendarEvent | null>(null);
   const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
+  const [birthdayChannel, setBirthdayChannel] = useState<'WHATSAPP' | 'EMAIL'>('WHATSAPP');
+
+  // Modal de Disparo de Feriado / Data Fixa com Seleção de Clientes (Item 4)
+  const [selectedHoliday, setSelectedHoliday] = useState<CommemorativeDate | null>(null);
+  const [isHolidayBroadcastModalOpen, setIsHolidayBroadcastModalOpen] = useState(false);
+  const [holidayChannel, setHolidayChannel] = useState<'WHATSAPP' | 'EMAIL'>('WHATSAPP');
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [holidaySearch, setHolidaySearch] = useState('');
 
   useEffect(() => {
     if (defaultTab) {
@@ -136,14 +194,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [datesData, upcomingData, clientsRes] = await Promise.all([
+      const [datesData, upcomingData, clientsRes, tplsData] = await Promise.all([
         api.getDates(),
         api.getUpcomingEvents(60),
         api.getClients({ limit: 1000 }),
+        api.getTemplates(),
       ]);
       setDates(Array.isArray(datesData) ? datesData : []);
       setUpcoming(Array.isArray(upcomingData) ? upcomingData : []);
-      
+      setTemplates(Array.isArray(tplsData) ? tplsData : []);
+
       const clientsList = Array.isArray(clientsRes)
         ? clientsRes
         : (clientsRes as any)?.data && Array.isArray((clientsRes as any).data)
@@ -196,6 +256,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           clientId: c.id,
           clientName: c.name,
           phone: c.phone,
+          email: c.email,
         });
       }
     }
@@ -217,7 +278,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               clientId: c.id,
               clientName: c.name,
               familyMemberId: fm.id,
+              familyMemberName: fm.name,
+              relationship: fm.relationship,
               phone: fm.phone || c.phone,
+              email: fm.email || c.email,
             });
           }
         }
@@ -254,9 +318,20 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     setIsModalOpen(true);
   };
 
+  // Abrir Modal de Envio Rápido de Aniversário (Item 3)
   const handleOpenBirthdayModal = (event: UnifiedCalendarEvent) => {
     setSelectedBirthday(event);
+    setBirthdayChannel('WHATSAPP');
     setIsBirthdayModalOpen(true);
+  };
+
+  // Abrir Modal de Disparo de Feriado / Data Fixa (Item 4)
+  const handleOpenHolidayBroadcastModal = (dateObj: CommemorativeDate) => {
+    setSelectedHoliday(dateObj);
+    setHolidayChannel('WHATSAPP');
+    setSelectedClientIds(clients.map((c) => c.id)); // Seleciona todos por padrão
+    setHolidaySearch('');
+    setIsHolidayBroadcastModalOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -293,6 +368,12 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     } catch (err: any) {
       alert(err.message || 'Erro ao excluir data');
     }
+  };
+
+  const handleCopyText = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2500);
   };
 
   // Helper para gerar a matriz de dias de um mês específico
@@ -367,6 +448,124 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     (e) => e.category === 'CLIENT_BIRTHDAY' || e.category === 'FAMILY_BIRTHDAY'
   ).length;
 
+  // Obter texto renderizado de mensagem de aniversário
+  const getBirthdayRenderedMessage = (event: UnifiedCalendarEvent, channel: 'WHATSAPP' | 'EMAIL') => {
+    const isClient = event.category === 'CLIENT_BIRTHDAY';
+    const eventType = isClient ? 'CLIENT_BIRTHDAY' : 'FAMILY_BIRTHDAY';
+
+    const matchedTpl = templates.find((t) => t.eventType === eventType && t.channel === channel);
+
+    const defaultContent = isClient
+      ? channel === 'WHATSAPP'
+        ? `Olá, {{primeiro_nome}}! 🎉🎂\n\nHoje é um dia muito especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, com muita saúde, paz, prosperidade e momentos inesquecíveis.\n\nÉ um imenso privilégio ter você como nosso cliente. Parabéns pelo seu dia! ✨🎈`
+        : `Prezado(a) {{nome_cliente}},\n\nHoje é um dia de celebração! 🎂✨\n\nToda a equipe da {{nome_empresa}} deseja a você um Feliz Aniversário, com muita saúde e realizações!\n\nAtenciosamente,\nEquipe {{nome_empresa}}`
+      : channel === 'WHATSAPP'
+      ? `Olá, {{primeiro_nome}}! 💐🥳\n\nSoubemos que hoje {{parentesco_possessivo}}, {{nome_familiar}}, está celebrando mais um ano de vida!\n\nNós da {{nome_empresa}} queremos estender nossos mais afetuosos parabéns e desejar um dia maravilhoso para toda a sua família! 🥂✨`
+      : `Olá, {{primeiro_nome}},\n\nFicamos muito felizes em saber que hoje é aniversário de {{parentesco_possessivo}}, {{nome_familiar}}! 🥳🎂\n\nDesejamos muitas felicidades e saúde para toda a família.\n\nUm grande abraço,\nEquipe {{nome_empresa}}`;
+
+    const rawContent = matchedTpl?.content || defaultContent;
+    const rawSubject = matchedTpl?.subject || `🎉 Feliz Aniversário da Equipe {{nome_empresa}}!`;
+
+    const renderedBody = interpolateMessage(rawContent, {
+      nome_cliente: event.clientName || 'Cliente',
+      primeiro_nome: event.clientName?.split(' ')[0] || 'Cliente',
+      nome_familiar: event.familyMemberName || 'Familiar',
+      parentesco: event.relationship ? RELATIONSHIP_LABELS[event.relationship] : 'familiar',
+      parentesco_possessivo: event.relationship ? RELATIONSHIP_POSSESSIVE[event.relationship] : 'seu familiar',
+      nome_empresa: 'Enlace CRM',
+      ano_atual: String(currentYear),
+    });
+
+    const renderedSubject = interpolateMessage(rawSubject, {
+      nome_cliente: event.clientName || 'Cliente',
+      primeiro_nome: event.clientName?.split(' ')[0] || 'Cliente',
+      nome_familiar: event.familyMemberName || 'Familiar',
+      nome_empresa: 'Enlace CRM',
+      ano_atual: String(currentYear),
+    });
+
+    return { subject: renderedSubject, body: renderedBody };
+  };
+
+  // Obter texto renderizado de mensagem de Feriado / Data Comemorativa Fixa para um Cliente
+  const getHolidayRenderedMessage = (
+    holiday: CommemorativeDate,
+    client: Client,
+    channel: 'WHATSAPP' | 'EMAIL'
+  ) => {
+    const matchedTpl = templates.find(
+      (t) =>
+        t.eventType === 'FIXED_DATE' &&
+        t.channel === channel &&
+        (t.commemorativeDateId === holiday.id || t.name.toLowerCase().includes(holiday.name.toLowerCase()))
+    );
+
+    const defaultContent =
+      channel === 'WHATSAPP'
+        ? `Olá, {{primeiro_nome}}! ✨\n\nNeste(a) ${holiday.name}, a equipe da {{nome_empresa}} deseja a você e toda a sua família momentos de muita alegria, paz e comemoração!\n\nUm grande abraço!`
+        : `Prezado(a) {{nome_cliente}},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} deseja a você um excelente dia, com harmonia e realizações.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
+
+    const defaultSubject = `🌟 Votos de Feliz ${holiday.name} — {{nome_empresa}}`;
+
+    const rawContent = matchedTpl?.content || defaultContent;
+    const rawSubject = matchedTpl?.subject || defaultSubject;
+
+    const renderedBody = interpolateMessage(rawContent, {
+      nome_cliente: client.name,
+      primeiro_nome: client.name.split(' ')[0],
+      nome_empresa: 'Enlace CRM',
+      ano_atual: String(currentYear),
+    });
+
+    const renderedSubject = interpolateMessage(rawSubject, {
+      nome_cliente: client.name,
+      primeiro_nome: client.name.split(' ')[0],
+      nome_empresa: 'Enlace CRM',
+      ano_atual: String(currentYear),
+    });
+
+    return { subject: renderedSubject, body: renderedBody };
+  };
+
+  // Disparar WhatsApp Web / App
+  const handleOpenWhatsApp = (phone: string, text: string) => {
+    let clean = phone.replace(/\D/g, '');
+    if (!clean.startsWith('55') && clean.length <= 11) {
+      clean = '55' + clean;
+    }
+    const url = `https://wa.me/${clean}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  // Disparar Cliente de E-mail
+  const handleOpenEmail = (email: string, subject: string, body: string) => {
+    const mailto = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailto, '_blank');
+  };
+
+  // Filtrar clientes na modal de feriado
+  const filteredBroadcastClients = clients.filter((c) => {
+    if (!holidaySearch) return true;
+    const s = holidaySearch.toLowerCase();
+    return c.name.toLowerCase().includes(s) || (c.phone && c.phone.includes(s)) || (c.email && c.email.toLowerCase().includes(s));
+  });
+
+  const handleToggleSelectAllClients = () => {
+    if (selectedClientIds.length === clients.length) {
+      setSelectedClientIds([]);
+    } else {
+      setSelectedClientIds(clients.map((c) => c.id));
+    }
+  };
+
+  const handleToggleClient = (id: string) => {
+    if (selectedClientIds.includes(id)) {
+      setSelectedClientIds(selectedClientIds.filter((item) => item !== id));
+    } else {
+      setSelectedClientIds([...selectedClientIds, id]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -377,7 +576,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             Datas Comemorativas & Calendário Anual
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Calendário completo com feriados, datas comemorativas e **aniversários de clientes e familiares preenchidos automaticamente**.
+            Calendário completo com feriados, datas comemorativas e **aniversários preenchidos automaticamente com envio facilitado via WhatsApp e E-mail**.
           </p>
         </div>
 
@@ -425,7 +624,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       </div>
 
       {/* ==================================================================== */}
-      {/* 1. VISÃO: CALENDÁRIO ANUAL DOS 12 MESES (COM DATAS + ANIVERSÁRIOS) */}
+      {/* 1. VISÃO: CALENDÁRIO ANUAL DOS 12 MESES (COM BOTÕES FACILITADORES) */}
       {/* ==================================================================== */}
       {selectedTab === 'year' && (
         <div className="space-y-6">
@@ -582,7 +781,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               onClick={() => {
                                 if (hasEvent) {
                                   if (hasEvent.isCustomDate && hasEvent.rawDateObject) {
-                                    handleOpenModal(hasEvent.rawDateObject);
+                                    handleOpenHolidayBroadcastModal(hasEvent.rawDateObject);
                                   } else {
                                     handleOpenBirthdayModal(hasEvent);
                                   }
@@ -624,24 +823,31 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                         <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                           {monthEvents.map((evt) => {
                             const theme = getCategoryTheme(evt.category);
+                            const isBirthday = evt.category === 'CLIENT_BIRTHDAY' || evt.category === 'FAMILY_BIRTHDAY';
+
                             return (
                               <button
                                 key={evt.id}
                                 type="button"
                                 onClick={() => {
-                                  if (evt.isCustomDate && evt.rawDateObject) {
-                                    handleOpenModal(evt.rawDateObject);
-                                  } else {
+                                  if (isBirthday) {
                                     handleOpenBirthdayModal(evt);
+                                  } else if (evt.rawDateObject) {
+                                    handleOpenHolidayBroadcastModal(evt.rawDateObject);
                                   }
                                 }}
-                                className={`w-full p-2 rounded-xl border text-left text-xs transition-all hover:scale-[1.01] flex items-start gap-2 shadow-xs ${theme.card}`}
+                                className={`w-full p-2 rounded-xl border text-left text-xs transition-all hover:scale-[1.01] flex items-start gap-2 shadow-xs ${theme.card} group/btn`}
                               >
                                 <span className="font-mono font-black text-[11px] shrink-0 bg-white/80 dark:bg-slate-900/90 px-1.5 py-0.5 rounded-lg border border-current shadow-xs">
                                   {String(evt.day).padStart(2, '0')}
                                 </span>
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-bold truncate text-[11px]">{evt.name}</div>
+                                  <div className="font-bold truncate text-[11px] flex items-center justify-between gap-1">
+                                    <span className="truncate">{evt.name}</span>
+                                    <span className="shrink-0 text-[10px] opacity-0 group-hover/btn:opacity-100 transition-opacity text-indigo-600 dark:text-indigo-400 font-extrabold">
+                                      {isBirthday ? 'Enviar ➔' : 'Disparo ➔'}
+                                    </span>
+                                  </div>
                                   <div className="text-[10px] opacity-75 truncate">{theme.tag}</div>
                                 </div>
                               </button>
@@ -684,44 +890,47 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             <div className="py-12 text-center text-slate-400">Nenhum evento previsto para os próximos 60 dias.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {upcoming.map((evt, idx) => (
-                <div
-                  key={idx}
-                  className={`p-4 rounded-2xl border transition-all ${
-                    evt.isToday
-                      ? 'bg-indigo-50 dark:bg-gradient-to-br dark:from-indigo-950/80 dark:to-slate-900 border-indigo-300 dark:border-indigo-500/50 shadow-md'
-                      : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="text-center w-14 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
-                      <span className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">
-                        {MONTHS_PT[evt.month - 1].substring(0, 3)}
-                      </span>
-                      <span className="block text-lg font-extrabold text-slate-900 dark:text-white">
-                        {String(evt.day).padStart(2, '0')}
-                      </span>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <EventTypeBadge type={evt.type} />
+              {upcoming.map((evt, idx) => {
+                const isBirthday = evt.type === 'CLIENT_BIRTHDAY' || evt.type === 'FAMILY_BIRTHDAY';
+                return (
+                  <div
+                    key={idx}
+                    className={`p-4 rounded-2xl border transition-all ${
+                      evt.isToday
+                        ? 'bg-indigo-50 dark:bg-gradient-to-br dark:from-indigo-950/80 dark:to-slate-900 border-indigo-300 dark:border-indigo-500/50 shadow-md'
+                        : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="text-center w-14 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                        <span className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">
+                          {MONTHS_PT[evt.month - 1].substring(0, 3)}
+                        </span>
+                        <span className="block text-lg font-extrabold text-slate-900 dark:text-white">
+                          {String(evt.day).padStart(2, '0')}
+                        </span>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{evt.title}</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{evt.subtitle}</p>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <EventTypeBadge type={evt.type} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{evt.title}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{evt.subtitle}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                      <span className="text-slate-600 dark:text-slate-400 font-semibold">
+                        {evt.isToday ? '🔥 Acontece Hoje!' : `Em ${evt.daysRemaining} dias`}
+                      </span>
+                      <span className="text-[11px] text-indigo-600 dark:text-indigo-300 font-bold">
+                        {isBirthday ? 'Aniversário' : 'Data Fixa'}
+                      </span>
                     </div>
                   </div>
-
-                  <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span className="text-slate-600 dark:text-slate-400 font-semibold">
-                      {evt.isToday ? '🔥 Acontece Hoje!' : `Em ${evt.daysRemaining} dias`}
-                    </span>
-                    <span className="text-[11px] text-indigo-600 dark:text-indigo-300 font-bold">
-                      {evt.type === 'CLIENT_BIRTHDAY' || evt.type === 'FAMILY_BIRTHDAY' ? 'Automático (Nascimento)' : 'Data Calendário'}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -752,13 +961,22 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
                     <div className="flex items-center gap-1">
                       <button
+                        onClick={() => handleOpenHolidayBroadcastModal(item)}
+                        title="Disparar para Clientes"
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleOpenModal(item)}
+                        title="Editar data"
                         className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id, item.name)}
+                        title="Excluir data"
                         className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -779,7 +997,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
-                  <span>Público: {item.targetAudience === 'ALL_CLIENTS' ? 'Todos os Clientes' : item.targetAudience}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenHolidayBroadcastModal(item)}
+                    className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 text-xs"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Disparar para Clientes
+                  </button>
+
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       item.active
@@ -796,7 +1021,9 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         </div>
       )}
 
-      {/* Modal Criar / Editar Data Comemorativa */}
+      {/* ==================================================================== */}
+      {/* MODAL 1: CRIAR / EDITAR DATA COMEMORATIVA */}
+      {/* ==================================================================== */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -919,62 +1146,323 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         </form>
       </Modal>
 
-      {/* Modal Detalhes do Aniversariante */}
+      {/* ==================================================================== */}
+      {/* MODAL 2: ENVIAR MENSAGEM DE ANIVERSÁRIO (FACILITADOR WHATSAPP & E-MAIL - ITEM 3) */}
+      {/* ==================================================================== */}
       <Modal
         isOpen={isBirthdayModalOpen}
         onClose={() => setIsBirthdayModalOpen(false)}
-        title="Detalhes do Aniversariante"
-        subtitle="Data de aniversário cadastrada automaticamente a partir do cliente"
-        maxWidth="md"
+        title="Enviar Felicitações de Aniversário"
+        subtitle="Mensagem personalizada pronta para envio imediato"
+        maxWidth="lg"
       >
-        {selectedBirthday && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-extrabold text-lg shrink-0 shadow-sm">
-                🎂
+        {selectedBirthday && (() => {
+          const msg = getBirthdayRenderedMessage(selectedBirthday, birthdayChannel);
+          const hasPhone = Boolean(selectedBirthday.phone);
+          const hasEmail = Boolean(selectedBirthday.email);
+
+          return (
+            <div className="space-y-4">
+              {/* Header do aniversariante */}
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-extrabold text-xl shrink-0 shadow-md shadow-amber-500/30">
+                    🎂
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+                      {selectedBirthday.name}
+                    </h4>
+                    <p className="text-xs text-amber-800 dark:text-amber-300 font-semibold">
+                      Dia {String(selectedBirthday.day).padStart(2, '0')} de {MONTHS_PT[selectedBirthday.month - 1]}
+                      {selectedBirthday.clientName && ` • Cliente: ${selectedBirthday.clientName}`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Channel Selector */}
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/80">
+                  <button
+                    type="button"
+                    onClick={() => setBirthdayChannel('WHATSAPP')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                      birthdayChannel === 'WHATSAPP'
+                        ? 'bg-emerald-500 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBirthdayChannel('EMAIL')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                      birthdayChannel === 'EMAIL'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <Mail className="w-3.5 h-3.5" /> E-mail
+                  </button>
+                </div>
               </div>
+
+              {/* Subject if email */}
+              {birthdayChannel === 'EMAIL' && (
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
+                  <strong className="text-slate-500">Assunto:</strong>{' '}
+                  <span className="font-bold text-slate-900 dark:text-slate-100">{msg.subject}</span>
+                </div>
+              )}
+
+              {/* Message Preview Box */}
               <div>
-                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
-                  {selectedBirthday.name}
+                <div className="flex items-center justify-between mb-1 text-xs">
+                  <span className="font-bold text-slate-600 dark:text-slate-400">Mensagem Pronta:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(msg.body, 'bday-copy')}
+                    className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1"
+                  >
+                    {copiedId === 'bday-copy' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedId === 'bday-copy' ? 'Copiado!' : 'Copiar Texto'}
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono leading-relaxed max-h-60 overflow-y-auto">
+                  {msg.body}
+                </div>
+              </div>
+
+              {/* Quick Action Buttons */}
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsBirthdayModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300"
+                >
+                  Fechar
+                </button>
+
+                {birthdayChannel === 'WHATSAPP' ? (
+                  <button
+                    type="button"
+                    disabled={!hasPhone}
+                    onClick={() => handleOpenWhatsApp(selectedBirthday.phone!, msg.body)}
+                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    {hasPhone ? `Enviar no WhatsApp (${selectedBirthday.phone})` : 'Telefone não informado'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!hasEmail}
+                    onClick={() => handleOpenEmail(selectedBirthday.email!, msg.subject, msg.body)}
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
+                  >
+                    <Mail className="w-4 h-4" />
+                    {hasEmail ? `Enviar E-mail (${selectedBirthday.email})` : 'E-mail não informado'}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+      </Modal>
+
+      {/* ==================================================================== */}
+      {/* MODAL 3: DISPARO DE FERIADO / DATA FIXA COM SELEÇÃO DE CLIENTES (ITEM 4) */}
+      {/* ==================================================================== */}
+      <Modal
+        isOpen={isHolidayBroadcastModalOpen}
+        onClose={() => setIsHolidayBroadcastModalOpen(false)}
+        title={`Felicitações: ${selectedHoliday?.name}`}
+        subtitle="Selecione os clientes para enviar mensagens personalizadas deste feriado ou data comemorativa"
+        maxWidth="3xl"
+      >
+        {selectedHoliday && (
+          <div className="space-y-4">
+            {/* Header info & channel switcher */}
+            <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                  Data Comemorativa / Feriado
+                </span>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <Star className="w-4 h-4 text-purple-600" /> {selectedHoliday.name} (Dia {String(selectedHoliday.day).padStart(2, '0')}/{String(selectedHoliday.month).padStart(2, '0')})
                 </h4>
-                <p className="text-xs text-amber-800 dark:text-amber-300 font-semibold">
-                  Dia {String(selectedBirthday.day).padStart(2, '0')} de {MONTHS_PT[selectedBirthday.month - 1]}
-                </p>
+              </div>
+
+              {/* Channel Selector */}
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800/80">
+                <button
+                  type="button"
+                  onClick={() => setHolidayChannel('WHATSAPP')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    holidayChannel === 'WHATSAPP'
+                      ? 'bg-emerald-500 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHolidayChannel('EMAIL')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    holidayChannel === 'EMAIL'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" /> E-mail
+                </button>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                <span className="font-bold">Contexto:</span>
-                <span className="text-slate-900 dark:text-slate-100">{selectedBirthday.description}</span>
+            {/* Clients Selection Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleSelectAllClients}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+                >
+                  {selectedClientIds.length === clients.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                </button>
+                <span className="text-xs font-bold text-slate-500">
+                  {selectedClientIds.length} de {clients.length} clientes selecionados
+                </span>
               </div>
 
-              {selectedBirthday.clientName && (
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                  <span className="font-bold">Cliente Vinculado:</span>
-                  <span className="text-slate-900 dark:text-slate-100 font-semibold">
-                    {selectedBirthday.clientName}
-                  </span>
-                </div>
-              )}
+              {/* Search clients */}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={holidaySearch}
+                  onChange={(e) => setHolidaySearch(e.target.value)}
+                  placeholder="Filtrar clientes..."
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
+                />
+              </div>
+            </div>
 
-              {selectedBirthday.phone && (
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                  <span className="font-bold">WhatsApp:</span>
-                  <span className="text-slate-900 dark:text-slate-100 font-mono">
-                    {selectedBirthday.phone}
-                  </span>
+            {/* Clients Table with Individual Sending Action */}
+            <div className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden max-h-80 overflow-y-auto">
+              {filteredBroadcastClients.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400">
+                  Nenhum cliente cadastrado ou encontrado pelo filtro.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
+                  {filteredBroadcastClients.map((client) => {
+                    const isSelected = selectedClientIds.includes(client.id);
+                    const msg = getHolidayRenderedMessage(selectedHoliday, client, holidayChannel);
+                    const hasPhone = Boolean(client.phone);
+                    const hasEmail = Boolean(client.email);
+
+                    return (
+                      <div
+                        key={client.id}
+                        className={`p-3.5 flex items-center justify-between gap-3 transition-colors ${
+                          isSelected ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : 'opacity-60'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleClient(client.id)}
+                            className="w-4 h-4 rounded text-indigo-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 cursor-pointer shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                              {client.name}
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                              {holidayChannel === 'WHATSAPP'
+                                ? client.phone || 'Sem WhatsApp'
+                                : client.email || 'Sem E-mail'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Individual Quick Actions */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyText(msg.body, `h-${client.id}`)}
+                            title="Copiar mensagem"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            {copiedId === `h-${client.id}` ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+
+                          {holidayChannel === 'WHATSAPP' ? (
+                            <button
+                              type="button"
+                              disabled={!hasPhone}
+                              onClick={() => handleOpenWhatsApp(client.phone!, msg.body)}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-[11px] font-bold text-white shadow-md shadow-emerald-600/20 flex items-center gap-1 transition-all disabled:opacity-40"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" /> Enviar WhatsApp
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={!hasEmail}
+                              onClick={() => handleOpenEmail(client.email!, msg.subject, msg.body)}
+                              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-[11px] font-bold text-white shadow-md shadow-indigo-600/20 flex items-center gap-1 transition-all disabled:opacity-40"
+                            >
+                              <Mail className="w-3.5 h-3.5" /> Enviar E-mail
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            {/* Footer */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => setIsBirthdayModalOpen(false)}
+                onClick={() => {
+                  const allMsgs = filteredBroadcastClients
+                    .filter((c) => selectedClientIds.includes(c.id))
+                    .map((c) => {
+                      const m = getHolidayRenderedMessage(selectedHoliday, c, holidayChannel);
+                      return `=== [${c.name} - ${c.phone || c.email || ''}] ===\n${m.body}\n`;
+                    })
+                    .join('\n');
+                  handleCopyText(allMsgs, 'copy-all-broadcast');
+                }}
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+              >
+                {copiedId === 'copy-all-broadcast' ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+                {copiedId === 'copy-all-broadcast'
+                  ? 'Todas as mensagens copiadas!'
+                  : 'Copiar Mensagens de Todos Selecionados'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsHolidayBroadcastModalOpen(false)}
                 className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300"
               >
-                Fechar
+                Concluir
               </button>
             </div>
           </div>

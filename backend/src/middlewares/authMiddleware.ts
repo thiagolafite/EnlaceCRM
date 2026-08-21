@@ -8,6 +8,7 @@ export interface AuthenticatedRequest extends Request {
     email: string;
     role: string;
     name: string;
+    companyId?: string | null;
   };
 }
 
@@ -30,6 +31,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
       email: string;
       role: string;
       name: string;
+      companyId?: string | null;
     };
 
     req.user = decoded;
