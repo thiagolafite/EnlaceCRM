@@ -241,6 +241,11 @@ export const api = {
     request<{ success: boolean }>(`/users/${id}`, {
       method: 'DELETE',
     }),
+  toggleUserApproval: (id: string, approve: boolean) =>
+    request<User>(`/users/${id}/approval`, {
+      method: 'PATCH',
+      body: JSON.stringify({ approve }),
+    }),
 
   // Master Monitoring & Security Logs
   getLogs: (params?: {

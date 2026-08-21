@@ -1,11 +1,13 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../utils/prisma';
+import { LogService } from './LogService';
 
 export interface CreateUserDTO {
   name: string;
   email: string;
   password?: string;
   role?: 'MASTER' | 'ADMIN' | 'OPERATOR';
+  status?: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
   companyId?: string;
 }
 
@@ -26,11 +28,12 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        status: true,
         companyId: true,
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { name: 'asc' },
+      orderBy: [{ status: 'asc' }, { name: 'asc' }],
     });
   }
 
@@ -42,6 +45,7 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        status: true,
         companyId: true,
         createdAt: true,
         updatedAt: true,
@@ -79,16 +83,19 @@ export class UserService {
 
     const passwordHash = await bcrypt.hash(data.password, 10);
     
-    // Se o criador for MASTER e informar companyId, usa. Senão, herda do criador.
+    // Se o criador for MASTER, a conta pode ser ativada diretamente
+    const isMaster = currentUser?.role === 'MASTER';
     let targetCompanyId = currentUser?.companyId || 'default_company';
-    if (currentUser?.role === 'MASTER' && data.companyId) {
+    if (isMaster && data.companyId) {
       targetCompanyId = data.companyId;
     }
 
     let role = data.role || 'ADMIN';
-    if (role === 'MASTER' && currentUser?.role !== 'MASTER') {
+    if (role === 'MASTER' && !isMaster) {
       role = 'ADMIN';
     }
+
+    const status = data.status || (isMaster ? 'ACTIVE' : 'PENDING_APPROVAL');
 
     const user = await prisma.user.create({
       data: {
@@ -96,6 +103,7 @@ export class UserService {
         email,
         passwordHash,
         role,
+        status,
         companyId: targetCompanyId,
       },
       select: {
@@ -103,10 +111,21 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        status: true,
         companyId: true,
         createdAt: true,
         updatedAt: true,
       },
+    });
+
+    await LogService.createLog({
+      level: 'INFO',
+      category: 'AUTH',
+      action: 'USER_CREATED_BY_ADMIN',
+      message: `Usuário ${user.name} (${user.email}) criado por ${currentUser?.role || 'Admin'} [Status: ${status}]`,
+      userId: user.id,
+      userEmail: user.email,
+      companyId: user.companyId || undefined,
     });
 
     return user;
@@ -150,6 +169,21 @@ export class UserService {
       updateData.role = data.role;
     }
 
+    if (data.status !== undefined) {
+      if (data.status === 'ACTIVE' && existing.status === 'PENDING_APPROVAL') {
+        await LogService.createLog({
+          level: 'INFO',
+          category: 'SECURITY',
+          action: 'USER_APPROVED_BY_MASTER',
+          message: `Conta de ${existing.name} (${existing.email}) foi APROVADA e ativada pelo Master!`,
+          userId: existing.id,
+          userEmail: existing.email,
+          companyId: existing.companyId || undefined,
+        });
+      }
+      updateData.status = data.status;
+    }
+
     if (data.companyId !== undefined && isMaster) {
       updateData.companyId = data.companyId;
     }
@@ -169,10 +203,50 @@ export class UserService {
         name: true,
         email: true,
         role: true,
+        status: true,
         companyId: true,
         createdAt: true,
         updatedAt: true,
       },
+    });
+
+    return updated;
+  }
+
+  static async toggleApproval(id: string, approve: boolean, currentUser?: { id: string; role: string; companyId?: string | null }) {
+    const isMaster = currentUser?.role === 'MASTER';
+    if (!isMaster) {
+      throw new Error('Apenas o usuário MASTER tem permissão para aprovar ou rejeitar novos cadastros.');
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    const newStatus = approve ? 'ACTIVE' : 'BLOCKED';
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { status: newStatus },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        companyId: true,
+      },
+    });
+
+    await LogService.createLog({
+      level: 'INFO',
+      category: 'SECURITY',
+      action: approve ? 'USER_APPROVED' : 'USER_REJECTED',
+      message: `O usuário Master ${approve ? 'APROVOU' : 'BLOQUEOU'} a conta de ${user.name} (${user.email})`,
+      userId: user.id,
+      userEmail: user.email,
+      companyId: user.companyId || undefined,
     });
 
     return updated;

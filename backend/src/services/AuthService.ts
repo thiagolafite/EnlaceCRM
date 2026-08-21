@@ -14,12 +14,11 @@ export class AuthService {
     });
 
     if (!user) {
-      // Registrar falha de autenticação (usuário inexistente)
       await LogService.createLog({
         level: 'SECURITY',
         category: 'AUTH',
-        action: 'LOGIN_FAILED',
-        message: `Tentativa de login falhou: usuário não cadastrado (${cleanEmail})`,
+        action: 'LOGIN_FAILED_USER_NOT_FOUND',
+        message: `Tentativa de login falhou: e-mail não cadastrado (${cleanEmail})`,
         userEmail: cleanEmail,
         ipAddress: reqContext?.ip,
         userAgent: reqContext?.userAgent,
@@ -29,7 +28,6 @@ export class AuthService {
 
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
-      // Registrar falha de autenticação (senha incorreta)
       await LogService.createLog({
         level: 'SECURITY',
         category: 'AUTH',
@@ -44,14 +42,52 @@ export class AuthService {
       throw new Error('Credenciais inválidas');
     }
 
-    // Se for o e-mail master, garantir role MASTER
+    // Trava de Segurança: Verificação de status de aprovação
+    const isMaster = cleanEmail === MASTER_EMAIL;
     let role = user.role;
-    if (cleanEmail === MASTER_EMAIL && role !== 'MASTER') {
+    let status = user.status;
+
+    if (isMaster) {
       role = 'MASTER';
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { role: 'MASTER' },
+      status = 'ACTIVE';
+      if (user.role !== 'MASTER' || user.status !== 'ACTIVE') {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: 'MASTER', status: 'ACTIVE' },
+        });
+      }
+    }
+
+    // Se a conta estiver aguardando aprovação pelo Master
+    if (status === 'PENDING_APPROVAL') {
+      await LogService.createLog({
+        level: 'WARN',
+        category: 'SECURITY',
+        action: 'LOGIN_BLOCKED_PENDING_APPROVAL',
+        message: `Tentativa de acesso bloqueada: usuário ${user.name} (${user.email}) ainda aguarda liberação pelo Master`,
+        userId: user.id,
+        userEmail: user.email,
+        companyId: user.companyId || undefined,
+        ipAddress: reqContext?.ip,
+        userAgent: reqContext?.userAgent,
       });
+      throw new Error('🔒 Sua conta foi criada, mas está aguardando liberação e aprovação pelo administrador Master para ser ativada.');
+    }
+
+    // Se a conta foi desativada/bloqueada
+    if (status === 'BLOCKED') {
+      await LogService.createLog({
+        level: 'SECURITY',
+        category: 'SECURITY',
+        action: 'LOGIN_BLOCKED_DISABLED_USER',
+        message: `Tentativa de acesso rejeitada: usuário desativado (${user.email})`,
+        userId: user.id,
+        userEmail: user.email,
+        companyId: user.companyId || undefined,
+        ipAddress: reqContext?.ip,
+        userAgent: reqContext?.userAgent,
+      });
+      throw new Error('⛔ Sua conta está bloqueada ou desativada pelo administrador. Entre em contato com o suporte.');
     }
 
     const token = jwt.sign(
@@ -71,7 +107,7 @@ export class AuthService {
       level: 'INFO',
       category: 'AUTH',
       action: 'LOGIN_SUCCESS',
-      message: `Login realizado com sucesso por ${user.name} (${user.email}) [Perfil: ${role}]`,
+      message: `Login autorizado: ${user.name} (${user.email}) [Perfil: ${role}]`,
       userId: user.id,
       userEmail: user.email,
       companyId: user.companyId || undefined,
@@ -85,6 +121,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role,
+        status,
         companyId: user.companyId || 'default_company',
       },
       token,
@@ -110,6 +147,7 @@ export class AuthService {
 
     const isMaster = cleanEmail === MASTER_EMAIL;
     const role = isMaster ? 'MASTER' : 'ADMIN';
+    const status = isMaster ? 'ACTIVE' : 'PENDING_APPROVAL';
     const passwordHash = await bcrypt.hash(password, 10);
     
     // Cada novo cadastro gera sua própria empresa/tenant isolada
@@ -122,22 +160,40 @@ export class AuthService {
         email: cleanEmail,
         passwordHash,
         role,
+        status,
         companyId,
       },
     });
 
-    // Registrar criação de nova conta
+    // Registrar log de novo cadastro
     await LogService.createLog({
-      level: 'INFO',
-      category: 'AUTH',
-      action: 'USER_REGISTERED',
-      message: `Nova conta criada: ${user.name} (${user.email}) - Empresa: ${companyId}`,
+      level: isMaster ? 'INFO' : 'WARN',
+      category: 'SECURITY',
+      action: isMaster ? 'MASTER_REGISTERED' : 'USER_REGISTERED_PENDING_APPROVAL',
+      message: isMaster
+        ? `Conta Master criada com sucesso (${user.email})`
+        : `🚨 Novo cadastro realizado: ${user.name} (${user.email}) — Aguardando aprovação do usuário Master para ativação!`,
       userId: user.id,
       userEmail: user.email,
       companyId: user.companyId || undefined,
       ipAddress: reqContext?.ip,
       userAgent: reqContext?.userAgent,
     });
+
+    // Se NÃO for o master, retorna aviso de pendência sem emitir token
+    if (!isMaster) {
+      return {
+        pendingApproval: true,
+        message: 'Cadastro recebido com sucesso! Por questões de segurança, sua conta foi enviada para análise e só será ativada mediante aprovação do administrador Master.',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+        },
+      };
+    }
 
     const token = jwt.sign(
       {
@@ -157,6 +213,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        status: user.status,
         companyId: user.companyId,
       },
       token,
@@ -171,6 +228,7 @@ export class AuthService {
         name: true,
         email: true,
         role: true,
+        status: true,
         companyId: true,
         createdAt: true,
       },

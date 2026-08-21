@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   role: 'MASTER' | 'ADMIN' | 'OPERATOR';
+  status?: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
   companyId?: string | null;
   createdAt?: string;
   updatedAt?: string;

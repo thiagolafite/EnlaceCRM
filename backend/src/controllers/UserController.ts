@@ -44,6 +44,18 @@ export class UserController {
     }
   }
 
+  static async toggleApproval(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { approve } = req.body;
+      const currentUser = (req as any).user;
+      const result = await UserService.toggleApproval(id, Boolean(approve), currentUser);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(403).json({ error: err.message });
+    }
+  }
+
   static async delete(req: Request, res: Response) {
     try {
       const { id } = req.params;

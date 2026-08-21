@@ -38,6 +38,7 @@ routes.get('/users', UserController.list);
 routes.get('/users/:id', UserController.getById);
 routes.post('/users', UserController.create);
 routes.put('/users/:id', UserController.update);
+routes.patch('/users/:id/approval', UserController.toggleApproval);
 routes.delete('/users/:id', UserController.delete);
 
 // Alertas & Dashboard Stats

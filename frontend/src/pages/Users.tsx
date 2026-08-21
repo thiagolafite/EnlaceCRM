@@ -19,6 +19,10 @@ import {
   Crown,
   Building2,
   ShieldAlert,
+  AlertCircle,
+  Check,
+  Ban,
+  Clock,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { User as UserType } from '../types';
@@ -32,12 +36,14 @@ export function Users({ currentUser }: UsersProps) {
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING_APPROVAL' | 'ACTIVE' | 'BLOCKED'>('ALL');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const isMaster = currentUser?.role === 'MASTER' || currentUser?.email === 'tigolafite@gmail.com';
 
@@ -45,6 +51,7 @@ export function Users({ currentUser }: UsersProps) {
     name: string;
     email: string;
     role: 'MASTER' | 'ADMIN' | 'OPERATOR';
+    status: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
     companyId: string;
     password: string;
     confirmPassword: string;
@@ -52,6 +59,7 @@ export function Users({ currentUser }: UsersProps) {
     name: '',
     email: '',
     role: 'ADMIN',
+    status: 'ACTIVE',
     companyId: '',
     password: '',
     confirmPassword: '',
@@ -81,6 +89,7 @@ export function Users({ currentUser }: UsersProps) {
         name: userToEdit.name,
         email: userToEdit.email,
         role: userToEdit.role,
+        status: (userToEdit.status as any) || 'ACTIVE',
         companyId: userToEdit.companyId || '',
         password: '',
         confirmPassword: '',
@@ -91,6 +100,7 @@ export function Users({ currentUser }: UsersProps) {
         name: '',
         email: '',
         role: 'ADMIN',
+        status: isMaster ? 'ACTIVE' : 'PENDING_APPROVAL',
         companyId: '',
         password: '',
         confirmPassword: '',
@@ -119,6 +129,7 @@ export function Users({ currentUser }: UsersProps) {
           name: form.name,
           email: form.email,
           role: form.role,
+          status: form.status,
         };
         if (form.password) {
           payload.password = form.password;
@@ -145,6 +156,18 @@ export function Users({ currentUser }: UsersProps) {
     }
   };
 
+  const handleToggleApproval = async (userToApprove: UserType, approve: boolean) => {
+    try {
+      setApprovingId(userToApprove.id);
+      await api.toggleUserApproval(userToApprove.id, approve);
+      await loadUsers();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao alterar status de aprovação do usuário');
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   const handleDelete = async (userToDelete: UserType) => {
     if (currentUser && userToDelete.id === currentUser.id) {
       alert('Você não pode excluir sua própria conta conectada.');
@@ -168,7 +191,14 @@ export function Users({ currentUser }: UsersProps) {
     }
   };
 
+  const pendingUsers = users.filter((u) => u.status === 'PENDING_APPROVAL');
+
   const filteredUsers = users.filter((u) => {
+    if (statusFilter !== 'ALL') {
+      if (statusFilter === 'PENDING_APPROVAL' && u.status !== 'PENDING_APPROVAL') return false;
+      if (statusFilter === 'ACTIVE' && (u.status !== 'ACTIVE' && u.status !== undefined)) return false;
+      if (statusFilter === 'BLOCKED' && u.status !== 'BLOCKED') return false;
+    }
     const s = search.toLowerCase().trim();
     if (!s) return true;
     return (
@@ -180,7 +210,7 @@ export function Users({ currentUser }: UsersProps) {
 
   return (
     <div className="space-y-6">
-      {/* Master Mode Banner if master user */}
+      {/* Master Mode Banner */}
       {isMaster && (
         <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-indigo-500/15 border border-amber-500/30 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -189,16 +219,72 @@ export function Users({ currentUser }: UsersProps) {
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-amber-950 dark:text-amber-200 flex items-center gap-2">
-                Painel Master Ativado — Acesso Global Irrestrito
+                Controle de Acesso & Trava de Segurança Master Ativa
               </h3>
               <p className="text-xs text-amber-800/90 dark:text-amber-300/80">
-                Você está conectado como **MASTER ({currentUser?.email})**. Você possui privilégios para visualizar todas as empresas, alterar senhas e gerenciar qualquer conta do sistema.
+                Novos cadastros no sistema iniciam **bloqueados** e só têm permissão para acessar o CRM após a sua aprovação explícita.
               </p>
             </div>
           </div>
           <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-sm">
             SUPER_ADMIN
           </span>
+        </div>
+      )}
+
+      {/* Pending Approvals Alert Banner */}
+      {isMaster && pendingUsers.length > 0 && (
+        <div className="p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-600 shadow-md space-y-3 animate-in fade-in duration-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>
+              <h4 className="font-extrabold text-sm text-amber-950 dark:text-amber-100 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                {pendingUsers.length} novo{pendingUsers.length === 1 ? '' : 's'} cadastro{pendingUsers.length === 1 ? '' : 's'} aguardando sua autorização:
+              </h4>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white">
+              Ação Requerida
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            {pendingUsers.map((pu) => (
+              <div
+                key={pu.id}
+                className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/80 flex items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="min-w-0">
+                  <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                    {pu.name}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    {pu.email} • <span className="font-mono text-indigo-600 dark:text-indigo-400">{pu.companyId}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    disabled={approvingId === pu.id}
+                    onClick={() => handleToggleApproval(pu, true)}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-md shadow-emerald-600/30 flex items-center gap-1 transition-all disabled:opacity-50"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Aprovar & Ativar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={approvingId === pu.id}
+                    onClick={() => handleToggleApproval(pu, false)}
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Rejeitar / Bloquear"
+                  >
+                    <Ban className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -210,7 +296,7 @@ export function Users({ currentUser }: UsersProps) {
             Usuários do Sistema
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Cadastre administradores e operadores para gerenciar os contatos e mensagens do Enlace CRM.
+            Cadastre administradores e gerencie o status de liberação de contas no Enlace CRM.
           </p>
         </div>
 
@@ -222,16 +308,56 @@ export function Users({ currentUser }: UsersProps) {
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3 transition-colors">
-        <div className="relative flex-1">
+      {/* Filter Tabs & Search Bar */}
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-colors">
+        {/* Status Filter */}
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setStatusFilter('ALL')}
+            className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+              statusFilter === 'ALL'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Todos ({users.length})
+          </button>
+          {isMaster && (
+            <button
+              type="button"
+              onClick={() => setStatusFilter('PENDING_APPROVAL')}
+              className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                statusFilter === 'PENDING_APPROVAL'
+                  ? 'bg-amber-500 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-amber-600'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" /> Pendentes ({pendingUsers.length})
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setStatusFilter('ACTIVE')}
+            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 ${
+              statusFilter === 'ACTIVE'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-500 hover:text-emerald-600'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" /> Ativos
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar usuário por nome, e-mail ou empresa..."
-            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+            placeholder="Buscar por nome, e-mail ou empresa..."
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-10 pr-4 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
           />
         </div>
       </div>
@@ -252,15 +378,19 @@ export function Users({ currentUser }: UsersProps) {
               <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="py-4 px-6">Usuário</th>
-                  <th className="py-4 px-6">Perfil de Acesso</th>
+                  <th className="py-4 px-6">Perfil</th>
+                  <th className="py-4 px-6">Status de Acesso</th>
                   {isMaster && <th className="py-4 px-6">Empresa / Tenant</th>}
                   <th className="py-4 px-6">Data de Cadastro</th>
                   <th className="py-4 px-6 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300 text-xs">
                 {filteredUsers.map((u) => {
                   const isCurrent = currentUser && currentUser.id === u.id;
+                  const isPending = u.status === 'PENDING_APPROVAL';
+                  const isBlocked = u.status === 'BLOCKED';
+
                   const formattedDate = u.createdAt
                     ? new Date(u.createdAt).toLocaleDateString('pt-BR', {
                         day: '2-digit',
@@ -272,17 +402,22 @@ export function Users({ currentUser }: UsersProps) {
                     : '—';
 
                   return (
-                    <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                    <tr
+                      key={u.id}
+                      className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
+                        isPending ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''
+                      }`}
+                    >
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-10 h-10 rounded-2xl border flex items-center justify-center font-bold text-sm shrink-0 shadow-sm ${
+                            className={`w-9 h-9 rounded-2xl border flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
                               u.role === 'MASTER'
                                 ? 'bg-amber-50 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/20'
                                 : 'bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400'
                             }`}
                           >
-                            {u.role === 'MASTER' ? <Crown className="w-5 h-5 text-amber-500" /> : u.name.charAt(0).toUpperCase()}
+                            {u.role === 'MASTER' ? <Crown className="w-4 h-4 text-amber-500" /> : u.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -293,52 +428,93 @@ export function Users({ currentUser }: UsersProps) {
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                            <div className="text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
                               <Mail className="w-3 h-3 text-slate-400" /> {u.email}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-6 whitespace-nowrap">
                         {u.role === 'MASTER' ? (
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/80 text-amber-800 dark:text-amber-300 text-xs font-black shadow-xs">
-                            <Crown className="w-3.5 h-3.5 text-amber-500" />
-                            <span>MASTER GLOBAL</span>
-                          </div>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/80 text-amber-800 dark:text-amber-300 font-black">
+                            <Crown className="w-3 h-3 text-amber-500" /> MASTER
+                          </span>
                         ) : u.role === 'ADMIN' ? (
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-semibold">
-                            <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                            <span>Administrador</span>
-                          </div>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold">
+                            <ShieldCheck className="w-3 h-3 text-purple-600" /> Administrador
+                          </span>
                         ) : (
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                            <span>Operador</span>
-                          </div>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 font-bold">
+                            <UserCheck className="w-3 h-3 text-emerald-600" /> Operador
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Status de Acesso */}
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        {isPending ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-700">
+                            <Clock className="w-3 h-3 text-amber-600 animate-spin" /> Aguardando Liberação
+                          </span>
+                        ) : isBlocked ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-bold border border-rose-300 dark:border-rose-700">
+                            <Ban className="w-3 h-3 text-rose-600" /> Desativado
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800/60">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Ativo
+                          </span>
                         )}
                       </td>
 
                       {isMaster && (
-                        <td className="py-4 px-6 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                        <td className="py-4 px-6 text-slate-600 dark:text-slate-400 font-mono whitespace-nowrap">
                           <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                             {u.companyId || 'default_company'}
                           </span>
                         </td>
                       )}
 
-                      <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                      <td className="py-4 px-6 text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
                         {formattedDate}
                       </td>
 
-                      <td className="py-4 px-6 text-right space-x-2">
+                      <td className="py-4 px-6 text-right space-x-1.5 whitespace-nowrap">
+                        {/* Quick Master Approval Button */}
+                        {isMaster && isPending && (
+                          <button
+                            onClick={() => handleToggleApproval(u, true)}
+                            disabled={approvingId === u.id}
+                            title="Aprovar e Liberar Acesso"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm inline-flex items-center gap-1 transition-all"
+                          >
+                            <Check className="w-3 h-3" /> Aprovar
+                          </button>
+                        )}
+
+                        {isMaster && !isPending && u.role !== 'MASTER' && (
+                          <button
+                            onClick={() => handleToggleApproval(u, isBlocked)}
+                            title={isBlocked ? 'Reativar Usuário' : 'Bloquear Usuário'}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              isBlocked
+                                ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950'
+                                : 'text-slate-400 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            {isBlocked ? <Check className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                          </button>
+                        )}
+
                         <button
                           onClick={() => handleOpenModal(u)}
                           title="Editar usuário / Redefinir senha"
-                          className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
+
                         <button
                           onClick={() => handleDelete(u)}
                           disabled={Boolean(isCurrent || u.role === 'MASTER')}
@@ -349,7 +525,7 @@ export function Users({ currentUser }: UsersProps) {
                               ? 'Usuário MASTER não pode ser excluído'
                               : 'Excluir usuário'
                           }
-                          className={`p-2 rounded-xl transition-colors ${
+                          className={`p-1.5 rounded-lg transition-colors ${
                             isCurrent || u.role === 'MASTER'
                               ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
                               : 'text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -452,7 +628,7 @@ export function Users({ currentUser }: UsersProps) {
                 </div>
                 <div className="font-bold text-xs">Administrador</div>
                 <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                  Acesso total a cadastros e automações.
+                  Acesso a cadastros e automações.
                 </div>
               </button>
 
@@ -476,6 +652,24 @@ export function Users({ currentUser }: UsersProps) {
               </button>
             </div>
           </div>
+
+          {/* Status selector (Master only) */}
+          {isMaster && editingUser && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Status da Conta / Liberação
+              </label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value as any })}
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
+              >
+                <option value="ACTIVE">🟢 Ativo (Acesso Liberado)</option>
+                <option value="PENDING_APPROVAL">⏳ Pendente de Aprovação</option>
+                <option value="BLOCKED">⛔ Bloqueado / Desativado</option>
+              </select>
+            </div>
+          )}
 
           {/* Master Company Tenant Edit */}
           {isMaster && editingUser && (

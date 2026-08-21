@@ -24,6 +24,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,14 +61,27 @@ export function Login({ onLoginSuccess }: LoginProps) {
     }
 
     try {
-      const data = await api.register({
+      const data: any = await api.register({
         name: regName,
         email: regEmail,
         password: regPassword,
       });
-      localStorage.setItem('enlace_token', data.token);
-      localStorage.setItem('enlace_user', JSON.stringify(data.user));
-      onLoginSuccess(data.user, data.token);
+
+      if (data.pendingApproval) {
+        setSuccessMessage(
+          data.message ||
+            'Cadastro recebido com sucesso! Sua conta foi enviada para análise e só será ativada após a aprovação do usuário Master.'
+        );
+        setMode('login');
+        setRegName('');
+        setRegEmail('');
+        setRegPassword('');
+        setRegConfirmPassword('');
+      } else if (data.token && data.user) {
+        localStorage.setItem('enlace_token', data.token);
+        localStorage.setItem('enlace_user', JSON.stringify(data.user));
+        onLoginSuccess(data.user, data.token);
+      }
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta');
     } finally {
@@ -138,6 +152,15 @@ export function Login({ onLoginSuccess }: LoginProps) {
               <UserPlus className="w-3.5 h-3.5" /> Criar Nova Conta
             </button>
           </div>
+
+          {successMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/80 text-amber-900 dark:text-amber-200 text-xs font-semibold leading-relaxed animate-in fade-in duration-300">
+              <div className="font-extrabold text-amber-950 dark:text-amber-100 flex items-center gap-1.5 mb-1 text-sm">
+                <ShieldCheck className="w-4 h-4 text-amber-600" /> Conta em Análise de Segurança
+              </div>
+              {successMessage}
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 text-xs font-semibold">
