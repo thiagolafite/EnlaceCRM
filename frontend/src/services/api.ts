@@ -94,11 +94,13 @@ export const api = {
     ),
 
   // Clients
-  getClients: (params?: { search?: string; status?: string; lgpdConsent?: boolean }) => {
+  getClients: (params?: { search?: string; status?: string; lgpdConsent?: boolean; page?: number; limit?: number }) => {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.append('search', params.search);
     if (params?.status) searchParams.append('status', params.status);
     if (params?.lgpdConsent !== undefined) searchParams.append('lgpdConsent', String(params.lgpdConsent));
+    if (params?.page) searchParams.append('page', String(params.page));
+    if (params?.limit) searchParams.append('limit', String(params.limit));
     const query = searchParams.toString();
     return request<{ data: Client[]; meta: { total: number; page: number; totalPages: number } }>(
       `/clients${query ? `?${query}` : ''}`

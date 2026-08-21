@@ -17,9 +17,13 @@ import {
   CalendarDays,
   List,
   RefreshCw,
+  Cake,
+  Users,
+  MessageCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { api } from '../services/api';
-import { CommemorativeDate, UpcomingEvent } from '../types';
+import { CommemorativeDate, UpcomingEvent, Client } from '../types';
 import { Modal } from '../components/Modal';
 import { EventTypeBadge } from '../components/Badge';
 
@@ -44,20 +48,68 @@ const MONTHS_PT = [
 
 const WEEKDAYS_SHORT = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  SPOUSE: 'Cônjuge / Esposo(a)',
+  CHILD: 'Filho(a)',
+  SON: 'Filho',
+  DAUGHTER: 'Filha',
+  MOTHER: 'Mãe',
+  FATHER: 'Pai',
+  SIBLING: 'Irmão(ã)',
+  OTHER: 'Familiar',
+};
+
+export interface UnifiedCalendarEvent {
+  id: string;
+  name: string;
+  day: number;
+  month: number;
+  year?: number | null;
+  category: 'FIXED' | 'CULTURAL' | 'CORPORATE' | 'CLIENT_BIRTHDAY' | 'FAMILY_BIRTHDAY';
+  targetAudience?: string;
+  description?: string | null;
+  active?: boolean;
+  clientId?: string;
+  clientName?: string;
+  familyMemberId?: string;
+  phone?: string | null;
+  isCustomDate?: boolean;
+  rawDateObject?: CommemorativeDate;
+}
+
+function parseDayAndMonth(dateStr: string | Date | null | undefined): { day: number; month: number } | null {
+  if (!dateStr) return null;
+  try {
+    const str = typeof dateStr === 'string' ? dateStr : dateStr.toISOString();
+    const cleanDate = str.split('T')[0];
+    const parts = cleanDate.split('-');
+    if (parts.length === 3) {
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      if (!isNaN(day) && !isNaN(month)) {
+        return { day, month };
+      }
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return { day: d.getUTCDate(), month: d.getUTCMonth() + 1 };
+    }
+  } catch (err) {
+    console.error('Erro ao fazer parse de data:', dateStr, err);
+  }
+  return null;
+}
+
 export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   const [dates, setDates] = useState<CommemorativeDate[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [upcoming, setUpcoming] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'year' | 'agenda' | 'fixed'>(defaultTab);
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'BIRTHDAYS' | 'FIXED'>('ALL');
 
-  useEffect(() => {
-    if (defaultTab) {
-      setSelectedTab(defaultTab);
-    }
-  }, [defaultTab]);
-
-  // Modal
+  // Modal para criar/editar data fixa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDate, setEditingDate] = useState<CommemorativeDate | null>(null);
   const [form, setForm] = useState({
@@ -71,17 +123,35 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     active: true,
   });
 
+  // Modal de Detalhes do Aniversariante
+  const [selectedBirthday, setSelectedBirthday] = useState<UnifiedCalendarEvent | null>(null);
+  const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (defaultTab) {
+      setSelectedTab(defaultTab);
+    }
+  }, [defaultTab]);
+
   const loadData = async () => {
     try {
       setLoading(true);
-      const [datesData, upcomingData] = await Promise.all([
+      const [datesData, upcomingData, clientsRes] = await Promise.all([
         api.getDates(),
         api.getUpcomingEvents(60),
+        api.getClients({ limit: 1000 }),
       ]);
       setDates(Array.isArray(datesData) ? datesData : []);
       setUpcoming(Array.isArray(upcomingData) ? upcomingData : []);
+      
+      const clientsList = Array.isArray(clientsRes)
+        ? clientsRes
+        : (clientsRes as any)?.data && Array.isArray((clientsRes as any).data)
+        ? (clientsRes as any).data
+        : [];
+      setClients(clientsList);
     } catch (err) {
-      console.error('Erro ao carregar datas:', err);
+      console.error('Erro ao carregar dados do calendário:', err);
     } finally {
       setLoading(false);
     }
@@ -90,6 +160,70 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Mesclar todas as datas comemorativas fixas + aniversários de clientes e familiares
+  const unifiedEvents: UnifiedCalendarEvent[] = [];
+
+  // 1. Inserir Datas Comemorativas Fixas
+  dates.forEach((d) => {
+    unifiedEvents.push({
+      id: d.id,
+      name: d.name,
+      day: d.day,
+      month: d.month,
+      year: d.year,
+      category: d.category as any,
+      targetAudience: d.targetAudience,
+      description: d.description,
+      active: d.active,
+      isCustomDate: true,
+      rawDateObject: d,
+    });
+  });
+
+  // 2. Inserir Aniversários de Clientes (Cadastrados Automaticamente)
+  clients.forEach((c) => {
+    if (c.birthDate) {
+      const parsed = parseDayAndMonth(c.birthDate);
+      if (parsed) {
+        unifiedEvents.push({
+          id: `client-${c.id}`,
+          name: `Aniversário de ${c.name}`,
+          day: parsed.day,
+          month: parsed.month,
+          category: 'CLIENT_BIRTHDAY',
+          description: `Cliente Titular ${c.companyName ? `• ${c.companyName}` : ''}`,
+          clientId: c.id,
+          clientName: c.name,
+          phone: c.phone,
+        });
+      }
+    }
+
+    // 3. Inserir Aniversários dos Familiares do Cliente
+    if (c.familyMembers && Array.isArray(c.familyMembers)) {
+      c.familyMembers.forEach((fm) => {
+        if (fm.birthDate) {
+          const parsedFm = parseDayAndMonth(fm.birthDate);
+          if (parsedFm) {
+            const relText = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
+            unifiedEvents.push({
+              id: `family-${fm.id}`,
+              name: `Aniversário de ${fm.name} (${relText})`,
+              day: parsedFm.day,
+              month: parsedFm.month,
+              category: 'FAMILY_BIRTHDAY',
+              description: `Familiar do cliente ${c.name}`,
+              clientId: c.id,
+              clientName: c.name,
+              familyMemberId: fm.id,
+              phone: fm.phone || c.phone,
+            });
+          }
+        }
+      });
+    }
+  });
 
   const handleOpenModal = (item?: CommemorativeDate, defaultMonth?: number, defaultDay?: number) => {
     if (item) {
@@ -118,6 +252,11 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleOpenBirthdayModal = (event: UnifiedCalendarEvent) => {
+    setSelectedBirthday(event);
+    setIsBirthdayModalOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -173,12 +312,29 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
   const getCategoryTheme = (category: string) => {
     switch (category) {
+      case 'CLIENT_BIRTHDAY':
+        return {
+          badge: 'bg-amber-500 text-white shadow-amber-500/40 ring-2 ring-amber-300',
+          card: 'bg-amber-50/95 text-amber-950 dark:bg-amber-950/70 dark:text-amber-200 border-amber-300 dark:border-amber-700/80',
+          dot: 'bg-amber-500',
+          tag: '🎂 Aniversário de Cliente',
+          icon: Cake,
+        };
+      case 'FAMILY_BIRTHDAY':
+        return {
+          badge: 'bg-rose-500 text-white shadow-rose-500/40 ring-2 ring-rose-300',
+          card: 'bg-rose-50/95 text-rose-950 dark:bg-rose-950/70 dark:text-rose-200 border-rose-300 dark:border-rose-700/80',
+          dot: 'bg-rose-500',
+          tag: '💐 Aniversário de Familiar',
+          icon: Heart,
+        };
       case 'FIXED':
         return {
           badge: 'bg-purple-600 text-white shadow-purple-600/30',
           card: 'bg-purple-50/90 text-purple-950 dark:bg-purple-950/70 dark:text-purple-200 border-purple-200 dark:border-purple-800/80',
           dot: 'bg-purple-600',
           tag: 'Feriado Nacional',
+          icon: Star,
         };
       case 'CULTURAL':
         return {
@@ -186,13 +342,15 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           card: 'bg-indigo-50/90 text-indigo-950 dark:bg-indigo-950/70 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800/80',
           dot: 'bg-indigo-600',
           tag: 'Comemorativa / Cultural',
+          icon: Sparkles,
         };
       case 'CORPORATE':
         return {
           badge: 'bg-emerald-600 text-white shadow-emerald-600/30',
           card: 'bg-emerald-50/90 text-emerald-950 dark:bg-emerald-950/70 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800/80',
           dot: 'bg-emerald-600',
-          tag: 'Corporativa',
+          tag: 'Corporativa / Clientes',
+          icon: Briefcase,
         };
       default:
         return {
@@ -200,9 +358,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           card: 'bg-slate-50 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700',
           dot: 'bg-slate-600',
           tag: 'Geral',
+          icon: CalendarIcon,
         };
     }
   };
+
+  const totalBirthdaysCount = unifiedEvents.filter(
+    (e) => e.category === 'CLIENT_BIRTHDAY' || e.category === 'FAMILY_BIRTHDAY'
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -214,7 +377,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             Datas Comemorativas & Calendário Anual
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Acompanhe o calendário anual com feriados nacionais e comemorações corporativas para felicitações.
+            Calendário completo com feriados, datas comemorativas e **aniversários de clientes e familiares preenchidos automaticamente**.
           </p>
         </div>
 
@@ -248,7 +411,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <List className="w-3.5 h-3.5" /> Lista ({dates.length})
+              <List className="w-3.5 h-3.5" /> Datas Fixas ({dates.length})
             </button>
           </div>
 
@@ -262,12 +425,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       </div>
 
       {/* ==================================================================== */}
-      {/* 1. VISÃO: CALENDÁRIO ANUAL DOS 12 MESES COM COMEMORAÇÕES PREENCHIDAS */}
+      {/* 1. VISÃO: CALENDÁRIO ANUAL DOS 12 MESES (COM DATAS + ANIVERSÁRIOS) */}
       {/* ==================================================================== */}
       {selectedTab === 'year' && (
         <div className="space-y-6">
-          {/* Year Navigator & Legend */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors">
+          {/* Year Navigator, Filters & Legend */}
+          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4 transition-colors">
+            {/* Year Controls */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setCurrentYear((prev) => prev - 1)}
@@ -284,29 +448,63 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <span className="text-xs text-slate-500 font-medium">
-                ({dates.length} datas e feriados cadastrados)
-              </span>
 
               <button
                 onClick={() => loadData()}
-                title="Atualizar dados"
+                title="Atualizar dados do calendário"
                 className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
+            {/* Event Category Filter Buttons */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
+              <button
+                type="button"
+                onClick={() => setCategoryFilter('ALL')}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                  categoryFilter === 'ALL'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                Todos ({unifiedEvents.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategoryFilter('BIRTHDAYS')}
+                className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                  categoryFilter === 'BIRTHDAYS'
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-amber-600'
+                }`}
+              >
+                🎂 Aniversários ({totalBirthdaysCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategoryFilter('FIXED')}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                  categoryFilter === 'FIXED'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-purple-600'
+                }`}
+              >
+                📅 Feriados & Fixas ({dates.length})
+              </button>
+            </div>
+
             {/* Legenda de Categorias */}
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-              <span className="flex items-center gap-1.5 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-600 shadow-sm"></span> Feriados Nacionais
+              <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-200 dark:border-amber-800">
+                <span className="w-2 h-2 rounded-full bg-amber-500 shadow-xs"></span> Aniversários de Clientes
               </span>
-              <span className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 shadow-sm"></span> Culturais / Familiares
+              <span className="flex items-center gap-1.5 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-lg border border-rose-200 dark:border-rose-800">
+                <span className="w-2 h-2 rounded-full bg-rose-500 shadow-xs"></span> Familiares
               </span>
-              <span className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shadow-sm"></span> Corporativos / Clientes
+              <span className="flex items-center gap-1.5 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border border-purple-200 dark:border-purple-800">
+                <span className="w-2 h-2 rounded-full bg-purple-600 shadow-xs"></span> Feriados / Fixas
               </span>
             </div>
           </div>
@@ -315,12 +513,20 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {MONTHS_PT.map((monthName, monthIndex) => {
               const monthNum = monthIndex + 1;
-              const monthEvents = dates
-                .filter(
-                  (d) =>
-                    d.month === monthNum &&
-                    (d.year === null || d.year === undefined || Number(d.year) === currentYear)
-                )
+
+              // Filtrar eventos do mês atual
+              const monthEvents = unifiedEvents
+                .filter((d) => {
+                  if (d.month !== monthNum) return false;
+                  if (d.year && d.year !== currentYear) return false;
+                  if (categoryFilter === 'BIRTHDAYS') {
+                    return d.category === 'CLIENT_BIRTHDAY' || d.category === 'FAMILY_BIRTHDAY';
+                  }
+                  if (categoryFilter === 'FIXED') {
+                    return d.category !== 'CLIENT_BIRTHDAY' && d.category !== 'FAMILY_BIRTHDAY';
+                  }
+                  return true;
+                })
                 .sort((a, b) => a.day - b.day);
 
               const matrix = getMonthMatrix(currentYear, monthIndex);
@@ -339,7 +545,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                       </h3>
 
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80">
-                        {monthEvents.length} comemoraç{monthEvents.length === 1 ? 'ão' : 'ões'}
+                        {monthEvents.length} evento{monthEvents.length === 1 ? '' : 's'}
                       </span>
                     </div>
 
@@ -374,8 +580,15 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               key={idx}
                               type="button"
                               onClick={() => {
-                                if (hasEvent) handleOpenModal(hasEvent);
-                                else handleOpenModal(undefined, monthNum, cell.day || undefined);
+                                if (hasEvent) {
+                                  if (hasEvent.isCustomDate && hasEvent.rawDateObject) {
+                                    handleOpenModal(hasEvent.rawDateObject);
+                                  } else {
+                                    handleOpenBirthdayModal(hasEvent);
+                                  }
+                                } else {
+                                  handleOpenModal(undefined, monthNum, cell.day || undefined);
+                                }
                               }}
                               title={
                                 hasEvent
@@ -384,7 +597,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               }
                               className={`h-6 w-full rounded-md text-[11px] font-bold flex items-center justify-center transition-all ${
                                 hasEvent && theme
-                                  ? `${theme.badge} shadow-sm ring-2 ring-indigo-400/40 hover:scale-110 font-extrabold`
+                                  ? `${theme.badge} shadow-xs hover:scale-110 font-extrabold`
                                   : isToday
                                   ? 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300 border border-amber-300'
                                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
@@ -397,15 +610,15 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                       </div>
                     </div>
 
-                    {/* Preenchimento das Comemorações do Mês */}
+                    {/* Preenchimento das Comemorações & Aniversários do Mês */}
                     <div className="space-y-2">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                        Comemorações em {monthName}:
+                        Comemorações de {monthName}:
                       </div>
 
                       {monthEvents.length === 0 ? (
                         <div className="text-xs text-slate-400 italic py-2 text-center">
-                          Nenhuma data fixa cadastrada.
+                          Nenhum evento neste mês.
                         </div>
                       ) : (
                         <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
@@ -415,7 +628,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               <button
                                 key={evt.id}
                                 type="button"
-                                onClick={() => handleOpenModal(evt)}
+                                onClick={() => {
+                                  if (evt.isCustomDate && evt.rawDateObject) {
+                                    handleOpenModal(evt.rawDateObject);
+                                  } else {
+                                    handleOpenBirthdayModal(evt);
+                                  }
+                                }}
                                 className={`w-full p-2 rounded-xl border text-left text-xs transition-all hover:scale-[1.01] flex items-start gap-2 shadow-xs ${theme.card}`}
                               >
                                 <span className="font-mono font-black text-[11px] shrink-0 bg-white/80 dark:bg-slate-900/90 px-1.5 py-0.5 rounded-lg border border-current shadow-xs">
@@ -698,6 +917,68 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal Detalhes do Aniversariante */}
+      <Modal
+        isOpen={isBirthdayModalOpen}
+        onClose={() => setIsBirthdayModalOpen(false)}
+        title="Detalhes do Aniversariante"
+        subtitle="Data de aniversário cadastrada automaticamente a partir do cliente"
+        maxWidth="md"
+      >
+        {selectedBirthday && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-extrabold text-lg shrink-0 shadow-sm">
+                🎂
+              </div>
+              <div>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+                  {selectedBirthday.name}
+                </h4>
+                <p className="text-xs text-amber-800 dark:text-amber-300 font-semibold">
+                  Dia {String(selectedBirthday.day).padStart(2, '0')} de {MONTHS_PT[selectedBirthday.month - 1]}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <span className="font-bold">Contexto:</span>
+                <span className="text-slate-900 dark:text-slate-100">{selectedBirthday.description}</span>
+              </div>
+
+              {selectedBirthday.clientName && (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                  <span className="font-bold">Cliente Vinculado:</span>
+                  <span className="text-slate-900 dark:text-slate-100 font-semibold">
+                    {selectedBirthday.clientName}
+                  </span>
+                </div>
+              )}
+
+              {selectedBirthday.phone && (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                  <span className="font-bold">WhatsApp:</span>
+                  <span className="text-slate-900 dark:text-slate-100 font-mono">
+                    {selectedBirthday.phone}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsBirthdayModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
