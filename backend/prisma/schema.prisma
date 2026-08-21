@@ -178,3 +178,19 @@ model QueueJob {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
+
+model SystemLog {
+  id          String   @id @default(uuid())
+  level       String   @default("INFO") // INFO, WARN, ERROR, SECURITY, CRITICAL
+  category    String   // AUTH, DATABASE, API, AUTOMATION, SECURITY, SYSTEM
+  action      String   // LOGIN_FAILED, LOGIN_SUCCESS, UNAUTHORIZED_ACCESS, SERVER_ERROR, CRON_RUN, PASSWORD_RESET, etc.
+  message     String
+  details     String?  // JSON string ou stack trace
+  ipAddress   String?
+  userAgent   String?
+  userId      String?
+  userEmail   String?
+  companyId   String?
+  createdAt   DateTime @default(now())
+}
+

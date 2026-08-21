@@ -241,4 +241,42 @@ export const api = {
     request<{ success: boolean }>(`/users/${id}`, {
       method: 'DELETE',
     }),
+
+  // Master Monitoring & Security Logs
+  getLogs: (params?: {
+    level?: string;
+    category?: string;
+    action?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.level) searchParams.append('level', params.level);
+    if (params?.category) searchParams.append('category', params.category);
+    if (params?.action) searchParams.append('action', params.action);
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.page) searchParams.append('page', String(params.page));
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.startDate) searchParams.append('startDate', params.startDate);
+    if (params?.endDate) searchParams.append('endDate', params.endDate);
+    const query = searchParams.toString();
+    return request<{
+      data: import('../types').SystemLog[];
+      meta: { total: number; page: number; limit: number; totalPages: number };
+    }>(`/logs${query ? `?${query}` : ''}`);
+  },
+  getLogMetrics: () => request<import('../types').SystemMetrics>('/logs/metrics'),
+  testLog: (data?: { type?: string; message?: string }) =>
+    request<{ success: boolean; log: any }>('/logs/test', {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    }),
+  clearLogs: (olderThanDays?: number) =>
+    request<{ deletedCount: number }>('/logs', {
+      method: 'DELETE',
+      body: JSON.stringify({ olderThanDays }),
+    }),
 };

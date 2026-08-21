@@ -13,8 +13,8 @@ export function Login({ onLoginSuccess }: LoginProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
   // Login form
-  const [email, setEmail] = useState('admin@enlace.com.br');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   // Register form
   const [regName, setRegName] = useState('');
@@ -283,22 +283,6 @@ export function Login({ onLoginSuccess }: LoginProps) {
                 )}
               </button>
             </form>
-          )}
-
-          {/* Quick Demo Access Button */}
-          {mode === 'login' && (
-            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800/80 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@enlace.com.br');
-                  setPassword('admin123');
-                }}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold transition-colors"
-              >
-                Preencher credenciais padrão de demonstração
-              </button>
-            </div>
           )}
         </div>
 

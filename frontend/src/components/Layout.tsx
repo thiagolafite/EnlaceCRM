@@ -18,6 +18,7 @@ import {
   Bell,
   Send,
   UserCog,
+  Activity,
 } from 'lucide-react';
 import { User } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -90,6 +91,21 @@ export function Layout({
         { id: 'settings', label: 'Configurações (WhatsApp)', icon: Settings },
       ],
     },
+    ...((user?.role === 'MASTER' || user?.email === 'tigolafite@gmail.com')
+      ? [
+          {
+            category: 'Painel Master Global',
+            items: [
+              {
+                id: 'monitoring',
+                label: 'Auditoria & Logs de Segurança',
+                icon: Activity,
+                badge: 'Master',
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   // Helper to find active item label and category

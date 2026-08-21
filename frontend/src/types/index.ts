@@ -156,3 +156,48 @@ export interface UpcomingEvent {
   daysRemaining: number;
   isToday: boolean;
 }
+
+export interface SystemLog {
+  id: string;
+  level: 'INFO' | 'WARN' | 'ERROR' | 'SECURITY' | 'CRITICAL';
+  category: 'AUTH' | 'DATABASE' | 'API' | 'AUTOMATION' | 'SECURITY' | 'SYSTEM';
+  action: string;
+  message: string;
+  details?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  userId?: string | null;
+  userEmail?: string | null;
+  companyId?: string | null;
+  createdAt: string;
+}
+
+export interface SystemMetrics {
+  systemHealth: {
+    status: 'HEALTHY' | 'WARNING' | 'CRITICAL';
+    uptimeSeconds: number;
+    nodeVersion: string;
+    platform: string;
+    serverTime: string;
+  };
+  database: {
+    status: 'ONLINE' | 'DEGRADED' | 'OFFLINE';
+    provider: string;
+    latencyMs: number;
+  };
+  memory: {
+    rssMB: number;
+    heapUsedMB: number;
+    totalServerMemoryMB: number;
+    freeServerMemoryMB: number;
+  };
+  counts: {
+    totalLogs: number;
+    errors24h: number;
+    securityIncidents24h: number;
+    totalUsers: number;
+    totalClients: number;
+    activeTenantsCount: number;
+  };
+}
+

@@ -10,7 +10,12 @@ export class AuthController {
         return res.status(400).json({ error: 'E-mail e senha são obrigatórios' });
       }
 
-      const result = await AuthService.login(email, password);
+      const reqContext = {
+        ip: req.ip || req.socket.remoteAddress,
+        userAgent: req.headers['user-agent'],
+      };
+
+      const result = await AuthService.login(email, password, reqContext);
       return res.json(result);
     } catch (err: any) {
       return res.status(401).json({ error: err.message || 'Erro ao realizar login' });
@@ -24,7 +29,12 @@ export class AuthController {
         return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios' });
       }
 
-      const result = await AuthService.register(name, email, password);
+      const reqContext = {
+        ip: req.ip || req.socket.remoteAddress,
+        userAgent: req.headers['user-agent'],
+      };
+
+      const result = await AuthService.register(name, email, password, reqContext);
       return res.status(201).json(result);
     } catch (err: any) {
       return res.status(400).json({ error: err.message || 'Erro ao criar conta' });

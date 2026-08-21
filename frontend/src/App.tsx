@@ -11,6 +11,7 @@ import { Templates } from './pages/Templates';
 import { Automation } from './pages/Automation';
 import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
+import { Monitoring } from './pages/Monitoring';
 import { ThemeProvider } from './context/ThemeContext';
 
 export function AppContent() {
@@ -82,6 +83,7 @@ export function AppContent() {
       {currentTab === 'automation' && <Automation defaultTab="run" />}
       {currentTab === 'simulation' && <Automation defaultTab="simulate" />}
       {currentTab === 'users' && <Users currentUser={user} />}
+      {currentTab === 'monitoring' && <Monitoring currentUser={user} />}
       {currentTab === 'settings' && <Settings />}
     </Layout>
   );

@@ -8,6 +8,7 @@ import { TemplateController } from '../controllers/TemplateController';
 import { AlertController } from '../controllers/AlertController';
 import { AutomationController } from '../controllers/AutomationController';
 import { SettingsController } from '../controllers/SettingsController';
+import { LogController } from '../controllers/LogController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 
 const routes = Router();
@@ -25,6 +26,12 @@ routes.use(authMiddleware as any);
 
 // Usuário Conectado
 routes.get('/auth/me', AuthController.me as any);
+
+// Monitoramento e Auditoria de Segurança (Exclusivo Master)
+routes.get('/logs/metrics', LogController.getMetrics);
+routes.get('/logs', LogController.list);
+routes.post('/logs/test', LogController.testLog);
+routes.delete('/logs', LogController.clear);
 
 // Gestão de Usuários do Sistema
 routes.get('/users', UserController.list);

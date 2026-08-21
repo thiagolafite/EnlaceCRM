@@ -2,22 +2,45 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 import { config } from '../config';
+import { LogService } from './LogService';
 
 const MASTER_EMAIL = 'tigolafite@gmail.com';
 
 export class AuthService {
-  static async login(email: string, password: string) {
+  static async login(email: string, password: string, reqContext?: { ip?: string; userAgent?: string }) {
     const cleanEmail = email.toLowerCase().trim();
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
 
     if (!user) {
+      // Registrar falha de autenticação (usuário inexistente)
+      await LogService.createLog({
+        level: 'SECURITY',
+        category: 'AUTH',
+        action: 'LOGIN_FAILED',
+        message: `Tentativa de login falhou: usuário não cadastrado (${cleanEmail})`,
+        userEmail: cleanEmail,
+        ipAddress: reqContext?.ip,
+        userAgent: reqContext?.userAgent,
+      });
       throw new Error('Credenciais inválidas');
     }
 
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
+      // Registrar falha de autenticação (senha incorreta)
+      await LogService.createLog({
+        level: 'SECURITY',
+        category: 'AUTH',
+        action: 'LOGIN_FAILED_PASSWORD',
+        message: `Tentativa de login com senha incorreta para a conta ${cleanEmail}`,
+        userId: user.id,
+        userEmail: user.email,
+        companyId: user.companyId || undefined,
+        ipAddress: reqContext?.ip,
+        userAgent: reqContext?.userAgent,
+      });
       throw new Error('Credenciais inválidas');
     }
 
@@ -43,6 +66,19 @@ export class AuthService {
       { expiresIn: '7d' }
     );
 
+    // Registrar login bem-sucedido
+    await LogService.createLog({
+      level: 'INFO',
+      category: 'AUTH',
+      action: 'LOGIN_SUCCESS',
+      message: `Login realizado com sucesso por ${user.name} (${user.email}) [Perfil: ${role}]`,
+      userId: user.id,
+      userEmail: user.email,
+      companyId: user.companyId || undefined,
+      ipAddress: reqContext?.ip,
+      userAgent: reqContext?.userAgent,
+    });
+
     return {
       user: {
         id: user.id,
@@ -55,7 +91,7 @@ export class AuthService {
     };
   }
 
-  static async register(name: string, email: string, password: string) {
+  static async register(name: string, email: string, password: string, reqContext?: { ip?: string; userAgent?: string }) {
     if (!name || !name.trim()) {
       throw new Error('Nome é obrigatório');
     }
@@ -88,6 +124,19 @@ export class AuthService {
         role,
         companyId,
       },
+    });
+
+    // Registrar criação de nova conta
+    await LogService.createLog({
+      level: 'INFO',
+      category: 'AUTH',
+      action: 'USER_REGISTERED',
+      message: `Nova conta criada: ${user.name} (${user.email}) - Empresa: ${companyId}`,
+      userId: user.id,
+      userEmail: user.email,
+      companyId: user.companyId || undefined,
+      ipAddress: reqContext?.ip,
+      userAgent: reqContext?.userAgent,
     });
 
     const token = jwt.sign(
