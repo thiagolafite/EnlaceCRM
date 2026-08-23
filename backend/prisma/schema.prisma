@@ -63,6 +63,13 @@ model Client {
 
   status           String         @default("ACTIVE") // ACTIVE, INACTIVE
   companyId        String?        @default("default_company")
+  
+  // Segmentação e Perfil Familiar para Datas Comemorativas
+  gender           String?        @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
+  isMother         Boolean        @default(false)           // É Mãe
+  isFather         Boolean        @default(false)           // É Pai
+  profession       String?                                  // Profissão ou Cargo (ex: Médico, Advogado, Professor)
+
   lgpdConsent      Boolean        @default(true) // Opt-in de comunicação
   lgpdConsentDate  DateTime       @default(now())
   notes            String?

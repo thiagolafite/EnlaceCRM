@@ -8,6 +8,12 @@ export interface CreateClientDTO {
   companyName?: string;
   birthDate?: string | Date;
   
+  // Segmentação de Perfil Familiar e Gênero
+  gender?: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED';
+  isMother?: boolean;
+  isFather?: boolean;
+  profession?: string;
+
   // Endereço
   zipCode?: string;
   address?: string;
@@ -158,6 +164,10 @@ export class ClientService {
 
         status: data.status || 'ACTIVE',
         companyId: targetCompanyId,
+        gender: data.gender || 'NOT_SPECIFIED',
+        isMother: Boolean(data.isMother),
+        isFather: Boolean(data.isFather),
+        profession: data.profession?.trim() || null,
         lgpdConsent: typeof data.lgpdConsent === 'boolean' ? data.lgpdConsent : true,
         notes: data.notes?.trim() || null,
         familyMembers: data.familyMembers?.length
@@ -206,6 +216,11 @@ export class ClientService {
     if (data.phone !== undefined) updateData.phone = data.phone?.trim() || null;
     if (data.companyName !== undefined) updateData.companyName = data.companyName?.trim() || null;
     if (data.birthDate !== undefined) updateData.birthDate = data.birthDate ? new Date(data.birthDate) : null;
+
+    if (data.gender !== undefined) updateData.gender = data.gender;
+    if (data.isMother !== undefined) updateData.isMother = Boolean(data.isMother);
+    if (data.isFather !== undefined) updateData.isFather = Boolean(data.isFather);
+    if (data.profession !== undefined) updateData.profession = data.profession?.trim() || null;
 
     if (data.zipCode !== undefined) updateData.zipCode = data.zipCode?.trim() || null;
     if (data.address !== undefined) updateData.address = data.address?.trim() || null;

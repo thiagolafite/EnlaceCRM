@@ -2,6 +2,7 @@ import { prisma } from '../utils/prisma';
 import { isSameDayAndMonth, calculateAge, RELATIONSHIP_LABELS, RELATIONSHIP_POSSESSIVE } from '../utils/dateUtils';
 import { interpolateTemplate } from '../utils/interpolator';
 import { CallMeBotProvider } from '../providers/notification/CallMeBotProvider';
+import { matchesAudience } from '../utils/audienceMatcher';
 
 export interface DailyAutomationReport {
   executionDate: string;
@@ -284,10 +285,16 @@ export class AutomationService {
       }
 
       // -------------------------------------------------------------
-      // CENÁRIO C: DATAS FIXAS DO CALENDÁRIO
+      // CENÁRIO C: DATAS FIXAS DO CALENDÁRIO COM FILTRO DE PÚBLICO
       // -------------------------------------------------------------
       for (const fd of activeFixedDatesForToday) {
-        const contextDesc = `Data Comemorativa: ${fd.name}`;
+        // Verificar se o cliente se enquadra no público da data (ex: Mães, Pais, Mulheres, etc.)
+        const audienceCheck = matchesAudience(client as any, fd);
+        if (!audienceCheck.matches) {
+          continue; // Não elegível para esta data comemorativa
+        }
+
+        const contextDesc = `Data Comemorativa (${audienceCheck.reason}): ${fd.name}`;
 
         const alreadyCreated = await prisma.alert.findFirst({
           where: {

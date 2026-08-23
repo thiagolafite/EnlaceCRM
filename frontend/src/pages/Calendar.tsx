@@ -27,11 +27,17 @@ import {
   Check,
   Send,
   Sliders,
+  Filter,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CommemorativeDate, UpcomingEvent, Client, MessageTemplate } from '../types';
 import { Modal } from '../components/Modal';
 import { EventTypeBadge } from '../components/Badge';
+import {
+  detectCommemorativeAudience,
+  filterClientsByAudience,
+  AudienceFilterKey,
+} from '../utils/audienceMatcher';
 
 interface CalendarProps {
   defaultTab?: 'year' | 'fixed' | 'agenda';
@@ -182,6 +188,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   const [selectedHoliday, setSelectedHoliday] = useState<CommemorativeDate | null>(null);
   const [isHolidayBroadcastModalOpen, setIsHolidayBroadcastModalOpen] = useState(false);
   const [holidayChannel, setHolidayChannel] = useState<'WHATSAPP' | 'EMAIL'>('WHATSAPP');
+  const [holidayAudienceFilter, setHolidayAudienceFilter] = useState<AudienceFilterKey>('AUTO');
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [holidaySearch, setHolidaySearch] = useState('');
 
@@ -325,13 +332,27 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     setIsBirthdayModalOpen(true);
   };
 
-  // Abrir Modal de Disparo de Feriado / Data Fixa (Item 4)
+  // Abrir Modal de Disparo de Feriado / Data Fixa (Item 4) com Filtro Inteligente de Público
   const handleOpenHolidayBroadcastModal = (dateObj: CommemorativeDate) => {
     setSelectedHoliday(dateObj);
     setHolidayChannel('WHATSAPP');
-    setSelectedClientIds(clients.map((c) => c.id)); // Seleciona todos por padrão
+    setHolidayAudienceFilter('AUTO');
+
+    // Auto-detectar público-alvo da data e selecionar apenas os clientes correspondentes
+    const detected = detectCommemorativeAudience(dateObj);
+    const { filtered } = filterClientsByAudience(clients, 'AUTO', detected.key);
+    setSelectedClientIds(filtered.map((c) => c.id));
     setHolidaySearch('');
     setIsHolidayBroadcastModalOpen(true);
+  };
+
+  const handleAudienceFilterChange = (newKey: AudienceFilterKey) => {
+    setHolidayAudienceFilter(newKey);
+    if (selectedHoliday) {
+      const detected = detectCommemorativeAudience(selectedHoliday);
+      const { filtered } = filterClientsByAudience(clients, newKey, detected.key);
+      setSelectedClientIds(filtered.map((c) => c.id));
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -543,18 +564,35 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     window.open(mailto, '_blank');
   };
 
-  // Filtrar clientes na modal de feriado
-  const filteredBroadcastClients = clients.filter((c) => {
+  // Detecção de público-alvo da data selecionada
+  const detectedHolidayAudience = selectedHoliday ? detectCommemorativeAudience(selectedHoliday) : null;
+  
+  // Obter clientes elegíveis para o público ativo e seus motivos
+  const { filtered: audienceEligibleClients, matchedReasons: audienceReasons } = filterClientsByAudience(
+    clients,
+    holidayAudienceFilter,
+    detectedHolidayAudience?.key
+  );
+
+  // Filtrar clientes na modal de feriado (combinando público-alvo e texto de busca)
+  const filteredBroadcastClients = audienceEligibleClients.filter((c) => {
     if (!holidaySearch) return true;
     const s = holidaySearch.toLowerCase();
-    return c.name.toLowerCase().includes(s) || (c.phone && c.phone.includes(s)) || (c.email && c.email.toLowerCase().includes(s));
+    return (
+      c.name.toLowerCase().includes(s) ||
+      (c.phone && c.phone.includes(s)) ||
+      (c.email && c.email.toLowerCase().includes(s)) ||
+      (c.companyName && c.companyName.toLowerCase().includes(s))
+    );
   });
 
   const handleToggleSelectAllClients = () => {
-    if (selectedClientIds.length === clients.length) {
-      setSelectedClientIds([]);
+    const visibleIds = filteredBroadcastClients.map((c) => c.id);
+    const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedClientIds.includes(id));
+    if (allVisibleSelected) {
+      setSelectedClientIds(selectedClientIds.filter((id) => !visibleIds.includes(id)));
     } else {
-      setSelectedClientIds(clients.map((c) => c.id));
+      setSelectedClientIds(Array.from(new Set([...selectedClientIds, ...visibleIds])));
     }
   };
 
@@ -1321,18 +1359,61 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               </div>
             </div>
 
-            {/* Clients Selection Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            {/* Smart Audience Filter Banner */}
+            {detectedHolidayAudience && (
+              <div className={`p-3.5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 ${detectedHolidayAudience.badgeColor}`}>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl shrink-0">{detectedHolidayAudience.iconText}</span>
+                  <div>
+                    <div className="text-xs font-black flex items-center gap-1.5">
+                      <span>Filtro Automático de Público:</span>
+                      <span className="underline underline-offset-2">{detectedHolidayAudience.label}</span>
+                      <span className="text-[11px] font-normal opacity-80">({audienceEligibleClients.length} elegíveis)</span>
+                    </div>
+                    <p className="text-[11px] opacity-90 mt-0.5">
+                      {detectedHolidayAudience.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Audience Switcher Dropdown */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <label className="text-[11px] font-bold opacity-80 flex items-center gap-1">
+                    <Filter className="w-3 h-3" /> Filtrar:
+                  </label>
+                  <select
+                    value={holidayAudienceFilter}
+                    onChange={(e) => handleAudienceFilterChange(e.target.value as any)}
+                    className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl py-1 px-2.5 text-xs font-bold text-slate-800 dark:text-slate-200 outline-none shadow-xs"
+                  >
+                    <option value="AUTO">🤖 Automático ({detectedHolidayAudience.label})</option>
+                    <option value="MOTHERS_ONLY">🌸 Apenas Mães</option>
+                    <option value="FATHERS_ONLY">👔 Apenas Pais</option>
+                    <option value="WOMEN_ONLY">💐 Apenas Mulheres</option>
+                    <option value="MEN_ONLY">🎩 Apenas Homens</option>
+                    <option value="PARENTS_ONLY">👨‍👩‍👧 Pais com Filhos</option>
+                    <option value="CORPORATE_ONLY">🏢 Clientes Corporativos / PJ</option>
+                    <option value="ALL">🌐 Todos os Clientes</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Clients Selection Controls & Search */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleToggleSelectAllClients}
                   className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
                 >
-                  {selectedClientIds.length === clients.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                  {filteredBroadcastClients.length > 0 &&
+                  filteredBroadcastClients.every((c) => selectedClientIds.includes(c.id))
+                    ? 'Desmarcar Filtrados'
+                    : 'Selecionar Filtrados'}
                 </button>
                 <span className="text-xs font-bold text-slate-500">
-                  {selectedClientIds.length} de {clients.length} clientes selecionados
+                  {selectedClientIds.length} selecionado(s) de {filteredBroadcastClients.length} filtrado(s)
                 </span>
               </div>
 
@@ -1343,7 +1424,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                   type="text"
                   value={holidaySearch}
                   onChange={(e) => setHolidaySearch(e.target.value)}
-                  placeholder="Filtrar clientes..."
+                  placeholder="Buscar cliente na lista..."
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
                 />
               </div>
@@ -1352,8 +1433,9 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             {/* Clients Table with Individual Sending Action */}
             <div className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden max-h-80 overflow-y-auto">
               {filteredBroadcastClients.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400">
-                  Nenhum cliente cadastrado ou encontrado pelo filtro.
+                <div className="p-8 text-center text-xs text-slate-400 space-y-1">
+                  <p className="font-bold text-slate-600 dark:text-slate-300">Nenhum cliente atende aos critérios do filtro atual.</p>
+                  <p className="text-[11px]">Você pode alterar a opção de público no seletor acima ou cadastrar novos clientes.</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
@@ -1362,6 +1444,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     const msg = getHolidayRenderedMessage(selectedHoliday, client, holidayChannel);
                     const hasPhone = Boolean(client.phone);
                     const hasEmail = Boolean(client.email);
+                    const matchReason = audienceReasons[client.id];
 
                     return (
                       <div
@@ -1378,8 +1461,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             className="w-4 h-4 rounded text-indigo-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 cursor-pointer shrink-0"
                           />
                           <div className="min-w-0">
-                            <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
-                              {client.name}
+                            <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+                              <span>{client.name}</span>
+                              {matchReason && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
+                                  {matchReason}
+                                </span>
+                              )}
                             </div>
                             <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                               {holidayChannel === 'WHATSAPP'

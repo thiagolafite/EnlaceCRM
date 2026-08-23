@@ -28,6 +28,10 @@ export interface Client {
   state?: string | null;
 
   status: 'ACTIVE' | 'INACTIVE';
+  gender?: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED' | null;
+  isMother?: boolean;
+  isFather?: boolean;
+  profession?: string | null;
   lgpdConsent: boolean;
   lgpdConsentDate?: string;
   notes?: string | null;

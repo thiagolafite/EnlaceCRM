@@ -43,6 +43,10 @@ export function Clients() {
     phone: string;
     companyName: string;
     birthDate: string;
+    gender: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED';
+    isMother: boolean;
+    isFather: boolean;
+    profession: string;
     
     // Endereço
     zipCode: string;
@@ -63,6 +67,10 @@ export function Clients() {
     phone: '',
     companyName: '',
     birthDate: '',
+    gender: 'NOT_SPECIFIED',
+    isMother: false,
+    isFather: false,
+    profession: '',
     zipCode: '',
     address: '',
     addressNumber: '',
@@ -183,6 +191,10 @@ export function Clients() {
         phone: client.phone || '',
         companyName: client.companyName || '',
         birthDate: client.birthDate ? client.birthDate.split('T')[0] : '',
+        gender: (client.gender as any) || 'NOT_SPECIFIED',
+        isMother: Boolean(client.isMother),
+        isFather: Boolean(client.isFather),
+        profession: client.profession || '',
         zipCode: client.zipCode || '',
         address: client.address || '',
         addressNumber: client.addressNumber || '',
@@ -203,6 +215,10 @@ export function Clients() {
         phone: '',
         companyName: '',
         birthDate: '',
+        gender: 'NOT_SPECIFIED',
+        isMother: false,
+        isFather: false,
+        profession: '',
         zipCode: '',
         address: '',
         addressNumber: '',
@@ -228,6 +244,10 @@ export function Clients() {
         phone: clientForm.phone || null,
         companyName: clientForm.companyName || null,
         birthDate: clientForm.birthDate ? new Date(clientForm.birthDate).toISOString() : null,
+        gender: clientForm.gender || 'NOT_SPECIFIED',
+        isMother: Boolean(clientForm.isMother),
+        isFather: Boolean(clientForm.isFather),
+        profession: clientForm.profession || null,
         zipCode: clientForm.zipCode || null,
         address: clientForm.address || null,
         addressNumber: clientForm.addressNumber || null,
@@ -772,6 +792,65 @@ export function Clients() {
                   <option value="ACTIVE">Ativo</option>
                   <option value="INACTIVE">Inativo</option>
                 </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Seção 2: Segmentação Inteligente para Datas Comemorativas */}
+          <div className="space-y-3 pt-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2">
+              <Sparkles className="w-4 h-4" /> Segmentação Familiar & Gênero (Filtros Automáticos)
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Estes campos permitem que o sistema filtre automaticamente o cliente em datas como **Dia das Mães**, **Dia dos Pais**, **Dia da Mulher**, etc.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Gênero / Sexo</label>
+                <select
+                  value={clientForm.gender || 'NOT_SPECIFIED'}
+                  onChange={(e) => setClientForm({ ...clientForm, gender: e.target.value as any })}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+                >
+                  <option value="NOT_SPECIFIED">Não Informado</option>
+                  <option value="FEMALE">Feminino (Mulher)</option>
+                  <option value="MALE">Masculino (Homem)</option>
+                  <option value="OTHER">Outro</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Profissão / Ocupação (Opcional)</label>
+                <input
+                  type="text"
+                  value={clientForm.profession}
+                  onChange={(e) => setClientForm({ ...clientForm, profession: e.target.value })}
+                  placeholder="Ex: Médico(a), Advogado(a), Professor(a)"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+                />
+              </div>
+
+              <div className="sm:col-span-2 flex flex-wrap gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={clientForm.isMother}
+                    onChange={(e) => setClientForm({ ...clientForm, isMother: e.target.checked })}
+                    className="w-4 h-4 rounded text-pink-600 focus:ring-pink-500 border-slate-300 dark:border-slate-700"
+                  />
+                  <span>🌸 É Mãe (Receber felicitações no Dia das Mães)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={clientForm.isFather}
+                    onChange={(e) => setClientForm({ ...clientForm, isFather: e.target.checked })}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700"
+                  />
+                  <span>👔 É Pai (Receber felicitações no Dia dos Pais)</span>
+                </label>
               </div>
             </div>
           </div>
