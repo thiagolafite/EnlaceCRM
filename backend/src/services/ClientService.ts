@@ -29,6 +29,7 @@ export interface CreateClientDTO {
   notes?: string;
   familyMembers?: Array<{
     name: string;
+    gender?: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED';
     relationship: string;
     birthDate: string | Date;
     phone?: string;
@@ -174,6 +175,7 @@ export class ClientService {
           ? {
               create: data.familyMembers.map((fm) => ({
                 name: fm.name.trim(),
+                gender: fm.gender || 'NOT_SPECIFIED',
                 relationship: fm.relationship,
                 birthDate: new Date(fm.birthDate),
                 phone: fm.phone?.trim() || null,

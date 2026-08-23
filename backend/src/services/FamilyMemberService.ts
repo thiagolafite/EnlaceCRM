@@ -3,6 +3,7 @@ import { prisma } from '../utils/prisma';
 export interface CreateFamilyMemberDTO {
   clientId: string;
   name: string;
+  gender?: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED';
   relationship: string;
   birthDate: string | Date;
   phone?: string;
@@ -58,6 +59,7 @@ export class FamilyMemberService {
       data: {
         clientId: data.clientId,
         name: data.name.trim(),
+        gender: data.gender || 'NOT_SPECIFIED',
         relationship: data.relationship || 'OTHER',
         birthDate: new Date(data.birthDate),
         phone: data.phone?.trim() || null,
@@ -85,6 +87,7 @@ export class FamilyMemberService {
 
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name.trim();
+    if (data.gender !== undefined) updateData.gender = data.gender;
     if (data.relationship !== undefined) updateData.relationship = data.relationship;
     if (data.birthDate !== undefined) updateData.birthDate = new Date(data.birthDate);
     if (data.phone !== undefined) updateData.phone = data.phone?.trim() || null;

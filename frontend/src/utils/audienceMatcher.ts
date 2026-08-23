@@ -111,64 +111,80 @@ export function filterClientsByAudience(
     const hasChildren = family.some((fm) => ['CHILD', 'SON', 'DAUGHTER'].includes(fm.relationship));
     const hasMother = family.some((fm) => fm.relationship === 'MOTHER');
     const hasFather = family.some((fm) => fm.relationship === 'FATHER');
+    const hasGrandparent = family.some((fm) => ['GRANDMOTHER', 'GRANDFATHER'].includes(fm.relationship));
+    const hasFemaleFamily = family.some((fm) => fm.gender === 'FEMALE' || ['MOTHER', 'DAUGHTER', 'SISTER', 'GRANDMOTHER'].includes(fm.relationship));
+    const hasMaleFamily = family.some((fm) => fm.gender === 'MALE' || ['FATHER', 'SON', 'BROTHER', 'GRANDFATHER'].includes(fm.relationship));
+
     const isFemale = c.gender === 'FEMALE';
     const isMale = c.gender === 'MALE';
 
     switch (activeKey) {
       case 'MOTHERS_ONLY':
         if (c.isMother) {
-          matchedReasons[c.id] = 'Perfil marcado como Mãe';
+          matchedReasons[c.id] = '🌸 Marcada como Mãe';
           return true;
         }
         if (isFemale && hasChildren) {
-          matchedReasons[c.id] = 'Cliente feminina com filho(s) cadastrado(s)';
+          matchedReasons[c.id] = '🌸 Cliente feminina com filho(s)';
           return true;
         }
         if (hasMother) {
-          matchedReasons[c.id] = 'Possui mãe cadastrada no perfil familiar';
+          const mom = family.find((fm) => fm.relationship === 'MOTHER');
+          matchedReasons[c.id] = `🌸 Possui Mãe (${mom?.name})`;
           return true;
         }
         return false;
 
       case 'FATHERS_ONLY':
         if (c.isFather) {
-          matchedReasons[c.id] = 'Perfil marcado como Pai';
+          matchedReasons[c.id] = '👔 Marcado como Pai';
           return true;
         }
         if (isMale && hasChildren) {
-          matchedReasons[c.id] = 'Cliente masculino com filho(s) cadastrado(s)';
+          matchedReasons[c.id] = '👔 Cliente masculino com filho(s)';
           return true;
         }
         if (hasFather) {
-          matchedReasons[c.id] = 'Possui pai cadastrado no perfil familiar';
+          const dad = family.find((fm) => fm.relationship === 'FATHER');
+          matchedReasons[c.id] = `👔 Possui Pai (${dad?.name})`;
           return true;
         }
         return false;
 
       case 'WOMEN_ONLY':
         if (isFemale || c.isMother) {
-          matchedReasons[c.id] = 'Cliente do gênero feminino';
+          matchedReasons[c.id] = '💐 Gênero Feminino';
+          return true;
+        }
+        if (hasFemaleFamily) {
+          const femaleMem = family.find((fm) => fm.gender === 'FEMALE' || ['MOTHER', 'DAUGHTER', 'SISTER', 'GRANDMOTHER'].includes(fm.relationship));
+          matchedReasons[c.id] = `💐 Familiar feminina (${femaleMem?.name})`;
           return true;
         }
         return false;
 
       case 'MEN_ONLY':
         if (isMale || c.isFather) {
-          matchedReasons[c.id] = 'Cliente do gênero masculino';
+          matchedReasons[c.id] = '🎩 Gênero Masculino';
+          return true;
+        }
+        if (hasMaleFamily) {
+          const maleMem = family.find((fm) => fm.gender === 'MALE' || ['FATHER', 'SON', 'BROTHER', 'GRANDFATHER'].includes(fm.relationship));
+          matchedReasons[c.id] = `🎩 Familiar masculino (${maleMem?.name})`;
           return true;
         }
         return false;
 
       case 'PARENTS_ONLY':
         if (c.isMother || c.isFather || hasChildren) {
-          matchedReasons[c.id] = 'Cliente possui filhos/família';
+          matchedReasons[c.id] = '👨‍👩‍👧 Possui filhos/família';
           return true;
         }
         return false;
 
       case 'CORPORATE_ONLY':
         if (c.companyName || (c.document && c.document.replace(/\D/g, '').length === 14)) {
-          matchedReasons[c.id] = 'Cliente Pessoa Jurídica / PJ';
+          matchedReasons[c.id] = '🏢 Cliente Pessoa Jurídica / PJ';
           return true;
         }
         return false;

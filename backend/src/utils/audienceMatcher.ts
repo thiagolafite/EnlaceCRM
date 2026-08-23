@@ -61,11 +61,13 @@ export function matchesAudience(
   const audienceType = detectAudienceType(commemorativeDate);
   const family = client.familyMembers || [];
 
-  // Checar familiares
+  // Checar familiares considerando parentesco e gênero
   const hasChildren = family.some((fm) => ['CHILD', 'SON', 'DAUGHTER'].includes(fm.relationship));
   const hasMother = family.some((fm) => fm.relationship === 'MOTHER');
   const hasFather = family.some((fm) => fm.relationship === 'FATHER');
   const hasGrandparent = family.some((fm) => ['GRANDMOTHER', 'GRANDFATHER'].includes(fm.relationship));
+  const hasFemaleFamily = family.some((fm) => fm.gender === 'FEMALE' || ['MOTHER', 'DAUGHTER', 'SISTER', 'GRANDMOTHER'].includes(fm.relationship));
+  const hasMaleFamily = family.some((fm) => fm.gender === 'MALE' || ['FATHER', 'SON', 'BROTHER', 'GRANDFATHER'].includes(fm.relationship));
 
   const isFemale = client.gender === 'FEMALE';
   const isMale = client.gender === 'MALE';
@@ -79,7 +81,8 @@ export function matchesAudience(
         return { matches: true, reason: 'Cliente feminina com filho(s) cadastrado(s)' };
       }
       if (hasMother) {
-        return { matches: true, reason: 'Possui mãe cadastrada no perfil familiar' };
+        const mom = family.find((fm) => fm.relationship === 'MOTHER');
+        return { matches: true, reason: mom ? `Familiar Mãe (${mom.name})` : 'Possui mãe no perfil familiar' };
       }
       return { matches: false, reason: 'Não identificada como mãe' };
 
@@ -91,7 +94,8 @@ export function matchesAudience(
         return { matches: true, reason: 'Cliente masculino com filho(s) cadastrado(s)' };
       }
       if (hasFather) {
-        return { matches: true, reason: 'Possui pai cadastrado no perfil familiar' };
+        const dad = family.find((fm) => fm.relationship === 'FATHER');
+        return { matches: true, reason: dad ? `Familiar Pai (${dad.name})` : 'Possui pai no perfil familiar' };
       }
       return { matches: false, reason: 'Não identificado como pai' };
 
@@ -99,17 +103,26 @@ export function matchesAudience(
       if (isFemale || client.isMother) {
         return { matches: true, reason: 'Cliente do gênero feminino' };
       }
+      if (hasFemaleFamily) {
+        const femaleMem = family.find((fm) => fm.gender === 'FEMALE' || ['MOTHER', 'DAUGHTER', 'SISTER', 'GRANDMOTHER'].includes(fm.relationship));
+        return { matches: true, reason: `Familiar feminina: ${femaleMem?.name}` };
+      }
       return { matches: false, reason: 'Não identificada como mulher' };
 
     case 'MEN_ONLY':
       if (isMale || client.isFather) {
         return { matches: true, reason: 'Cliente do gênero masculino' };
       }
+      if (hasMaleFamily) {
+        const maleMem = family.find((fm) => fm.gender === 'MALE' || ['FATHER', 'SON', 'BROTHER', 'GRANDFATHER'].includes(fm.relationship));
+        return { matches: true, reason: `Familiar masculino: ${maleMem?.name}` };
+      }
       return { matches: false, reason: 'Não identificado como homem' };
 
     case 'GRANDPARENTS_ONLY':
       if (hasGrandparent) {
-        return { matches: true, reason: 'Possui avô/avó cadastrado no perfil familiar' };
+        const gp = family.find((fm) => ['GRANDMOTHER', 'GRANDFATHER'].includes(fm.relationship));
+        return { matches: true, reason: `Possui avô/avó (${gp?.name}) no perfil familiar` };
       }
       return { matches: false, reason: 'Sem avós vinculados' };
 

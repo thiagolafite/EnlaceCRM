@@ -85,6 +85,7 @@ model FamilyMember {
   clientId          String
   client            Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   name              String
+  gender            String?       @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
   relationship      String        // MOTHER, FATHER, SON, DAUGHTER, SPOUSE, BROTHER, SISTER, GRANDFATHER, GRANDMOTHER, OTHER
   birthDate         DateTime      // Data de nascimento para cálculo do aniversário
   phone             String?       // Opcional conforme princípio da minimização LGPD

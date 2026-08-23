@@ -44,6 +44,7 @@ export interface FamilyMember {
   id: string;
   clientId: string;
   name: string;
+  gender?: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED' | null;
   relationship: 'MOTHER' | 'FATHER' | 'SON' | 'DAUGHTER' | 'SPOUSE' | 'BROTHER' | 'SISTER' | 'GRANDFATHER' | 'GRANDMOTHER' | 'OTHER';
   birthDate: string;
   phone?: string | null;

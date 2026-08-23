@@ -90,6 +90,7 @@ export function Clients() {
   const [loadingFamilyCep, setLoadingFamilyCep] = useState(false);
   const [familyForm, setFamilyForm] = useState<{
     name: string;
+    gender: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED';
     relationship: FamilyMember['relationship'];
     birthDate: string;
     phone: string;
@@ -108,6 +109,7 @@ export function Clients() {
     notes: string;
   }>({
     name: '',
+    gender: 'FEMALE',
     relationship: 'MOTHER',
     birthDate: '',
     phone: '',
@@ -300,12 +302,19 @@ export function Clients() {
     }
   };
 
+  const inferGenderFromRelationship = (rel: string): 'FEMALE' | 'MALE' | 'NOT_SPECIFIED' => {
+    if (['MOTHER', 'DAUGHTER', 'SISTER', 'GRANDMOTHER'].includes(rel)) return 'FEMALE';
+    if (['FATHER', 'SON', 'BROTHER', 'GRANDFATHER'].includes(rel)) return 'MALE';
+    return 'NOT_SPECIFIED';
+  };
+
   // Gerenciamento de Familiares
   const handleOpenFamilyModal = async (client: Client) => {
     setSelectedClientForFamily(client);
     setEditingFamilyMember(null);
     setFamilyForm({
       name: '',
+      gender: 'FEMALE',
       relationship: 'MOTHER',
       birthDate: '',
       phone: '',
@@ -345,6 +354,7 @@ export function Clients() {
     try {
       const payload: any = {
         name: familyForm.name,
+        gender: familyForm.gender || inferGenderFromRelationship(familyForm.relationship),
         relationship: familyForm.relationship,
         birthDate: new Date(familyForm.birthDate).toISOString(),
         phone: familyForm.phone || null,
@@ -374,6 +384,7 @@ export function Clients() {
       setEditingFamilyMember(null);
       setFamilyForm({
         name: '',
+        gender: 'FEMALE',
         relationship: 'MOTHER',
         birthDate: '',
         phone: '',
@@ -1036,7 +1047,15 @@ export function Clients() {
                 <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Parentesco *</label>
                 <select
                   value={familyForm.relationship}
-                  onChange={(e) => setFamilyForm({ ...familyForm, relationship: e.target.value as any })}
+                  onChange={(e) => {
+                    const newRel = e.target.value as any;
+                    const suggestedGender = inferGenderFromRelationship(newRel);
+                    setFamilyForm({
+                      ...familyForm,
+                      relationship: newRel,
+                      gender: suggestedGender !== 'NOT_SPECIFIED' ? suggestedGender : familyForm.gender,
+                    });
+                  }}
                   className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
                 >
                   {Object.entries(RELATIONSHIP_LABELS).map(([val, label]) => (
@@ -1044,6 +1063,20 @@ export function Clients() {
                       {label}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Gênero / Sexo *</label>
+                <select
+                  value={familyForm.gender || 'NOT_SPECIFIED'}
+                  onChange={(e) => setFamilyForm({ ...familyForm, gender: e.target.value as any })}
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
+                >
+                  <option value="NOT_SPECIFIED">Não Informado</option>
+                  <option value="FEMALE">Feminino (Mulher)</option>
+                  <option value="MALE">Masculino (Homem)</option>
+                  <option value="OTHER">Outro</option>
                 </select>
               </div>
 
@@ -1173,6 +1206,7 @@ export function Clients() {
                     setEditingFamilyMember(null);
                     setFamilyForm({
                       name: '',
+                      gender: 'FEMALE',
                       relationship: 'MOTHER',
                       birthDate: '',
                       phone: '',
@@ -1249,6 +1283,7 @@ export function Clients() {
                             setEditingFamilyMember(fm);
                             setFamilyForm({
                               name: fm.name,
+                              gender: (fm.gender as any) || inferGenderFromRelationship(fm.relationship),
                               relationship: fm.relationship,
                               birthDate: fm.birthDate ? fm.birthDate.split('T')[0] : '',
                               phone: fm.phone || '',
