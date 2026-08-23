@@ -2,7 +2,7 @@ import { prisma } from '../utils/prisma';
 import { isSameDayAndMonth, calculateAge, RELATIONSHIP_LABELS, RELATIONSHIP_POSSESSIVE } from '../utils/dateUtils';
 import { interpolateTemplate } from '../utils/interpolator';
 import { CallMeBotProvider } from '../providers/notification/CallMeBotProvider';
-import { matchesAudience } from '../utils/audienceMatcher';
+import { matchesAudience, detectAudienceType } from '../utils/audienceMatcher';
 
 export interface DailyAutomationReport {
   executionDate: string;
@@ -288,87 +288,224 @@ export class AutomationService {
       // CENÁRIO C: DATAS FIXAS DO CALENDÁRIO COM FILTRO DE PÚBLICO
       // -------------------------------------------------------------
       for (const fd of activeFixedDatesForToday) {
-        // Verificar se o cliente se enquadra no público da data (ex: Mães, Pais, Mulheres, etc.)
-        const audienceCheck = matchesAudience(client as any, fd);
-        if (!audienceCheck.matches) {
-          continue; // Não elegível para esta data comemorativa
+        const audType = detectAudienceType(fd);
+        const family = client.familyMembers || [];
+        const isClientFemale = client.gender === 'FEMALE';
+        const isClientMale = client.gender === 'MALE';
+        const hasChildren = family.some((fm) => ['CHILD', 'SON', 'DAUGHTER'].includes(fm.relationship));
+
+        // 1. Verificar se o próprio Cliente Titular se enquadra
+        let clientMatches = false;
+        let clientReason = '';
+
+        if (audType === 'MOTHERS_ONLY' && (client.isMother || (isClientFemale && hasChildren))) {
+          clientMatches = true;
+          clientReason = '🌸 Cliente Marcada como Mãe';
+        } else if (audType === 'FATHERS_ONLY' && (client.isFather || (isClientMale && hasChildren))) {
+          clientMatches = true;
+          clientReason = '👔 Cliente Marcado como Pai';
+        } else if (audType === 'WOMEN_ONLY' && (isClientFemale || client.isMother)) {
+          clientMatches = true;
+          clientReason = '💐 Cliente do Gênero Feminino';
+        } else if (audType === 'MEN_ONLY' && (isClientMale || client.isFather)) {
+          clientMatches = true;
+          clientReason = '🎩 Cliente do Gênero Masculino';
+        } else if (audType === 'PARENTS_ONLY' && (client.isMother || client.isFather || hasChildren)) {
+          clientMatches = true;
+          clientReason = '👨‍👩‍👧 Cliente com Filhos/Família';
+        } else if (audType === 'ALL_CLIENTS' || audType === 'CORPORATE_ONLY') {
+          clientMatches = true;
+          clientReason = '🌐 Cliente Ativo';
         }
 
-        const contextDesc = `Data Comemorativa (${audienceCheck.reason}): ${fd.name}`;
-
-        const alreadyCreated = await prisma.alert.findFirst({
-          where: {
-            clientId: client.id,
-            commemorativeDateId: fd.id,
-            eventType: 'FIXED_DATE',
-            alertDate: { gte: startOfDay, lte: endOfDay },
-          },
-        });
-
-        if (alreadyCreated && !isDryRun) {
-          report.alreadyGeneratedSkipped++;
-          report.details.push({
-            eventType: 'FIXED_DATE',
-            clientName: client.name,
-            targetName: fd.name,
-            context: contextDesc,
-            clientPhone: client.phone,
-            renderedMessage: alreadyCreated.renderedMessage,
-            status: 'ALREADY_GENERATED',
-          });
-          alertsToNotify.push({
-            clientName: client.name,
-            targetName: fd.name,
-            context: contextDesc,
-            phone: client.phone,
-            renderedMessage: alreadyCreated.renderedMessage,
-          });
-        } else {
-          const template = getTemplate('FIXED_DATE', fd.id);
-          const content = template?.content || 'Olá, *{{primeiro_nome}}*! Desejamos a você um excelente dia comemorativo de {{nome_empresa}}! ✨';
-
-          const renderedMessage = interpolateTemplate(content, {
-            clientName: client.name,
-            companyName,
+        if (clientMatches) {
+          const contextDesc = `Data Comemorativa (${clientReason}): ${fd.name}`;
+          const alreadyCreated = await prisma.alert.findFirst({
+            where: {
+              clientId: client.id,
+              familyMemberId: null,
+              commemorativeDateId: fd.id,
+              eventType: 'FIXED_DATE',
+              alertDate: { gte: startOfDay, lte: endOfDay },
+            },
           });
 
-          if (!isDryRun) {
-            const newAlert = await prisma.alert.create({
-              data: {
-                clientId: client.id,
-                commemorativeDateId: fd.id,
-                templateId: template?.id || null,
-                eventType: 'FIXED_DATE',
-                clientName: client.name,
-                clientPhone: client.phone,
-                targetName: fd.name,
-                contextDescription: contextDesc,
-                renderedMessage,
-                alertDate: referenceDate,
-                notificationStatus: 'PENDING',
-              },
+          if (alreadyCreated && !isDryRun) {
+            report.alreadyGeneratedSkipped++;
+            report.details.push({
+              eventType: 'FIXED_DATE',
+              clientName: client.name,
+              targetName: fd.name,
+              context: contextDesc,
+              clientPhone: client.phone,
+              renderedMessage: alreadyCreated.renderedMessage,
+              status: 'ALREADY_GENERATED',
             });
-            createdAlertIds.push(newAlert.id);
-            report.alertsGenerated++;
+            alertsToNotify.push({
+              clientName: client.name,
+              targetName: fd.name,
+              context: contextDesc,
+              phone: client.phone,
+              renderedMessage: alreadyCreated.renderedMessage,
+            });
+          } else {
+            const template = getTemplate('FIXED_DATE', fd.id);
+            const content = template?.content || 'Olá, *{{primeiro_nome}}*! Desejamos a você um excelente dia comemorativo de {{nome_empresa}}! ✨';
+            const renderedMessage = interpolateTemplate(content, {
+              clientName: client.name,
+              companyName,
+            });
+
+            if (!isDryRun) {
+              const newAlert = await prisma.alert.create({
+                data: {
+                  clientId: client.id,
+                  commemorativeDateId: fd.id,
+                  templateId: template?.id || null,
+                  eventType: 'FIXED_DATE',
+                  clientName: client.name,
+                  clientPhone: client.phone,
+                  targetName: fd.name,
+                  contextDescription: contextDesc,
+                  renderedMessage,
+                  alertDate: referenceDate,
+                  notificationStatus: 'PENDING',
+                },
+              });
+              createdAlertIds.push(newAlert.id);
+              report.alertsGenerated++;
+            }
+
+            report.details.push({
+              eventType: 'FIXED_DATE',
+              clientName: client.name,
+              targetName: fd.name,
+              context: contextDesc,
+              clientPhone: client.phone,
+              renderedMessage,
+              status: isDryRun ? 'SIMULATED_READY' : 'GENERATED',
+            });
+
+            alertsToNotify.push({
+              clientName: client.name,
+              targetName: fd.name,
+              context: contextDesc,
+              phone: client.phone,
+              renderedMessage,
+            });
+          }
+        }
+
+        // 2. Verificar se algum Familiar se enquadra (ex: Mãe, Pai, Mulheres da família, etc.)
+        for (const fm of family) {
+          let fmMatches = false;
+          let fmReason = '';
+          const isFmFemale = fm.gender === 'FEMALE' || ['MOTHER', 'DAUGHTER', 'SISTER', 'GRANDMOTHER'].includes(fm.relationship);
+          const isFmMale = fm.gender === 'MALE' || ['FATHER', 'SON', 'BROTHER', 'GRANDFATHER'].includes(fm.relationship);
+
+          if (audType === 'MOTHERS_ONLY' && (fm.relationship === 'MOTHER' || (fm.gender === 'FEMALE' && ['MOTHER', 'GRANDMOTHER'].includes(fm.relationship)))) {
+            fmMatches = true;
+            fmReason = `🌸 Mãe de ${client.name}`;
+          } else if (audType === 'FATHERS_ONLY' && (fm.relationship === 'FATHER' || (fm.gender === 'MALE' && ['FATHER', 'GRANDFATHER'].includes(fm.relationship)))) {
+            fmMatches = true;
+            fmReason = `👔 Pai de ${client.name}`;
+          } else if (audType === 'WOMEN_ONLY' && isFmFemale) {
+            fmMatches = true;
+            fmReason = `💐 Mulher (Familiar de ${client.name})`;
+          } else if (audType === 'MEN_ONLY' && isFmMale) {
+            fmMatches = true;
+            fmReason = `🎩 Homem (Familiar de ${client.name})`;
           }
 
-          report.details.push({
-            eventType: 'FIXED_DATE',
-            clientName: client.name,
-            targetName: fd.name,
-            context: contextDesc,
-            clientPhone: client.phone,
-            renderedMessage,
-            status: isDryRun ? 'SIMULATED_READY' : 'GENERATED',
-          });
+          if (fmMatches) {
+            const relName = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
+            const contextDesc = `Data Comemorativa (${fmReason}): ${fd.name} para ${fm.name} (${relName})`;
+            const targetPhone = fm.phone || client.phone;
 
-          alertsToNotify.push({
-            clientName: client.name,
-            targetName: fd.name,
-            context: contextDesc,
-            phone: client.phone,
-            renderedMessage,
-          });
+            const alreadyCreatedFm = await prisma.alert.findFirst({
+              where: {
+                clientId: client.id,
+                familyMemberId: fm.id,
+                commemorativeDateId: fd.id,
+                eventType: 'FIXED_DATE',
+                alertDate: { gte: startOfDay, lte: endOfDay },
+              },
+            });
+
+            if (alreadyCreatedFm && !isDryRun) {
+              report.alreadyGeneratedSkipped++;
+              report.details.push({
+                eventType: 'FIXED_DATE',
+                clientName: client.name,
+                targetName: `${fm.name} (${relName})`,
+                context: contextDesc,
+                clientPhone: targetPhone,
+                renderedMessage: alreadyCreatedFm.renderedMessage,
+                status: 'ALREADY_GENERATED',
+              });
+              alertsToNotify.push({
+                clientName: client.name,
+                targetName: `${fm.name} (${relName})`,
+                context: contextDesc,
+                phone: targetPhone,
+                renderedMessage: alreadyCreatedFm.renderedMessage,
+              });
+            } else {
+              const template = getTemplate('FIXED_DATE', fd.id);
+              let content = '';
+              if (fm.phone) {
+                content = template?.content || `Olá, *{{nome_familiar}}*! ✨ Neste(a) *${fd.name}*, a equipe da {{nome_empresa}} deseja a você um dia maravilhoso, com muita saúde e alegrias!`;
+              } else {
+                content = `Olá, *{{primeiro_nome}}*! ✨ Neste(a) *${fd.name}*, a equipe da {{nome_empresa}} envia um carinhoso abraço e felicitações para sua *{{parentesco}}*, *{{nome_familiar}}*! 🎉`;
+              }
+
+              const renderedMessage = interpolateTemplate(content, {
+                clientName: client.name,
+                familyName: fm.name,
+                relationship: relName,
+                companyName,
+              });
+
+              if (!isDryRun) {
+                const newAlert = await prisma.alert.create({
+                  data: {
+                    clientId: client.id,
+                    familyMemberId: fm.id,
+                    commemorativeDateId: fd.id,
+                    templateId: template?.id || null,
+                    eventType: 'FIXED_DATE',
+                    clientName: client.name,
+                    clientPhone: targetPhone,
+                    targetName: `${fm.name} (${relName})`,
+                    contextDescription: contextDesc,
+                    renderedMessage,
+                    alertDate: referenceDate,
+                    notificationStatus: 'PENDING',
+                  },
+                });
+                createdAlertIds.push(newAlert.id);
+                report.alertsGenerated++;
+              }
+
+              report.details.push({
+                eventType: 'FIXED_DATE',
+                clientName: client.name,
+                targetName: `${fm.name} (${relName})`,
+                context: contextDesc,
+                clientPhone: targetPhone,
+                renderedMessage,
+                status: isDryRun ? 'SIMULATED_READY' : 'GENERATED',
+              });
+
+              alertsToNotify.push({
+                clientName: client.name,
+                targetName: `${fm.name} (${relName})`,
+                context: contextDesc,
+                phone: targetPhone,
+                renderedMessage,
+              });
+            }
+          }
         }
       }
     }

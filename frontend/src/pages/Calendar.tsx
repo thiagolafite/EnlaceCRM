@@ -36,6 +36,8 @@ import { EventTypeBadge } from '../components/Badge';
 import {
   detectCommemorativeAudience,
   filterClientsByAudience,
+  getEligibleBroadcastRecipients,
+  BroadcastRecipient,
   AudienceFilterKey,
 } from '../utils/audienceMatcher';
 
@@ -132,6 +134,8 @@ function interpolateMessage(
     nome_cliente?: string;
     primeiro_nome?: string;
     nome_familiar?: string;
+    nome_homenageado?: string;
+    primeiro_nome_homenageado?: string;
     parentesco?: string;
     parentesco_possessivo?: string;
     nome_empresa?: string;
@@ -144,7 +148,9 @@ function interpolateMessage(
 
   result = result.replace(/\{\{nome_cliente\}\}/g, data.nome_cliente || 'Cliente');
   result = result.replace(/\{\{primeiro_nome\}\}/g, data.primeiro_nome || data.nome_cliente?.split(' ')[0] || 'Cliente');
-  result = result.replace(/\{\{nome_familiar\}\}/g, data.nome_familiar || 'seu familiar');
+  result = result.replace(/\{\{nome_familiar\}\}/g, data.nome_familiar || data.nome_homenageado || 'seu familiar');
+  result = result.replace(/\{\{nome_homenageado\}\}/g, data.nome_homenageado || data.nome_familiar || 'Homenageado');
+  result = result.replace(/\{\{primeiro_nome_homenageado\}\}/g, data.primeiro_nome_homenageado || data.nome_homenageado?.split(' ')[0] || 'Homenageado');
   result = result.replace(/\{\{parentesco\}\}/g, data.parentesco || 'familiar');
   result = result.replace(/\{\{parentesco_possessivo\}\}/g, data.parentesco_possessivo || 'seu familiar');
   result = result.replace(/\{\{nome_empresa\}\}/g, company);
@@ -332,16 +338,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     setIsBirthdayModalOpen(true);
   };
 
-  // Abrir Modal de Disparo de Feriado / Data Fixa (Item 4) com Filtro Inteligente de Público
+  // Abrir Modal de Disparo de Feriado / Data Fixa (Item 4) com Filtro Inteligente de Público e Destinatários
   const handleOpenHolidayBroadcastModal = (dateObj: CommemorativeDate) => {
     setSelectedHoliday(dateObj);
     setHolidayChannel('WHATSAPP');
     setHolidayAudienceFilter('AUTO');
 
-    // Auto-detectar público-alvo da data e selecionar apenas os clientes correspondentes
+    // Auto-detectar público-alvo da data e selecionar apenas os destinatários correspondentes
     const detected = detectCommemorativeAudience(dateObj);
-    const { filtered } = filterClientsByAudience(clients, 'AUTO', detected.key);
-    setSelectedClientIds(filtered.map((c) => c.id));
+    const eligible = getEligibleBroadcastRecipients(clients, 'AUTO', detected.key);
+    setSelectedClientIds(eligible.map((r) => r.id));
     setHolidaySearch('');
     setIsHolidayBroadcastModalOpen(true);
   };
@@ -350,8 +356,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     setHolidayAudienceFilter(newKey);
     if (selectedHoliday) {
       const detected = detectCommemorativeAudience(selectedHoliday);
-      const { filtered } = filterClientsByAudience(clients, newKey, detected.key);
-      setSelectedClientIds(filtered.map((c) => c.id));
+      const eligible = getEligibleBroadcastRecipients(clients, newKey, detected.key);
+      setSelectedClientIds(eligible.map((r) => r.id));
     }
   };
 
@@ -508,10 +514,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     return { subject: renderedSubject, body: renderedBody };
   };
 
-  // Obter texto renderizado de mensagem de Feriado / Data Comemorativa Fixa para um Cliente
+  // Obter texto renderizado de mensagem de Feriado / Data Comemorativa Fixa para um Destinatário (Cliente ou Familiar)
   const getHolidayRenderedMessage = (
     holiday: CommemorativeDate,
-    client: Client,
+    recipient: BroadcastRecipient,
     channel: 'WHATSAPP' | 'EMAIL'
   ) => {
     const matchedTpl = templates.find(
@@ -521,26 +527,52 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         (t.commemorativeDateId === holiday.id || t.name.toLowerCase().includes(holiday.name.toLowerCase()))
     );
 
-    const defaultContent =
-      channel === 'WHATSAPP'
-        ? `Olá, {{primeiro_nome}}! ✨\n\nNeste(a) ${holiday.name}, a equipe da {{nome_empresa}} deseja a você e toda a sua família momentos de muita alegria, paz e comemoração!\n\nUm grande abraço!`
-        : `Prezado(a) {{nome_cliente}},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} deseja a você um excelente dia, com harmonia e realizações.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
+    const isDirect = recipient.type === 'CLIENT' || recipient.isDirectContact;
+    const targetFirstName = recipient.targetName.split(' ')[0];
+    const clientFirstName = recipient.clientName.split(' ')[0];
 
-    const defaultSubject = `🌟 Votos de Feliz ${holiday.name} — {{nome_empresa}}`;
+    let defaultContent = '';
+    let defaultSubject = `🌟 Votos de Feliz ${holiday.name} — {{nome_empresa}}`;
+
+    if (recipient.type === 'CLIENT') {
+      defaultContent =
+        channel === 'WHATSAPP'
+          ? `Olá, ${targetFirstName}! ✨\n\nNeste(a) *${holiday.name}*, a equipe da {{nome_empresa}} deseja a você muitas felicidades, reconhecimento e um dia maravilhoso!\n\nUm grande abraço!`
+          : `Prezada(o) ${recipient.targetName},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} deseja a você um excelente dia, com harmonia e realizações.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
+    } else if (recipient.isDirectContact) {
+      // Familiar com WhatsApp/contato direto
+      defaultContent =
+        channel === 'WHATSAPP'
+          ? `Olá, ${targetFirstName}! ✨\n\nNeste(a) *${holiday.name}*, a equipe da {{nome_empresa}} deseja a você um dia especial, repleto de homenagens, saúde e alegrias!\n\nParabéns pelo seu dia!`
+          : `Prezada(o) ${recipient.targetName},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} envia a você votos de muita saúde, paz e realizações.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
+    } else {
+      // Familiar sem WhatsApp cadastrado (enviando pelo WhatsApp do cliente titular)
+      defaultContent =
+        channel === 'WHATSAPP'
+          ? `Olá, ${clientFirstName}! ✨\n\nNeste(a) *${holiday.name}*, a equipe da {{nome_empresa}} pede licença para enviar um carinhoso abraço e felicitações especiais para sua *${recipient.relationshipLabel.toLowerCase()}*, *${recipient.targetName}*! 🎉\n\nQue a família de vocês tenha um dia muito especial!`
+          : `Prezado(a) ${recipient.clientName},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} envia votos afetuosos para sua ${recipient.relationshipLabel.toLowerCase()}, ${recipient.targetName}.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
+      defaultSubject = `🌟 Feliz ${holiday.name} para sua ${recipient.relationshipLabel} — {{nome_empresa}}`;
+    }
 
     const rawContent = matchedTpl?.content || defaultContent;
     const rawSubject = matchedTpl?.subject || defaultSubject;
 
     const renderedBody = interpolateMessage(rawContent, {
-      nome_cliente: client.name,
-      primeiro_nome: client.name.split(' ')[0],
+      nome_cliente: recipient.clientName,
+      primeiro_nome: clientFirstName,
+      nome_homenageado: recipient.targetName,
+      primeiro_nome_homenageado: targetFirstName,
+      parentesco: recipient.relationshipLabel,
       nome_empresa: 'Enlace CRM',
       ano_atual: String(currentYear),
     });
 
     const renderedSubject = interpolateMessage(rawSubject, {
-      nome_cliente: client.name,
-      primeiro_nome: client.name.split(' ')[0],
+      nome_cliente: recipient.clientName,
+      primeiro_nome: clientFirstName,
+      nome_homenageado: recipient.targetName,
+      primeiro_nome_homenageado: targetFirstName,
+      parentesco: recipient.relationshipLabel,
       nome_empresa: 'Enlace CRM',
       ano_atual: String(currentYear),
     });
@@ -567,27 +599,28 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   // Detecção de público-alvo da data selecionada
   const detectedHolidayAudience = selectedHoliday ? detectCommemorativeAudience(selectedHoliday) : null;
   
-  // Obter clientes elegíveis para o público ativo e seus motivos
-  const { filtered: audienceEligibleClients, matchedReasons: audienceReasons } = filterClientsByAudience(
+  // Obter destinatários elegíveis para o público ativo
+  const audienceEligibleRecipients = getEligibleBroadcastRecipients(
     clients,
     holidayAudienceFilter,
     detectedHolidayAudience?.key
   );
 
-  // Filtrar clientes na modal de feriado (combinando público-alvo e texto de busca)
-  const filteredBroadcastClients = audienceEligibleClients.filter((c) => {
+  // Filtrar destinatários na modal de feriado (combinando público-alvo e texto de busca)
+  const filteredBroadcastRecipients = audienceEligibleRecipients.filter((r) => {
     if (!holidaySearch) return true;
     const s = holidaySearch.toLowerCase();
     return (
-      c.name.toLowerCase().includes(s) ||
-      (c.phone && c.phone.includes(s)) ||
-      (c.email && c.email.toLowerCase().includes(s)) ||
-      (c.companyName && c.companyName.toLowerCase().includes(s))
+      r.targetName.toLowerCase().includes(s) ||
+      r.clientName.toLowerCase().includes(s) ||
+      (r.phone && r.phone.includes(s)) ||
+      (r.email && r.email.toLowerCase().includes(s)) ||
+      r.relationshipLabel.toLowerCase().includes(s)
     );
   });
 
-  const handleToggleSelectAllClients = () => {
-    const visibleIds = filteredBroadcastClients.map((c) => c.id);
+  const handleToggleSelectAllRecipients = () => {
+    const visibleIds = filteredBroadcastRecipients.map((r) => r.id);
     const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedClientIds.includes(id));
     if (allVisibleSelected) {
       setSelectedClientIds(selectedClientIds.filter((id) => !visibleIds.includes(id)));
@@ -596,7 +629,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     }
   };
 
-  const handleToggleClient = (id: string) => {
+  const handleToggleRecipient = (id: string) => {
     if (selectedClientIds.includes(id)) {
       setSelectedClientIds(selectedClientIds.filter((item) => item !== id));
     } else {
@@ -1368,7 +1401,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     <div className="text-xs font-black flex items-center gap-1.5">
                       <span>Filtro Automático de Público:</span>
                       <span className="underline underline-offset-2">{detectedHolidayAudience.label}</span>
-                      <span className="text-[11px] font-normal opacity-80">({audienceEligibleClients.length} elegíveis)</span>
+                      <span className="text-[11px] font-normal opacity-80">({audienceEligibleRecipients.length} homenageados elegíveis)</span>
                     </div>
                     <p className="text-[11px] opacity-90 mt-0.5">
                       {detectedHolidayAudience.description}
@@ -1393,62 +1426,61 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     <option value="MEN_ONLY">🎩 Apenas Homens</option>
                     <option value="PARENTS_ONLY">👨‍👩‍👧 Pais com Filhos</option>
                     <option value="CORPORATE_ONLY">🏢 Clientes Corporativos / PJ</option>
-                    <option value="ALL">🌐 Todos os Clientes</option>
+                    <option value="ALL">🌐 Toda a Base</option>
                   </select>
                 </div>
               </div>
             )}
 
-            {/* Clients Selection Controls & Search */}
+            {/* Recipients Selection Controls & Search */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handleToggleSelectAllClients}
+                  onClick={handleToggleSelectAllRecipients}
                   className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
                 >
-                  {filteredBroadcastClients.length > 0 &&
-                  filteredBroadcastClients.every((c) => selectedClientIds.includes(c.id))
+                  {filteredBroadcastRecipients.length > 0 &&
+                  filteredBroadcastRecipients.every((r) => selectedClientIds.includes(r.id))
                     ? 'Desmarcar Filtrados'
                     : 'Selecionar Filtrados'}
                 </button>
                 <span className="text-xs font-bold text-slate-500">
-                  {selectedClientIds.length} selecionado(s) de {filteredBroadcastClients.length} filtrado(s)
+                  {selectedClientIds.length} selecionado(s) de {filteredBroadcastRecipients.length} homenageado(s)
                 </span>
               </div>
 
-              {/* Search clients */}
+              {/* Search recipients */}
               <div className="relative w-full sm:w-64">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={holidaySearch}
                   onChange={(e) => setHolidaySearch(e.target.value)}
-                  placeholder="Buscar cliente na lista..."
+                  placeholder="Buscar familiar ou cliente..."
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
                 />
               </div>
             </div>
 
-            {/* Clients Table with Individual Sending Action */}
+            {/* Recipients Table with Individual Sending Action */}
             <div className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden max-h-80 overflow-y-auto">
-              {filteredBroadcastClients.length === 0 ? (
+              {filteredBroadcastRecipients.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-400 space-y-1">
-                  <p className="font-bold text-slate-600 dark:text-slate-300">Nenhum cliente atende aos critérios do filtro atual.</p>
-                  <p className="text-[11px]">Você pode alterar a opção de público no seletor acima ou cadastrar novos clientes.</p>
+                  <p className="font-bold text-slate-600 dark:text-slate-300">Nenhum homenageado atende aos critérios do filtro atual.</p>
+                  <p className="text-[11px]">Você pode alterar a opção de público no seletor acima ou cadastrar novos contatos.</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
-                  {filteredBroadcastClients.map((client) => {
-                    const isSelected = selectedClientIds.includes(client.id);
-                    const msg = getHolidayRenderedMessage(selectedHoliday, client, holidayChannel);
-                    const hasPhone = Boolean(client.phone);
-                    const hasEmail = Boolean(client.email);
-                    const matchReason = audienceReasons[client.id];
+                  {filteredBroadcastRecipients.map((recipient) => {
+                    const isSelected = selectedClientIds.includes(recipient.id);
+                    const msg = getHolidayRenderedMessage(selectedHoliday, recipient, holidayChannel);
+                    const hasPhone = Boolean(recipient.phone);
+                    const hasEmail = Boolean(recipient.email);
 
                     return (
                       <div
-                        key={client.id}
+                        key={recipient.id}
                         className={`p-3.5 flex items-center justify-between gap-3 transition-colors ${
                           isSelected ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : 'opacity-60'
                         }`}
@@ -1457,22 +1489,32 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                           <input
                             type="checkbox"
                             checked={isSelected}
-                            onChange={() => handleToggleClient(client.id)}
+                            onChange={() => handleToggleRecipient(recipient.id)}
                             className="w-4 h-4 rounded text-indigo-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 cursor-pointer shrink-0"
                           />
                           <div className="min-w-0">
-                            <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
-                              <span>{client.name}</span>
-                              {matchReason && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
-                                  {matchReason}
+                            <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5 flex-wrap">
+                              <span>{recipient.targetName}</span>
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${recipient.badgeColor || 'bg-indigo-100 text-indigo-800'}`}>
+                                {recipient.matchReason}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                              {recipient.type === 'FAMILY_MEMBER' ? (
+                                <span>
+                                  Familiar de <strong className="font-semibold text-slate-700 dark:text-slate-300">{recipient.clientName}</strong>
+                                  {' • '}
+                                  {recipient.isDirectContact ? (
+                                    <span>WhatsApp Direto: {recipient.phone}</span>
+                                  ) : (
+                                    <span>Enviar via {recipient.clientName} ({recipient.phone || 'Sem Telefone'})</span>
+                                  )}
+                                </span>
+                              ) : (
+                                <span>
+                                  Cliente Titular • {holidayChannel === 'WHATSAPP' ? recipient.phone || 'Sem WhatsApp' : recipient.email || 'Sem E-mail'}
                                 </span>
                               )}
-                            </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                              {holidayChannel === 'WHATSAPP'
-                                ? client.phone || 'Sem WhatsApp'
-                                : client.email || 'Sem E-mail'}
                             </div>
                           </div>
                         </div>
@@ -1481,11 +1523,11 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
-                            onClick={() => handleCopyText(msg.body, `h-${client.id}`)}
+                            onClick={() => handleCopyText(msg.body, `h-${recipient.id}`)}
                             title="Copiar mensagem"
                             className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                           >
-                            {copiedId === `h-${client.id}` ? (
+                            {copiedId === `h-${recipient.id}` ? (
                               <Check className="w-3.5 h-3.5 text-emerald-500" />
                             ) : (
                               <Copy className="w-3.5 h-3.5" />
@@ -1496,7 +1538,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             <button
                               type="button"
                               disabled={!hasPhone}
-                              onClick={() => handleOpenWhatsApp(client.phone!, msg.body)}
+                              onClick={() => handleOpenWhatsApp(recipient.phone!, msg.body)}
                               className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-[11px] font-bold text-white shadow-md shadow-emerald-600/20 flex items-center gap-1 transition-all disabled:opacity-40"
                             >
                               <MessageCircle className="w-3.5 h-3.5" /> Enviar WhatsApp
@@ -1505,7 +1547,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             <button
                               type="button"
                               disabled={!hasEmail}
-                              onClick={() => handleOpenEmail(client.email!, msg.subject, msg.body)}
+                              onClick={() => handleOpenEmail(recipient.email!, msg.subject, msg.body)}
                               className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-[11px] font-bold text-white shadow-md shadow-indigo-600/20 flex items-center gap-1 transition-all disabled:opacity-40"
                             >
                               <Mail className="w-3.5 h-3.5" /> Enviar E-mail
@@ -1524,11 +1566,11 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 type="button"
                 onClick={() => {
-                  const allMsgs = filteredBroadcastClients
-                    .filter((c) => selectedClientIds.includes(c.id))
-                    .map((c) => {
-                      const m = getHolidayRenderedMessage(selectedHoliday, c, holidayChannel);
-                      return `=== [${c.name} - ${c.phone || c.email || ''}] ===\n${m.body}\n`;
+                  const allMsgs = filteredBroadcastRecipients
+                    .filter((r) => selectedClientIds.includes(r.id))
+                    .map((r) => {
+                      const m = getHolidayRenderedMessage(selectedHoliday, r, holidayChannel);
+                      return `=== [${r.targetName} (${r.relationshipLabel}) - ${r.phone || r.email || ''}] ===\n${m.body}\n`;
                     })
                     .join('\n');
                   handleCopyText(allMsgs, 'copy-all-broadcast');
