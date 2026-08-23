@@ -517,7 +517,29 @@ export function Clients() {
                     return (
                       <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="py-4 px-6">
-                          <div className="font-bold text-slate-900 dark:text-slate-100">{client.name}</div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{client.name}</span>
+                            {client.isMother && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-100 dark:bg-pink-950/80 text-pink-700 dark:text-pink-300">
+                                🌸 Mãe
+                              </span>
+                            )}
+                            {client.isFather && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300">
+                                👔 Pai
+                              </span>
+                            )}
+                            {!client.isMother && !client.isFather && client.gender === 'FEMALE' && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300">
+                                👩 Mulher
+                              </span>
+                            )}
+                            {!client.isMother && !client.isFather && client.gender === 'MALE' && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
+                                👨 Homem
+                              </span>
+                            )}
+                          </div>
                           {client.companyName && (
                             <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
                               <Building2 className="w-3 h-3 text-slate-400" /> {client.companyName}
@@ -631,9 +653,31 @@ export function Clients() {
                     {/* Header do Card */}
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
-                          {client.name}
-                        </h4>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+                            {client.name}
+                          </h4>
+                          {client.isMother && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-100 dark:bg-pink-950/80 text-pink-700 dark:text-pink-300">
+                              🌸 Mãe
+                            </span>
+                          )}
+                          {client.isFather && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300">
+                              👔 Pai
+                            </span>
+                          )}
+                          {!client.isMother && !client.isFather && client.gender === 'FEMALE' && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300">
+                              👩 Mulher
+                            </span>
+                          )}
+                          {!client.isMother && !client.isFather && client.gender === 'MALE' && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
+                              👨 Homem
+                            </span>
+                          )}
+                        </div>
                         {client.companyName && (
                           <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                             <Building2 className="w-3.5 h-3.5 text-slate-400" /> {client.companyName}
@@ -1255,11 +1299,21 @@ export function Clients() {
                       className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{fm.name}</span>
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-100 text-pink-800 dark:bg-pink-950/80 dark:text-pink-300">
                             {RELATIONSHIP_LABELS[fm.relationship] || fm.relationship}
                           </span>
+                          {fm.gender === 'FEMALE' && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300">
+                              🌸 Feminino
+                            </span>
+                          )}
+                          {fm.gender === 'MALE' && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300">
+                              👔 Masculino
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
                           <span className="flex items-center gap-1">
