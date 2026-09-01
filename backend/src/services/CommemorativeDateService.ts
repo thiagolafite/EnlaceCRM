@@ -129,6 +129,7 @@ export class CommemorativeDateService {
             type: 'FIXED_DATE',
             title: fd.name,
             subtitle: fd.description || 'Data comemorativa do calendário',
+            commemorativeDateId: fd.id,
             daysRemaining: offset,
             isToday,
           });
@@ -150,6 +151,11 @@ export class CommemorativeDateService {
               subtitle: age > 0 ? `Completando ${age} anos` : 'Aniversário do cliente',
               clientId: client.id,
               clientName: client.name,
+              targetName: client.name,
+              phone: client.phone,
+              email: client.email,
+              gender: client.gender,
+              companyName: client.companyName,
               daysRemaining: offset,
               isToday,
             });
@@ -173,6 +179,11 @@ export class CommemorativeDateService {
                 clientId: client.id,
                 clientName: client.name,
                 familyMemberId: fm.id,
+                targetName: fm.name,
+                relationship: fm.relationship,
+                phone: fm.phone || client.phone,
+                email: fm.email || client.email,
+                gender: fm.gender,
                 daysRemaining: offset,
                 isToday,
               });

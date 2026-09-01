@@ -13,6 +13,7 @@ import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
 import { Monitoring } from './pages/Monitoring';
 import { ThemeProvider } from './context/ThemeContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 export function AppContent() {
   const [user, setUser] = useState<User | null>(null);
@@ -92,7 +93,9 @@ export function AppContent() {
 export function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
     </ThemeProvider>
   );
 }

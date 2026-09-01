@@ -26,6 +26,9 @@ import {
 } from 'lucide-react';
 import { User } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { TopStickyAlertBar } from './TopStickyAlertBar';
+import { DailyNotificationModal } from './DailyNotificationModal';
+import { NotificationBellDropdown } from './NotificationBellDropdown';
 
 interface LayoutProps {
   currentTab: string;
@@ -333,6 +336,9 @@ export function Layout({
       {/* 3. MAIN CONTENT AREA + TOP APP BAR */}
       {/* ==================================================================== */}
       <main className="flex-1 min-w-0 flex flex-col">
+        {/* Top Sticky Notification Banner */}
+        <TopStickyAlertBar onNavigate={onNavigate} />
+
         {/* Top Header Bar */}
         <header className="h-16 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/60 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 transition-colors">
           {/* Left: Mobile hamburger & breadcrumbs */}
@@ -355,8 +361,11 @@ export function Layout({
             </div>
           </div>
 
-          {/* Right: Theme Switcher & Status */}
+          {/* Right: Theme Switcher, Notification Bell & Status */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Lembretes & Sino de Notificações com Dropdown */}
+            <NotificationBellDropdown onNavigate={onNavigate} />
+
             {/* Dark/Light Mode Switcher */}
             <button
               onClick={toggleTheme}
@@ -387,6 +396,9 @@ export function Layout({
         <div className="p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 flex-1 max-w-full overflow-x-hidden">
           {children}
         </div>
+
+        {/* Modal de Lembretes e Felicitações do Dia */}
+        <DailyNotificationModal onNavigate={onNavigate} />
       </main>
 
       {/* ==================================================================== */}

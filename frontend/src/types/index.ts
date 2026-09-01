@@ -156,9 +156,16 @@ export interface UpcomingEvent {
   type: 'CLIENT_BIRTHDAY' | 'FAMILY_BIRTHDAY' | 'FIXED_DATE';
   title: string;
   subtitle: string;
+  commemorativeDateId?: string;
   clientId?: string;
   clientName?: string;
   familyMemberId?: string;
+  targetName?: string;
+  relationship?: string;
+  phone?: string | null;
+  email?: string | null;
+  gender?: string;
+  companyName?: string | null;
   daysRemaining: number;
   isToday: boolean;
 }
