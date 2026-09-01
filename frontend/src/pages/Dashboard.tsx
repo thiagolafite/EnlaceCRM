@@ -241,7 +241,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </button>
           </div>
 
-          {stats?.todayAlertsList && stats.todayAlertsList.length > 0 ? (
+          {stats?.todayAlertsList && Array.isArray(stats.todayAlertsList) && stats.todayAlertsList.length > 0 ? (
             <div className="space-y-3.5">
               {stats.todayAlertsList.map((alertItem) => (
                 <div
@@ -251,17 +251,17 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm shrink-0">
-                        {alertItem.targetName.charAt(0)}
+                        {(alertItem.targetName || alertItem.clientName || 'C').charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                            {alertItem.targetName}
+                            {alertItem.targetName || alertItem.clientName || 'Homenageado'}
                           </h4>
                           <EventTypeBadge type={alertItem.eventType} />
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                          {alertItem.contextDescription}
+                          {alertItem.contextDescription || ''}
                         </p>
                       </div>
                     </div>
@@ -350,7 +350,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </div>
 
           <div className="p-4 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury space-y-3">
-            {upcoming.slice(0, 6).map((evt, i) => (
+            {(Array.isArray(upcoming) ? upcoming : []).slice(0, 6).map((evt, i) => (
               <div
                 key={i}
                 className="p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-obsidian-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-white/[0.05] transition-all flex items-center justify-between gap-3"
@@ -369,10 +369,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-black text-slate-900 dark:text-white truncate">
-                      {evt.targetName || evt.title}
+                      {evt.targetName || evt.title || 'Evento'}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                      {evt.subtitle}
+                      {evt.subtitle || ''}
                     </p>
                   </div>
                 </div>

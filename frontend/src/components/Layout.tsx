@@ -242,14 +242,14 @@ export function Layout({
             <div className="flex items-center justify-between p-2 rounded-2xl bg-white dark:bg-obsidian-850 border border-slate-200/80 dark:border-white/[0.06] shadow-xs">
               <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-black text-xs text-white shadow-xs shrink-0">
-                  {user.name.charAt(0).toUpperCase()}
+                  {(user.name || 'U').charAt(0).toUpperCase()}
                 </div>
                 <div className="truncate text-left">
                   <p className="text-xs font-bold text-slate-900 dark:text-white truncate flex items-center gap-1">
-                    <span>{user.name}</span>
+                    <span>{user.name || 'Usuário'}</span>
                     {isMaster && <Crown className="w-3 h-3 text-amber-500 shrink-0" />}
                   </p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email || ''}</p>
                 </div>
               </div>
               <button
@@ -334,8 +334,8 @@ export function Layout({
             {user && (
               <div className="p-4 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between bg-slate-50 dark:bg-obsidian-950">
                 <div className="truncate">
-                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name || 'Usuário'}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{user.email || ''}</p>
                 </div>
                 <button onClick={onLogout} className="p-2 text-rose-500 rounded-xl">
                   <LogOut className="w-4 h-4" />

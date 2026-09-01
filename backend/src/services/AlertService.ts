@@ -201,6 +201,9 @@ export class AlertService {
       pendingToday,
       birthdaysToday,
       fixedDatesToday,
+      totalClients,
+      totalFamilyMembers,
+      todayAlertsList,
     ] = await Promise.all([
       prisma.alert.count({
         where: { ...whereBase, alertDate: { gte: startOfToday, lte: endOfToday } },
@@ -233,6 +236,19 @@ export class AlertService {
           eventType: 'FIXED_DATE',
         },
       }),
+      prisma.client.count({
+        where: { ...whereBase, status: 'ACTIVE' },
+      }),
+      prisma.familyMember.count({
+        where: currentUser?.role !== 'MASTER' && currentUser?.companyId
+          ? { client: { companyId: currentUser.companyId } }
+          : {},
+      }),
+      prisma.alert.findMany({
+        where: { ...whereBase, alertDate: { gte: startOfToday, lte: endOfToday } },
+        orderBy: [{ sentToClientManual: 'asc' }, { createdAt: 'desc' }],
+        take: 30,
+      }),
     ]);
 
     return {
@@ -241,6 +257,14 @@ export class AlertService {
       pendingToday,
       birthdaysToday,
       fixedDatesToday,
+
+      // Frontend compatibility aliases
+      todayAlerts: totalToday,
+      todaySentManual: sentToday,
+      todayPendingManual: pendingToday,
+      totalClients,
+      totalFamilyMembers,
+      todayAlertsList: todayAlertsList || [],
     };
   }
 }

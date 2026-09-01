@@ -40,29 +40,38 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   private handleReset = () => {
-    localStorage.removeItem('enlace_token');
-    localStorage.removeItem('enlace_user');
-    window.location.reload();
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {}
+    window.location.href = '/';
   };
 
   public render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-[#080c15] text-white font-sans">
-          <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900/90 border border-white/10 shadow-2xl text-center space-y-4">
+          <div className="max-w-lg w-full p-8 rounded-3xl bg-slate-900/95 border border-white/10 shadow-2xl text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
               <HeartHandshake className="w-6 h-6" />
             </div>
             <h2 className="text-xl font-black font-outfit text-white">Recuperação do Sistema</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Ocorreu um erro ao carregar os componentes. Clique abaixo para reiniciar sua sessão com segurança.
+              Ocorreu um erro ao renderizar os componentes da tela. Clique abaixo para reiniciar sua sessão com segurança.
             </p>
+
+            {this.state.error && (
+              <div className="p-3 rounded-xl bg-black/60 border border-rose-500/30 text-left text-[11px] font-mono text-rose-300 max-h-36 overflow-auto whitespace-pre-wrap">
+                {this.state.error.message || String(this.state.error)}
+              </div>
+            )}
+
             <button
               onClick={this.handleReset}
-              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30"
+              className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-2 shadow-glow-indigo transition-all"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>Limpar Cache & Reiniciar</span>
+              <span>Limpar Cache & Reiniciar Sessão</span>
             </button>
           </div>
         </div>
