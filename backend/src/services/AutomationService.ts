@@ -234,12 +234,12 @@ export class AutomationService {
             });
           } else {
             const template = getTemplate('FAMILY_BIRTHDAY');
-            const content = template?.content || 'Olá, *{{primeiro_nome}}*! Soubemos que hoje {{parentesco_possessivo}}, *{{nome_familiar}}*, está comemorando aniversário! 🥳 Parabéns para toda a família! — {{nome_empresa}}';
+            const content = template?.content || 'Olá, *{{nome_familiar}}*! 💐🎂 Hoje é o seu dia especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, com muita saúde, paz e realizações ao lado de toda a sua família! ✨🎈';
 
             const renderedMessage = interpolateTemplate(content, {
               clientName: client.name,
               familyName: fm.name,
-              relationship: fm.relationship,
+              relationship: relName,
               companyName,
             });
 

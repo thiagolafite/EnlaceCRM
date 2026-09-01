@@ -482,21 +482,28 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
     const matchedTpl = templates.find((t) => t.eventType === eventType && t.channel === channel);
 
+    const birthdayPersonName = isClient
+      ? (event.clientName || 'Cliente')
+      : (event.familyMemberName || 'Familiar');
+    const birthdayFirstName = birthdayPersonName.split(' ')[0];
+
     const defaultContent = isClient
       ? channel === 'WHATSAPP'
-        ? `Olá, {{primeiro_nome}}! 🎉🎂\n\nHoje é um dia muito especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, com muita saúde, paz, prosperidade e momentos inesquecíveis.\n\nÉ um imenso privilégio ter você como nosso cliente. Parabéns pelo seu dia! ✨🎈`
-        : `Prezado(a) {{nome_cliente}},\n\nHoje é um dia de celebração! 🎂✨\n\nToda a equipe da {{nome_empresa}} deseja a você um Feliz Aniversário, com muita saúde e realizações!\n\nAtenciosamente,\nEquipe {{nome_empresa}}`
+        ? `Olá, ${birthdayFirstName}! 🎉🎂\n\nHoje é um dia muito especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, com muita saúde, paz, prosperidade e momentos inesquecíveis.\n\nÉ um imenso privilégio ter você como nosso cliente. Parabéns pelo seu dia! ✨🎈`
+        : `Prezado(a) ${birthdayPersonName},\n\nHoje é um dia de celebração! 🎂✨\n\nToda a equipe da {{nome_empresa}} deseja a você um Feliz Aniversário, com muita saúde e realizações!\n\nAtenciosamente,\nEquipe {{nome_empresa}}`
       : channel === 'WHATSAPP'
-      ? `Olá, {{primeiro_nome}}! 💐🥳\n\nSoubemos que hoje {{parentesco_possessivo}}, {{nome_familiar}}, está celebrando mais um ano de vida!\n\nNós da {{nome_empresa}} queremos estender nossos mais afetuosos parabéns e desejar um dia maravilhoso para toda a sua família! 🥂✨`
-      : `Olá, {{primeiro_nome}},\n\nFicamos muito felizes em saber que hoje é aniversário de {{parentesco_possessivo}}, {{nome_familiar}}! 🥳🎂\n\nDesejamos muitas felicidades e saúde para toda a família.\n\nUm grande abraço,\nEquipe {{nome_empresa}}`;
+      ? `Olá, ${birthdayFirstName}! 💐🎂\n\nHoje é o seu dia especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, com muita saúde, paz, alegria e momentos inesquecíveis!\n\nQue seu novo ciclo seja repleto de celebrações e carinho ao lado de toda a sua família. Parabéns pelo seu dia! ✨🎈`
+      : `Prezada(o) ${birthdayPersonName},\n\nHoje é um dia de muita celebração! 🎂✨\n\nToda a equipe da {{nome_empresa}} deseja a você um Feliz Aniversário, com muita saúde, paz e realizações ao lado de toda a família!\n\nCordialmente,\nEquipe {{nome_empresa}}`;
 
     const rawContent = matchedTpl?.content || defaultContent;
-    const rawSubject = matchedTpl?.subject || `🎉 Feliz Aniversário da Equipe {{nome_empresa}}!`;
+    const rawSubject = matchedTpl?.subject || `🎉 Feliz Aniversário, ${birthdayFirstName}! — {{nome_empresa}}`;
 
     const renderedBody = interpolateMessage(rawContent, {
       nome_cliente: event.clientName || 'Cliente',
-      primeiro_nome: event.clientName?.split(' ')[0] || 'Cliente',
+      primeiro_nome: birthdayFirstName,
       nome_familiar: event.familyMemberName || 'Familiar',
+      nome_homenageado: birthdayPersonName,
+      primeiro_nome_homenageado: birthdayFirstName,
       parentesco: event.relationship ? RELATIONSHIP_LABELS[event.relationship] : 'familiar',
       parentesco_possessivo: event.relationship ? RELATIONSHIP_POSSESSIVE[event.relationship] : 'seu familiar',
       nome_empresa: 'Enlace CRM',
@@ -505,8 +512,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
     const renderedSubject = interpolateMessage(rawSubject, {
       nome_cliente: event.clientName || 'Cliente',
-      primeiro_nome: event.clientName?.split(' ')[0] || 'Cliente',
+      primeiro_nome: birthdayFirstName,
       nome_familiar: event.familyMemberName || 'Familiar',
+      nome_homenageado: birthdayPersonName,
+      primeiro_nome_homenageado: birthdayFirstName,
       nome_empresa: 'Enlace CRM',
       ano_atual: String(currentYear),
     });
