@@ -209,24 +209,24 @@ export function Users({ currentUser }: UsersProps) {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Master Mode Banner */}
       {isMaster && (
-        <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-indigo-500/15 border border-amber-500/30 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/30">
-              <Crown className="w-5 h-5" />
+        <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-indigo-500/15 border border-amber-500/30 flex items-center justify-between gap-4 shadow-luxury">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-glow-amber/40 shrink-0">
+              <Crown className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-sm font-extrabold text-amber-950 dark:text-amber-200 flex items-center gap-2">
+              <h3 className="text-sm font-black font-outfit text-amber-950 dark:text-amber-200 flex items-center gap-2">
                 Controle de Acesso & Trava de Segurança Master Ativa
               </h3>
-              <p className="text-xs text-amber-800/90 dark:text-amber-300/80">
+              <p className="text-xs text-amber-800/90 dark:text-amber-300/80 font-medium">
                 Novos cadastros no sistema iniciam **bloqueados** e só têm permissão para acessar o CRM após a sua aprovação explícita.
               </p>
             </div>
           </div>
-          <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-sm">
+          <span className="shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-xs">
             SUPER_ADMIN
           </span>
         </div>
@@ -234,16 +234,16 @@ export function Users({ currentUser }: UsersProps) {
 
       {/* Pending Approvals Alert Banner */}
       {isMaster && pendingUsers.length > 0 && (
-        <div className="p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-600 shadow-md space-y-3 animate-in fade-in duration-300">
+        <div className="p-6 rounded-3xl bg-amber-500/10 border-2 border-amber-400/80 dark:border-amber-500/40 shadow-glow-amber/20 space-y-3.5 animate-in fade-in duration-300">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>
-              <h4 className="font-extrabold text-sm text-amber-950 dark:text-amber-100 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+              <h4 className="font-black font-outfit text-sm text-amber-950 dark:text-amber-100 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-500" />
                 {pendingUsers.length} novo{pendingUsers.length === 1 ? '' : 's'} cadastro{pendingUsers.length === 1 ? '' : 's'} aguardando sua autorização:
               </h4>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white">
               Ação Requerida
             </span>
           </div>
@@ -252,7 +252,7 @@ export function Users({ currentUser }: UsersProps) {
             {pendingUsers.map((pu) => (
               <div
                 key={pu.id}
-                className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/80 flex items-center justify-between gap-3 shadow-xs"
+                className="p-4 rounded-2xl bg-white/90 dark:bg-obsidian-900/90 border border-amber-200/80 dark:border-amber-500/20 flex items-center justify-between gap-3 shadow-xs"
               >
                 <div className="min-w-0">
                   <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
@@ -268,7 +268,7 @@ export function Users({ currentUser }: UsersProps) {
                     type="button"
                     disabled={approvingId === pu.id}
                     onClick={() => handleToggleApproval(pu, true)}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-md shadow-emerald-600/30 flex items-center gap-1 transition-all disabled:opacity-50"
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs shadow-xs flex items-center gap-1 transition-all disabled:opacity-50"
                   >
                     <Check className="w-3.5 h-3.5" /> Aprovar & Ativar
                   </button>
@@ -276,7 +276,7 @@ export function Users({ currentUser }: UsersProps) {
                     type="button"
                     disabled={approvingId === pu.id}
                     onClick={() => handleToggleApproval(pu, false)}
-                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
                     title="Rejeitar / Bloquear"
                   >
                     <Ban className="w-4 h-4" />
@@ -291,18 +291,20 @@ export function Users({ currentUser }: UsersProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-            <UsersIcon className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
-            Usuários do Sistema
+          <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+              <UsersIcon className="w-5 h-5" />
+            </span>
+            <span>Usuários & Permissões do Sistema</span>
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Cadastre administradores e gerencie o status de liberação de contas no Enlace CRM.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Gerenciamento de operadores e administradores com trava de ativação manual Master.
           </p>
         </div>
 
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs shadow-glow-indigo transition-all"
         >
           <UserPlus className="w-4 h-4" /> Novo Usuário
         </button>

@@ -185,20 +185,21 @@ export function Monitoring({ currentUser }: MonitoringProps) {
       )}
 
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs flex items-center gap-1">
-              <Crown className="w-3 h-3" /> EXCLUSIVO MASTER
+          <div className="flex items-center gap-2">
+            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+              <Activity className="w-5 h-5" />
             </span>
-            <span className="text-xs text-slate-400 font-mono">auditoria em tempo real</span>
+            <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight">
+              Auditoria de Segurança & Logs (SOC)
+            </h2>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+              Master Exclusivo
+            </span>
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Activity className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
-            Central de Monitoramento & Auditoria de Segurança
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Painel 360º de erros de sistema, incidentes de segurança, tentativas de invasão e saúde do banco Supabase.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Painel 360º de erros de sistema, incidentes de segurança, tentativas de login e saúde do banco Supabase.
           </p>
         </div>
 
@@ -206,7 +207,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           <button
             onClick={() => handleSimulateLog('SECURITY')}
             disabled={simulating}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-bold hover:bg-purple-100 transition-all shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/30 text-xs font-bold hover:bg-purple-500/20 transition-all shadow-xs"
           >
             <ShieldAlert className="w-3.5 h-3.5" /> Testar Alerta Segurança
           </button>
@@ -214,14 +215,14 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           <button
             onClick={() => handleSimulateLog('ERROR')}
             disabled={simulating}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold hover:bg-rose-100 transition-all shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-500/30 text-xs font-bold hover:bg-rose-500/20 transition-all shadow-xs"
           >
             <Flame className="w-3.5 h-3.5" /> Testar Log de Erro
           </button>
 
           <button
             onClick={handleRefresh}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold text-xs shadow-md shadow-indigo-600/30 transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs shadow-glow-indigo transition-all"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Atualizar
           </button>

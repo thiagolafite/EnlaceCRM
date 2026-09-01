@@ -4,11 +4,65 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
+    @apply bg-[#f8fafc] text-slate-900 dark:bg-[#080c15] dark:text-slate-100 transition-colors duration-300 antialiased font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-outfit tracking-tight;
   }
 }
 
-/* Custom scrollbar */
+@layer utilities {
+  /* Aurora & Ambient Background Glows */
+  .aurora-bg {
+    background: radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 50%);
+  }
+
+  .dark .aurora-bg {
+    background: radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.18) 0%, transparent 40%),
+                radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  }
+
+  /* Glassmorphism Luxury Panels */
+  .glass-card {
+    @apply bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury dark:shadow-luxury-dark transition-all duration-200;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:border-indigo-400/50 dark:hover:border-indigo-500/30 hover:shadow-glow-indigo/40 hover:-translate-y-0.5;
+  }
+
+  .glass-dock {
+    @apply bg-white/90 dark:bg-obsidian-900/85 backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xl;
+  }
+
+  /* Luxury Gradient Texts */
+  .text-gradient-celestial {
+    @apply bg-gradient-to-r from-slate-950 via-indigo-900 to-purple-900 dark:from-white dark:via-indigo-200 dark:to-purple-300 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 dark:from-amber-300 dark:via-yellow-300 dark:to-amber-400 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-rose {
+    @apply bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 dark:from-rose-300 dark:via-pink-300 dark:to-purple-300 bg-clip-text text-transparent;
+  }
+
+  /* Shimmer and reflection borders */
+  .border-glow-indigo {
+    @apply border border-indigo-500/30 shadow-glow-indigo;
+  }
+
+  .border-glow-amber {
+    @apply border border-amber-500/30 shadow-glow-amber;
+  }
+}
+
+/* Custom High-End Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -21,11 +75,30 @@
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #1e293b;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #334155;
+}
+
+/* Custom Keyframe Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

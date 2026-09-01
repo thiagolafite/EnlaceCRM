@@ -15,6 +15,8 @@ import {
   Check,
   Phone,
   RotateCcw,
+  Zap,
+  Calendar,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Alert } from '../types';
@@ -73,7 +75,7 @@ export function Alerts() {
   const handleCopyText = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    showToast('Texto da mensagem copiado para a área de transferência!');
+    showToast('Texto da mensagem copiado com sucesso!');
     setTimeout(() => setCopiedId(null), 2500);
   };
 
@@ -85,7 +87,7 @@ export function Alerts() {
       showToast(
         updated.sentToClientManual
           ? 'Marcado como enviado ao cliente!'
-          : 'Status revertido para pendente de envio.'
+          : 'Status revertido para pendente.'
       );
     } catch (err: any) {
       alert(err.message || 'Erro ao alterar status de envio');
@@ -99,16 +101,7 @@ export function Alerts() {
       setResendingNotif(true);
       const dateParam = activeTab === 'today' ? undefined : filterDate;
       const res = await api.resendAlertNotification(dateParam);
-      if (res.success) {
-        showToast(
-          res.simulated
-            ? 'Resumo de alertas simulado com sucesso (verifique o console do backend)!'
-            : 'Resumo consolidado enviado com sucesso para o seu WhatsApp!'
-        );
-        await loadAlerts();
-      } else {
-        alert(res.error || res.message || 'Erro ao enviar notificação para seu WhatsApp');
-      }
+      showToast(res.message || 'Notificação enviada ao WhatsApp!');
     } catch (err: any) {
       alert(err.message || 'Erro ao reenviar notificação');
     } finally {
@@ -120,9 +113,8 @@ export function Alerts() {
     try {
       setRunningScan(true);
       const res = await api.runTodayAutomation();
-      showToast(
-        `Varredura concluída! ${res.report.alertsGenerated} novo(s) alerta(s) gerado(s).`
-      );
+      const count = res.report?.alertsGenerated ?? 0;
+      showToast(`Varredura concluída! ${count} alertas gerados.`);
       await loadAlerts();
     } catch (err: any) {
       alert(err.message || 'Erro ao executar varredura');
@@ -131,29 +123,31 @@ export function Alerts() {
     }
   };
 
-  const totalToday = alerts.length;
   const pendingCount = alerts.filter((a) => !a.sentToClientManual).length;
   const sentCount = alerts.filter((a) => a.sentToClientManual).length;
+  const totalToday = alerts.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-indigo-600 text-white shadow-2xl flex items-center gap-2 text-sm font-semibold animate-in fade-in slide-in-from-bottom-4">
-          <CheckCircle2 className="w-5 h-5 text-emerald-300" />
-          <span>{toastMessage}</span>
+        <div className="fixed top-5 right-5 z-50 p-4 rounded-2xl bg-slate-900/95 dark:bg-obsidian-850/95 text-white border border-indigo-500/30 shadow-2xl backdrop-blur-xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-300">
+          <Sparkles className="w-5 h-5 text-amber-400" />
+          <span className="text-xs font-bold">{toastMessage}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Bell className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
-            Alertas de Felicitações & Envio Manual
+          <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+              <Bell className="w-5 h-5" />
+            </span>
+            <span>Central de Felicitações & Alertas</span>
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Acompanhe as felicitações do dia, copie os textos prontos, abra conversas no WhatsApp e marque o envio realizado.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Revise, personalize e envie mensagens para homenagear clientes e seus familiares.
           </p>
         </div>
 
@@ -161,93 +155,97 @@ export function Alerts() {
           <button
             onClick={handleRunTodayScan}
             disabled={runningScan}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50"
+            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-black shadow-glow-indigo active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
           >
-            <Play className={`w-4 h-4 ${runningScan ? 'animate-spin' : 'fill-current'}`} />
-            {runningScan ? 'Verificando...' : 'Rodar Varredura Hoje'}
+            <Zap className={`w-4 h-4 ${runningScan ? 'animate-spin' : ''}`} />
+            <span>{runningScan ? 'Varrendo...' : 'Executar Varredura'}</span>
           </button>
 
           <button
             onClick={handleResendOwnerNotification}
-            disabled={resendingNotif || alerts.length === 0}
-            title="Envia a lista de alertas para o seu próprio WhatsApp via CallMeBot"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50"
+            disabled={resendingNotif}
+            className="px-4 py-2.5 rounded-2xl bg-white dark:bg-obsidian-850 hover:bg-slate-100 dark:hover:bg-obsidian-800 border border-slate-200/80 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-bold shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50"
           >
-            <Send className={`w-4 h-4 ${resendingNotif ? 'animate-spin' : ''}`} />
-            {resendingNotif ? 'Enviando...' : 'Notificar meu WhatsApp'}
+            <RotateCcw className={`w-4 h-4 text-indigo-500 ${resendingNotif ? 'animate-spin' : ''}`} />
+            <span>Reenviar no WhatsApp</span>
           </button>
         </div>
       </div>
 
-      {/* Mode Tabs & Summary KPI Chips */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-2 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-        <div className="flex items-center gap-1.5">
+      {/* Tabs & Stats Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 rounded-2xl bg-slate-100/80 dark:bg-obsidian-950/80 border border-slate-200/60 dark:border-white/[0.04]">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setActiveTab('today')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
               activeTab === 'today'
-                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-obsidian-850 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Alertas de Hoje ({new Date().toLocaleDateString('pt-BR')})
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Alertas de Hoje</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-black">
+              {totalToday}
+            </span>
           </button>
 
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
               activeTab === 'history'
-                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-obsidian-850 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Histórico por Data
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Histórico por Data</span>
           </button>
         </div>
 
-        {/* Counters */}
+        {/* Counter Pills */}
         <div className="flex items-center gap-3 px-3 text-xs">
-          <span className="text-slate-600 dark:text-slate-400">
-            Total: <strong className="text-slate-900 dark:text-white">{totalToday}</strong>
+          <span className="text-slate-600 dark:text-slate-400 font-medium">
+            Total: <strong className="text-slate-900 dark:text-white font-bold">{totalToday}</strong>
           </span>
-          <span className="text-amber-700 dark:text-amber-400">
-            Pendentes: <strong>{pendingCount}</strong>
+          <span className="text-amber-600 dark:text-amber-400 font-medium">
+            Pendentes: <strong className="font-bold">{pendingCount}</strong>
           </span>
-          <span className="text-emerald-700 dark:text-emerald-400">
-            Enviados: <strong>{sentCount}</strong>
+          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+            Enviados: <strong className="font-bold">{sentCount}</strong>
           </span>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center gap-3 transition-colors">
+      <div className="p-4 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por cliente, aniversariante, telefone ou trecho da mensagem..."
-            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-slate-100 outline-none"
+            className="w-full bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/80 dark:border-white/[0.08] focus:border-indigo-500 rounded-2xl py-2.5 pl-10 pr-4 text-xs text-slate-900 dark:text-slate-100 outline-none font-semibold"
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2.5 w-full md:w-auto">
           {activeTab === 'history' && (
             <input
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-700 dark:text-slate-300 outline-none"
+              className="bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/80 dark:border-white/[0.08] rounded-2xl py-2 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none"
             />
           )}
 
           <select
             value={filterSent}
             onChange={(e) => setFilterSent(e.target.value)}
-            className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-700 dark:text-slate-300 outline-none"
+            className="bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/80 dark:border-white/[0.08] rounded-2xl py-2 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none"
           >
-            <option value="">Todos os status de envio</option>
+            <option value="">Todos os status</option>
             <option value="pending">Apenas Pendentes</option>
             <option value="sent">Apenas Enviados</option>
           </select>
@@ -255,7 +253,7 @@ export function Alerts() {
           <button
             onClick={loadAlerts}
             title="Atualizar lista"
-            className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+            className="p-2.5 rounded-2xl bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/80 dark:border-white/[0.08] hover:bg-slate-100 text-slate-600 dark:text-slate-300 transition-colors shrink-0"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -264,19 +262,19 @@ export function Alerts() {
 
       {/* Alerts Grid / Cards */}
       {loading ? (
-        <div className="py-20 text-center text-slate-400">Carregando alertas do dia...</div>
+        <div className="py-20 text-center text-slate-400 font-semibold text-xs">Carregando alertas...</div>
       ) : alerts.length === 0 ? (
-        <div className="p-12 text-center bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
+        <div className="p-12 text-center bg-white/60 dark:bg-obsidian-900/60 border border-slate-200/80 dark:border-white/[0.06] rounded-3xl space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mx-auto">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Nenhum alerta para a data selecionada</h3>
+          <h3 className="text-base font-black font-outfit text-slate-900 dark:text-white">Nenhum alerta para esta data</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Não há aniversariantes ou datas fixas de calendário previstas para esta data.
+            Não há aniversariantes ou datas fixas de calendário previstas para o período filtrado.
           </p>
           <button
             onClick={handleRunTodayScan}
-            className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md"
+            className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md"
           >
             Executar Varredura Agora
           </button>
@@ -284,7 +282,10 @@ export function Alerts() {
       ) : (
         <div className="space-y-4">
           {alerts.map((alertItem) => {
-            const cleanPhone = (alertItem.clientPhone || '').replace(/\D/g, '');
+            let cleanPhone = (alertItem.clientPhone || '').replace(/\D/g, '');
+            if (cleanPhone && !cleanPhone.startsWith('55') && cleanPhone.length <= 11) {
+              cleanPhone = '55' + cleanPhone;
+            }
             const whatsappUrl = cleanPhone
               ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(alertItem.renderedMessage)}`
               : null;
@@ -292,14 +293,14 @@ export function Alerts() {
             return (
               <div
                 key={alertItem.id}
-                className={`p-6 rounded-3xl border transition-all shadow-sm flex flex-col md:flex-row gap-6 justify-between ${
+                className={`p-6 rounded-3xl border transition-all flex flex-col md:flex-row gap-6 justify-between ${
                   alertItem.sentToClientManual
-                    ? 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 opacity-90'
-                    : 'bg-white dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 shadow-md ring-1 ring-indigo-500/10'
+                    ? 'bg-white/60 dark:bg-obsidian-900/40 border-slate-200/60 dark:border-white/[0.04] opacity-85'
+                    : 'bg-white/90 dark:bg-obsidian-900/90 border-slate-200/90 dark:border-white/[0.09] shadow-luxury hover:border-indigo-400/50'
                 }`}
               >
                 {/* Left info & ready message */}
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-3 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <EventTypeBadge type={alertItem.eventType} />
                     <ManualSentBadge
@@ -310,39 +311,39 @@ export function Alerts() {
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-lg font-black font-outfit text-slate-900 dark:text-white">
                         {alertItem.clientName}
                       </h3>
                       {alertItem.clientPhone && (
-                        <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
+                        <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold">
                           <Phone className="w-3 h-3" /> {alertItem.clientPhone}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mt-0.5">
+                    <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
                       🎉 {alertItem.contextDescription}
                     </p>
                   </div>
 
                   {/* Ready WhatsApp Message Box */}
-                  <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono relative group">
+                  <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-obsidian-950/90 border border-slate-200/60 dark:border-white/[0.04] text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono leading-relaxed max-h-36 overflow-y-auto">
                     {alertItem.renderedMessage}
                   </div>
                 </div>
 
                 {/* Right Action buttons */}
-                <div className="flex flex-col justify-between items-end gap-3 shrink-0 sm:w-64 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-4 md:pt-0 md:pl-6">
+                <div className="flex flex-col justify-between items-stretch sm:items-end gap-3 shrink-0 sm:w-60 border-t md:border-t-0 md:border-l border-slate-200/80 dark:border-white/[0.06] pt-4 md:pt-0 md:pl-6">
                   <div className="w-full space-y-2">
-                    {/* Button 1: Copy Text */}
+                    {/* Copy Text Button */}
                     <button
                       onClick={() => handleCopyText(alertItem.id, alertItem.renderedMessage)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs shadow-sm transition-all"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-obsidian-850 hover:bg-slate-200 dark:hover:bg-obsidian-800 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all border border-slate-200/60 dark:border-white/[0.06]"
                     >
                       {copiedId === alertItem.id ? (
                         <>
                           <Check className="w-4 h-4 text-emerald-500" />
-                          <span className="text-emerald-600 dark:text-emerald-400">Texto Copiado!</span>
+                          <span className="text-emerald-600 dark:text-emerald-400">Copiado!</span>
                         </>
                       ) : (
                         <>
@@ -352,46 +353,36 @@ export function Alerts() {
                       )}
                     </button>
 
-                    {/* Button 2: Direct WhatsApp Click-to-Chat */}
+                    {/* WhatsApp Action Button */}
                     {whatsappUrl ? (
                       <a
                         href={whatsappUrl}
                         target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition-all group"
+                        rel="noreferrer"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition-all"
                       >
                         <MessageCircle className="w-4 h-4" />
                         <span>Abrir no WhatsApp</span>
-                        <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </a>
                     ) : (
-                      <div className="text-[11px] text-center text-slate-400 py-1">
-                        Telefone do cliente não cadastrado
+                      <div className="p-2 rounded-xl bg-slate-100 dark:bg-obsidian-950 text-center text-[11px] text-slate-400 font-medium">
+                        Sem telefone cadastrado
                       </div>
                     )}
                   </div>
 
-                  {/* Button 3: Toggle Manual Sent */}
+                  {/* Toggle Sent Status Button */}
                   <button
                     onClick={() => handleToggleSent(alertItem.id, alertItem.sentToClientManual)}
                     disabled={togglingId === alertItem.id}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    className={`w-full py-2.5 px-3 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                       alertItem.sentToClientManual
-                        ? 'bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 hover:text-rose-700 hover:border-rose-300'
-                        : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30'
+                        ? 'bg-slate-100 dark:bg-obsidian-850 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                        : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800/40 hover:bg-indigo-100'
                     }`}
                   >
-                    {alertItem.sentToClientManual ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span>Enviado (Clique p/ Reverter)</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>Marcar como Enviado</span>
-                      </>
-                    )}
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{alertItem.sentToClientManual ? 'Desmarcar Envio' : 'Marcar como Enviado'}</span>
                   </button>
                 </div>
               </div>
