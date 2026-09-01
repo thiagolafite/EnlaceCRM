@@ -33,6 +33,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [selectedEventForDirectSend, setSelectedEventForDirectSend] = useState<UpcomingEvent | null>(null);
 
   const loadNotifications = useCallback(async () => {
+    const token = localStorage.getItem('enlace_token');
+    if (!token) {
+      setLoading(false);
+      setTodayEvents([]);
+      setUpcomingEvents([]);
+      return;
+    }
+
     try {
       setLoading(true);
       const [eventsData, tplsData, rawClients] = await Promise.all([
@@ -41,16 +49,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         api.getClients().catch(() => [] as any),
       ]);
 
+      const eventsList = Array.isArray(eventsData) ? eventsData : [];
+      const tplsList = Array.isArray(tplsData) ? tplsData : [];
       const normalizedClients: Client[] = Array.isArray(rawClients)
         ? rawClients
         : (rawClients as any)?.data || [];
 
-      const today = eventsData.filter((e) => e.isToday || e.daysRemaining === 0);
-      const upcoming = eventsData.filter((e) => !e.isToday && e.daysRemaining > 0);
+      const today = eventsList.filter((e) => e && (e.isToday || e.daysRemaining === 0));
+      const upcoming = eventsList.filter((e) => e && (!e.isToday && e.daysRemaining > 0));
 
       setTodayEvents(today);
       setUpcomingEvents(upcoming);
-      setTemplates(tplsData);
+      setTemplates(tplsList);
       setClients(normalizedClients);
 
       // Se houver eventos hoje e ainda não foi visualizado nesta sessão de navegador, abre o modal de boas-vindas
