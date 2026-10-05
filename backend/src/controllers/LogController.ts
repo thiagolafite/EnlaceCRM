@@ -92,7 +92,7 @@ export class LogController {
   static async clear(req: Request, res: Response) {
     try {
       const currentUser = (req as any).user;
-      if (currentUser?.role !== 'MASTER' && currentUser?.email !== 'tigolafite@gmail.com') {
+      if (currentUser?.role !== 'MASTER') {
         return res.status(403).json({ error: 'Acesso restrito ao perfil MASTER' });
       }
 

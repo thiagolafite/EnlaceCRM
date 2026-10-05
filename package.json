@@ -7,10 +7,8 @@
     "dev:frontend": "cd frontend && npm run dev",
     "test:backend": "cd backend && npm run test",
     "seed:backend": "cd backend && npm run prisma:seed",
-    "postinstall": "prisma generate --schema=backend/prisma/schema.prisma",
-    "build": "prisma generate --schema=backend/prisma/schema.prisma && cd frontend && npm install && npm run build",
-    "sync": "git add . && git commit -m \"chore: auto-sync update\" && git push origin main",
-    "push": "git add . && git commit -m \"chore: auto-sync update\" && git push origin main"
+    "postinstall": "cd backend && npm run prisma:generate",
+    "build": "cd backend && npm run prisma:generate && cd ../frontend && npm install && npm run build"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",

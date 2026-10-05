@@ -53,7 +53,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   const [simulating, setSimulating] = useState(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
-  const isMaster = currentUser?.role === 'MASTER' || currentUser?.email === 'tigolafite@gmail.com';
+  const isMaster = currentUser?.role === 'MASTER';
 
   const loadData = async () => {
     try {

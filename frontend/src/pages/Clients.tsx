@@ -788,7 +788,7 @@ export function Clients() {
                   type="text"
                   value={clientForm.phone}
                   onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
-                  placeholder="+5571981805744"
+                  placeholder="+5511999999999"
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none font-mono"
                 />
               </div>

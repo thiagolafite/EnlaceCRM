@@ -27,7 +27,7 @@ export class SettingsService {
           id: 'default_company',
           companyName: 'Enlace Soluções Corporativas',
           tradeName: 'Enlace CRM',
-          ownerWhatsappPhone: '+5571981805744',
+          ownerWhatsappPhone: '',
           callmebotApiKey: '',
           callmebotEnabled: true,
           callmebotSimulateMode: true,

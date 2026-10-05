@@ -25,11 +25,11 @@ model CompanySettings {
   companyName            String   @default("Empresa Enlace")
   tradeName              String   @default("Enlace CRM")
   document               String?  @default("")
-  contactEmail           String?  @default("contato@enlacecrm.com.br")
-  contactPhone           String?  @default("+5511999999999")
+  contactEmail           String?  @default("")
+  contactPhone           String?  @default("")
   
   // CallMeBot WhatsApp Notification Settings (para o dono/operador)
-  ownerWhatsappPhone     String?  @default("+5571981805744")
+  ownerWhatsappPhone     String?  @default("")
   callmebotApiKey        String?  @default("")
   callmebotEnabled       Boolean  @default(true)
   callmebotSimulateMode  Boolean  @default(false)
@@ -48,7 +48,7 @@ model Client {
   name             String
   document         String?        // CPF ou CNPJ
   email            String?
-  phone            String?        // Formato: +5571981805744
+  phone            String?        // Formato E.164 (ex: +5511999999999)
   companyName      String?        // Empresa onde trabalha / PJ
   birthDate        DateTime?      // Data de nascimento
   

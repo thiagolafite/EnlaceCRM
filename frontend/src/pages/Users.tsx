@@ -45,7 +45,7 @@ export function Users({ currentUser }: UsersProps) {
   const [saving, setSaving] = useState(false);
   const [approvingId, setApprovingId] = useState<string | null>(null);
 
-  const isMaster = currentUser?.role === 'MASTER' || currentUser?.email === 'tigolafite@gmail.com';
+  const isMaster = currentUser?.role === 'MASTER';
 
   const [form, setForm] = useState<{
     name: string;

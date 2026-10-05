@@ -13,18 +13,28 @@ build/
 backend/dist/
 frontend/dist/
 *.tsbuildinfo
+.vercel/
 
 # Variáveis de ambiente sensíveis
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # Bancos de dados locais e arquivos SQLite
 *.db
 *.db-journal
+*.sqlite
+*.sqlite-journal
 backend/prisma/*.db
 backend/prisma/*.db-journal
+backend/prisma/*.js
+prisma/*.js
 
 # Logs e depuração
 npm-debug.log*
@@ -45,9 +55,10 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Temporários e caches
+# Temporários, testes e caches
 .cache/
 .vite/
 frontend/.vite/
 .temp/
 tmp/
+coverage/

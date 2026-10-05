@@ -32,7 +32,7 @@ export function Settings() {
     contactEmail: '',
     contactPhone: '',
 
-    ownerWhatsappPhone: '+5571981805744',
+    ownerWhatsappPhone: '',
     callmebotApiKey: '',
     callmebotEnabled: true,
     callmebotSimulateMode: false,
@@ -54,7 +54,7 @@ export function Settings() {
         contactEmail: data.contactEmail || '',
         contactPhone: data.contactPhone || '',
 
-        ownerWhatsappPhone: data.ownerWhatsappPhone || '+5571981805744',
+        ownerWhatsappPhone: data.ownerWhatsappPhone || '',
         callmebotApiKey: data.callmebotApiKey || '',
         callmebotEnabled: data.callmebotEnabled !== false,
         callmebotSimulateMode: data.callmebotSimulateMode === true,
@@ -96,7 +96,7 @@ export function Settings() {
 
   const handleTestCallMeBot = async () => {
     if (!form.ownerWhatsappPhone) {
-      alert('Informe seu número de WhatsApp com DDD e DDI (ex: +5571981805744)');
+      alert('Informe seu número de WhatsApp com DDD e DDI (ex: +5511999999999)');
       return;
     }
     if (!form.callmebotApiKey) {
@@ -202,7 +202,7 @@ export function Settings() {
               required
               value={form.ownerWhatsappPhone}
               onChange={(e) => setForm({ ...form, ownerWhatsappPhone: e.target.value })}
-              placeholder="Ex: +5571981805744 ou 5571981805744"
+              placeholder="Ex: +5511999999999"
               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-3.5 text-sm text-slate-900 dark:text-slate-100 outline-none font-mono"
             />
             <p className="text-[11px] text-slate-400 mt-1">

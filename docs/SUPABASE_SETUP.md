@@ -77,6 +77,8 @@ Recomendamos a **Vercel** ou **Netlify**:
 
 ---
 
-## 🔐 Credenciais Padrão Criadas no Supabase
-- **E-mail:** `admin@enlace.com.br`
-- **Senha:** `admin123`
+## 🔐 Inicialização de Usuário Administrador
+Para criar o usuário administrador inicial em produção, defina as variáveis de ambiente antes de executar o seed:
+- `BOOTSTRAP_ADMIN_EMAIL` = `seu-email@suaempresa.com.br`
+- `BOOTSTRAP_ADMIN_PASSWORD` = `sua-senha-segura-minimo-10-caracteres`
+- Execute: `npm run seed:backend`

@@ -70,7 +70,7 @@ export function Layout({
     return () => clearInterval(timer);
   }, []);
 
-  const isMaster = user?.role === 'MASTER' || user?.email === 'tigolafite@gmail.com';
+  const isMaster = user?.role === 'MASTER';
 
   const navigationGroups: NavCategory[] = [
     {
