@@ -4,101 +4,71 @@
 
 @layer base {
   body {
-    @apply bg-[#f8fafc] text-slate-900 dark:bg-[#080c15] dark:text-slate-100 transition-colors duration-300 antialiased font-sans;
+    @apply bg-[#FBFBFA] text-[#18181B] dark:bg-[#0D0D0E] dark:text-[#EDEDEA] transition-colors duration-150 antialiased font-sans;
+    letter-spacing: -0.011em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-outfit tracking-tight;
+    @apply font-semibold tracking-tight text-[#18181B] dark:text-[#EDEDEA];
   }
 }
 
 @layer utilities {
-  /* Aurora & Ambient Background Glows */
-  .aurora-bg {
-    background: radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 50% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 50%);
+  /* Minimalist Studio Cards */
+  .studio-card {
+    @apply bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] rounded-2xl shadow-subtle transition-all duration-150;
   }
 
-  .dark .aurora-bg {
-    background: radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.18) 0%, transparent 40%),
-                radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 40%),
-                radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  .studio-card-interactive {
+    @apply studio-card hover:border-[#D4D4D0] dark:hover:border-[#383840] hover:shadow-panel;
   }
 
-  /* Glassmorphism Luxury Panels */
-  .glass-card {
-    @apply bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury dark:shadow-luxury-dark transition-all duration-200;
+  /* Hairline Dividers */
+  .hairline-border {
+    @apply border-[#E7E7E4] dark:border-[#26262B];
   }
 
-  .glass-card-hover {
-    @apply glass-card hover:border-indigo-400/50 dark:hover:border-indigo-500/30 hover:shadow-glow-indigo/40 hover:-translate-y-0.5;
+  .hairline-divider {
+    @apply border-t border-[#E7E7E4] dark:border-[#26262B];
   }
 
-  .glass-dock {
-    @apply bg-white/90 dark:bg-obsidian-900/85 backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xl;
+  /* Studio Button Presets */
+  .btn-primary {
+    @apply bg-[#18181B] text-white hover:bg-[#27272A] dark:bg-[#EDEDEA] dark:text-[#18181B] dark:hover:bg-[#FFFFFF] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5;
   }
 
-  /* Luxury Gradient Texts */
-  .text-gradient-celestial {
-    @apply bg-gradient-to-r from-slate-950 via-indigo-900 to-purple-900 dark:from-white dark:via-indigo-200 dark:to-purple-300 bg-clip-text text-transparent;
+  .btn-secondary {
+    @apply bg-white dark:bg-[#1A1A1E] text-[#18181B] dark:text-[#EDEDEA] hover:bg-[#F4F4F2] dark:hover:bg-[#242429] border border-[#E7E7E4] dark:border-[#26262B] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
   }
 
-  .text-gradient-gold {
-    @apply bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 dark:from-amber-300 dark:via-yellow-300 dark:to-amber-400 bg-clip-text text-transparent;
-  }
-
-  .text-gradient-rose {
-    @apply bg-gradient-to-r from-rose-600 via-pink-500 to-purple-600 dark:from-rose-300 dark:via-pink-300 dark:to-purple-300 bg-clip-text text-transparent;
-  }
-
-  /* Shimmer and reflection borders */
-  .border-glow-indigo {
-    @apply border border-indigo-500/30 shadow-glow-indigo;
-  }
-
-  .border-glow-amber {
-    @apply border border-amber-500/30 shadow-glow-amber;
+  .btn-terracotta {
+    @apply bg-[#ea580c] text-white hover:bg-[#c2410c] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
   }
 }
 
-/* Custom High-End Scrollbar */
+/* Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #E2E2DF;
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #27272C;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #C8C8C4;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3A3A42;
 }
 
-/* Custom Keyframe Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.animate-pulse-subtle {
-  animation: pulse-subtle 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* Clean Input Base */
+input, select, textarea {
+  letter-spacing: -0.01em;
 }

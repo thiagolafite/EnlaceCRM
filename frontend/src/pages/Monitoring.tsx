@@ -179,52 +179,53 @@ export function Monitoring({ currentUser }: MonitoringProps) {
     <div className="space-y-6">
       {/* Toast de Confirmação */}
       {actionSuccessMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg animate-in fade-in slide-in-from-top-2 duration-300">
-          <CheckCircle2 className="w-4 h-4" /> {actionSuccessMessage}
+        <div className="p-3 rounded-xl bg-[#18181B] dark:bg-[#EDEDEA] text-white dark:text-[#18181B] font-medium text-xs flex items-center gap-2 shadow-subtle animate-in fade-in">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
+          <span>{actionSuccessMessage}</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <Activity className="w-5 h-5" />
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
               Auditoria de Segurança & Logs (SOC)
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-              Master Exclusivo
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900">
+              Master
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Painel 360º de erros de sistema, incidentes de segurança, tentativas de login e saúde do banco Supabase.
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Monitoramento de erros de sistema, auditoria de acessos e integridade do banco de dados
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => handleSimulateLog('SECURITY')}
             disabled={simulating}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/30 text-xs font-bold hover:bg-purple-500/20 transition-all shadow-xs"
+            className="btn-secondary"
           >
-            <ShieldAlert className="w-3.5 h-3.5" /> Testar Alerta Segurança
+            <ShieldAlert className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <span>Simular Alerta</span>
           </button>
 
           <button
             onClick={() => handleSimulateLog('ERROR')}
             disabled={simulating}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-500/30 text-xs font-bold hover:bg-rose-500/20 transition-all shadow-xs"
+            className="btn-secondary"
           >
-            <Flame className="w-3.5 h-3.5" /> Testar Log de Erro
+            <Flame className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+            <span>Simular Erro</span>
           </button>
 
           <button
             onClick={handleRefresh}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs shadow-glow-indigo transition-all"
+            className="btn-primary"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Atualizar
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>Atualizar</span>
           </button>
         </div>
       </div>

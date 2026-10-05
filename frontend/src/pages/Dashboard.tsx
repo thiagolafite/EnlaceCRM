@@ -1,26 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import {
   Users,
-  Calendar,
-  Sparkles,
+  Bell,
   CheckCircle2,
   Clock,
+  Zap,
   ArrowRight,
-  Bell,
-  Send,
   MessageCircle,
   Copy,
   Check,
-  Play,
-  HeartHandshake,
-  Gift,
-  CalendarDays,
-  ShieldCheck,
-  ChevronRight,
-  Zap,
+  Calendar,
 } from 'lucide-react';
 import { api } from '../services/api';
-import { DashboardStats, UpcomingEvent, Alert } from '../types';
+import { DashboardStats, UpcomingEvent } from '../types';
 import { EventTypeBadge, ManualSentBadge } from '../components/Badge';
 
 interface DashboardProps {
@@ -32,17 +24,18 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [upcoming, setUpcoming] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningJob, setRunningJob] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsData, upcomingData] = await Promise.all([
-        api.getDashboardStats(),
-        api.getUpcomingEvents(15),
+      const [statsData, eventsData] = await Promise.all([
+        api.getDashboardStats().catch(() => null),
+        api.getUpcomingEvents(15).catch(() => [] as UpcomingEvent[]),
       ]);
       setStats(statsData);
-      setUpcoming(upcomingData);
+      setUpcoming(Array.isArray(eventsData) ? eventsData : []);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
     } finally {
@@ -51,34 +44,28 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   };
 
   useEffect(() => {
-    loadData();
+    loadDashboardData();
   }, []);
 
   const handleRunToday = async () => {
     try {
       setRunningJob(true);
-      await api.runTodayAutomation();
-      await loadData();
+      const res = await api.runTodayAutomation();
+      const count = res.report?.alertsGenerated ?? 0;
+      setFeedbackMessage(`Varredura concluída. ${count} alerta(s) gerados.`);
+      await loadDashboardData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao executar verificação diária');
+      setFeedbackMessage(err.message || 'Erro ao executar varredura.');
     } finally {
       setRunningJob(false);
+      setTimeout(() => setFeedbackMessage(null), 5000);
     }
   };
 
   const handleCopyText = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2500);
-  };
-
-  const handleToggleSent = async (id: string, currentStatus: boolean) => {
-    try {
-      await api.toggleAlertSent(id, !currentStatus);
-      await loadData();
-    } catch (err: any) {
-      alert(err.message || 'Erro ao atualizar status');
-    }
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleOpenWhatsApp = (phone: string, text: string) => {
@@ -90,13 +77,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     window.open(url, '_blank');
   };
 
-  if (loading) {
+  if (loading && !stats) {
     return (
-      <div className="py-24 text-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center mx-auto animate-pulse">
-          <HeartHandshake className="w-6 h-6" />
-        </div>
-        <p className="text-xs font-bold text-slate-400">Carregando painel Enlace Celestial...</p>
+      <div className="py-20 text-center text-xs text-stone-400">
+        Carregando painel de relacionamento...
       </div>
     );
   }
@@ -104,297 +88,230 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const kpis = [
     {
       label: 'Alertas de Hoje',
-      value: stats?.todayAlerts ?? 0,
-      icon: Bell,
-      color: 'text-indigo-600 dark:text-indigo-400',
-      glow: 'shadow-glow-indigo/30',
-      bg: 'bg-indigo-500/10 border-indigo-500/20',
+      value: stats?.todayAlerts ?? (stats as any)?.totalToday ?? 0,
+      description: 'Lembretes gerados para hoje',
       action: () => onNavigate('alerts'),
     },
     {
       label: 'Pendentes de Envio',
-      value: stats?.todayPendingManual ?? 0,
-      icon: Clock,
-      color: 'text-amber-600 dark:text-amber-400',
-      glow: 'shadow-glow-amber/30',
-      bg: 'bg-amber-500/10 border-amber-500/20',
+      value: stats?.todayPendingManual ?? (stats as any)?.pendingToday ?? 0,
+      description: 'Aguardando disparo',
       action: () => onNavigate('alerts'),
     },
     {
-      label: 'Enviados Hoje',
-      value: stats?.todaySentManual ?? 0,
-      icon: CheckCircle2,
-      color: 'text-emerald-600 dark:text-emerald-400',
-      glow: 'shadow-glow-emerald/30',
-      bg: 'bg-emerald-500/10 border-emerald-500/20',
+      label: 'Enviados com Sucesso',
+      value: stats?.todaySentManual ?? (stats as any)?.sentToday ?? 0,
+      description: 'Felicitações entregues',
       action: () => onNavigate('alerts'),
     },
     {
-      label: 'Clientes & Famílias',
-      value: (stats?.totalClients ?? 0) + (stats?.totalFamilyMembers ?? 0),
-      icon: Users,
-      color: 'text-purple-600 dark:text-purple-400',
-      glow: 'shadow-glow-purple/30',
-      bg: 'bg-purple-500/10 border-purple-500/20',
+      label: 'Total de Contatos',
+      value: ((stats?.totalClients ?? 0) + (stats?.totalFamilyMembers ?? 0)),
+      description: `${stats?.totalClients ?? 0} titulares + ${stats?.totalFamilyMembers ?? 0} familiares`,
       action: () => onNavigate('clients'),
     },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-indigo-900 via-purple-900 to-obsidian-900 border border-indigo-500/30 text-white shadow-2xl">
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-12 w-48 h-48 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />
+    <div className="space-y-6 animate-in fade-in duration-150">
+      {/* Top Action Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
+        <div>
+          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+            Painel de Felicitações
+          </h2>
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Monitoramento de datas especiais e disparos ativos
+          </p>
+        </div>
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white/10 backdrop-blur-md text-amber-300 border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Painel Executivo de Felicitações</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black font-outfit tracking-tight text-white">
-              Cultive laços genuínos com cada cliente
-            </h2>
-            <p className="text-xs sm:text-sm text-indigo-200/90 leading-relaxed font-medium">
-              O Enlace CRM monitora aniversários de titulares, familiares e datas comemorativas personalizadas, preparando mensagens humanas e prontas para disparo.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <button
-              onClick={handleRunToday}
-              disabled={runningJob}
-              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 active:scale-95 text-white font-black text-xs shadow-glow-indigo flex items-center gap-2 transition-all disabled:opacity-50"
-            >
-              <Zap className={`w-4 h-4 ${runningJob ? 'animate-spin' : ''}`} />
-              <span>{runningJob ? 'Verificando...' : 'Verificar Motor de Hoje'}</span>
-            </button>
-
-            <button
-              onClick={() => onNavigate('alerts')}
-              className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold text-xs border border-white/10 transition-colors flex items-center gap-1.5"
-            >
-              <span>Ver Alertas</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRunToday}
+            disabled={runningJob}
+            className="btn-primary"
+          >
+            <Zap className={`w-3.5 h-3.5 ${runningJob ? 'animate-spin' : ''}`} />
+            <span>{runningJob ? 'Executando...' : 'Verificar Motor'}</span>
+          </button>
+          <button
+            onClick={() => onNavigate('alerts')}
+            className="btn-secondary"
+          >
+            <span>Ver Alertas</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
+      {feedbackMessage && (
+        <div className="p-3 rounded-xl bg-stone-100 dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] text-xs text-stone-800 dark:text-stone-200">
+          {feedbackMessage}
+        </div>
+      )}
+
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {kpis.map((kpi, index) => {
-          const Icon = kpi.icon;
-          return (
-            <button
-              key={index}
-              onClick={kpi.action}
-              className="group p-5 sm:p-6 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] hover:border-indigo-400/50 dark:hover:border-indigo-500/40 shadow-luxury dark:shadow-luxury-dark hover:shadow-glow-indigo/20 transition-all duration-300 text-left hover:-translate-y-1"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                  {kpi.label}
-                </span>
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border transition-all group-hover:scale-110 ${kpi.bg} ${kpi.color}`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight">
-                  {kpi.value}
-                </span>
-                <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
-                  Ver detalhes <ChevronRight className="w-3 h-3" />
-                </span>
-              </div>
-            </button>
-          );
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {kpis.map((kpi, index) => (
+          <div
+            key={index}
+            onClick={kpi.action}
+            className="p-4 sm:p-5 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] hover:border-stone-400 dark:hover:border-stone-600 transition-colors cursor-pointer shadow-subtle flex flex-col justify-between"
+          >
+            <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
+              {kpi.label}
+            </span>
+            <div className="mt-3">
+              <span className="text-2xl font-semibold text-[#18181B] dark:text-[#EDEDEA] tracking-tight">
+                {kpi.value}
+              </span>
+              <p className="text-[11px] text-stone-400 dark:text-stone-500 mt-0.5">
+                {kpi.description}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Main Split: Today's Feed & Upcoming Celebrations Radar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Today's Generated Alerts (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-                <Bell className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black font-outfit text-slate-900 dark:text-white">
-                  Felicitações do Dia ({stats?.todayAlertsList.length ?? 0})
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Mensagens preparadas para você disparar com 1 toque.
-                </p>
-              </div>
-            </div>
-
+            <h3 className="text-sm font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+              Felicitações do Dia ({stats?.todayAlertsList?.length ?? 0})
+            </h3>
             <button
               onClick={() => onNavigate('alerts')}
-              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+              className="text-xs font-medium text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 flex items-center gap-1"
             >
               <span>Ver todos</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
             </button>
           </div>
 
           {stats?.todayAlertsList && Array.isArray(stats.todayAlertsList) && stats.todayAlertsList.length > 0 ? (
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {stats.todayAlertsList.map((alertItem) => (
                 <div
                   key={alertItem.id}
-                  className="p-5 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-sm hover:border-indigo-400/40 transition-all space-y-3.5"
+                  className="p-4 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle space-y-3"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm shrink-0">
-                        {(alertItem.targetName || alertItem.clientName || 'C').charAt(0).toUpperCase()}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+                          {alertItem.targetName || alertItem.clientName || 'Homenageado'}
+                        </span>
+                        <EventTypeBadge type={alertItem.eventType} />
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                            {alertItem.targetName || alertItem.clientName || 'Homenageado'}
-                          </h4>
-                          <EventTypeBadge type={alertItem.eventType} />
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                          {alertItem.contextDescription || ''}
-                        </p>
-                      </div>
+                      <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                        {alertItem.contextDescription || ''}
+                      </p>
                     </div>
 
                     <ManualSentBadge sent={alertItem.sentToClientManual} sentAt={alertItem.sentToClientManualAt} />
                   </div>
 
                   {/* Rendered Text Box */}
-                  <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/60 dark:border-white/[0.04] text-xs font-mono text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed max-h-28 overflow-y-auto">
-                    {alertItem.renderedMessage}
+                  <div className="p-3 rounded-lg bg-[#FBFBFA] dark:bg-[#111113] border border-[#E7E7E4] dark:border-[#26262B] text-xs font-mono text-stone-800 dark:text-stone-300 whitespace-pre-line leading-relaxed max-h-24 overflow-y-auto">
+                    {alertItem.renderedMessage || ''}
                   </div>
 
                   {/* Card Actions */}
                   <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
-                    <div className="text-[11px] text-slate-500">
-                      📱 WhatsApp: <strong className="text-slate-700 dark:text-slate-300">{alertItem.clientPhone || 'Não cadastrado'}</strong>
-                    </div>
+                    <span className="text-[11px] font-mono text-stone-500">
+                      Tel: {alertItem.clientPhone || 'Não informado'}
+                    </span>
 
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => handleCopyText(alertItem.id, alertItem.renderedMessage)}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-obsidian-800 hover:bg-slate-100 dark:hover:bg-obsidian-750 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5"
+                        className="px-2.5 py-1.5 rounded-lg border border-[#E7E7E4] dark:border-[#26262B] hover:bg-[#F4F4F2] dark:hover:bg-[#1C1C20] text-xs font-medium text-stone-700 dark:text-stone-300 transition-colors flex items-center gap-1"
                       >
-                        {copiedId === alertItem.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedId === alertItem.id ? 'Copiado!' : 'Copiar'}</span>
+                        {copiedId === alertItem.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Copiado</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copiar</span>
+                          </>
+                        )}
                       </button>
 
                       {alertItem.clientPhone && (
                         <button
                           type="button"
                           onClick={() => handleOpenWhatsApp(alertItem.clientPhone!, alertItem.renderedMessage)}
-                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-black shadow-xs shadow-emerald-600/20 flex items-center gap-1.5 transition-all"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
                           <span>WhatsApp</span>
                         </button>
                       )}
-
-                      <button
-                        type="button"
-                        onClick={() => handleToggleSent(alertItem.id, alertItem.sentToClientManual)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                          alertItem.sentToClientManual
-                            ? 'bg-slate-100 dark:bg-obsidian-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
-                            : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800/40 hover:bg-indigo-100'
-                        }`}
-                      >
-                        {alertItem.sentToClientManual ? 'Desmarcar' : 'Marcar como Enviado'}
-                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-8 rounded-3xl bg-white/50 dark:bg-obsidian-900/50 border border-slate-200/60 dark:border-white/[0.05] text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-obsidian-800 text-slate-400 flex items-center justify-center mx-auto">
-                <Check className="w-6 h-6 text-emerald-500" />
-              </div>
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                Nenhuma pendência de envio para hoje
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                Execute o motor de verificação ou confira os próximos aniversários no radar ao lado.
-              </p>
+            <div className="p-8 text-center rounded-xl border border-[#E7E7E4] dark:border-[#26262B] bg-white dark:bg-[#141416] space-y-2">
+              <span className="text-xs text-stone-500 dark:text-stone-400 block">
+                Nenhum alerta gerado para o dia de hoje.
+              </span>
+              <button
+                onClick={handleRunToday}
+                className="btn-secondary"
+              >
+                Executar Verificação
+              </button>
             </div>
           )}
         </div>
 
         {/* Right Column: Radar de Próximas Comemorações (1 col) */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-purple-500" />
-              <h3 className="text-lg font-black font-outfit text-slate-900 dark:text-white">
-                Radar de Celebrações
-              </h3>
-            </div>
+            <h3 className="text-sm font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+              Próximos 15 Dias
+            </h3>
             <button
               onClick={() => onNavigate('dates')}
-              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="text-xs font-medium text-stone-500 hover:text-stone-900 dark:hover:text-stone-200"
             >
-              Agenda Completa
+              Agenda
             </button>
           </div>
 
-          <div className="p-4 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury space-y-3">
-            {(Array.isArray(upcoming) ? upcoming : []).slice(0, 6).map((evt, i) => (
-              <div
-                key={i}
-                className="p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-obsidian-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-white/[0.05] transition-all flex items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
-                      evt.type === 'CLIENT_BIRTHDAY'
-                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                        : evt.type === 'FAMILY_BIRTHDAY'
-                        ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                        : 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400'
-                    }`}
-                  >
-                    {evt.type === 'CLIENT_BIRTHDAY' ? '🎂' : evt.type === 'FAMILY_BIRTHDAY' ? '🌸' : '📅'}
-                  </div>
+          <div className="p-2 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle divide-y divide-[#E7E7E4]/60 dark:divide-[#26262B]/60">
+            {(Array.isArray(upcoming) ? upcoming : []).length === 0 ? (
+              <div className="p-6 text-center text-xs text-stone-400">
+                Sem eventos cadastrados para os próximos dias.
+              </div>
+            ) : (
+              (Array.isArray(upcoming) ? upcoming : []).slice(0, 6).map((evt, i) => (
+                <div
+                  key={i}
+                  className="p-3 flex items-center justify-between gap-3 hover:bg-[#F4F4F2] dark:hover:bg-[#1C1C20] rounded-lg transition-colors"
+                >
                   <div className="min-w-0">
-                    <p className="text-xs font-black text-slate-900 dark:text-white truncate">
+                    <p className="text-xs font-semibold text-[#18181B] dark:text-[#EDEDEA] truncate">
                       {evt.targetName || evt.title || 'Evento'}
                     </p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
                       {evt.subtitle || ''}
                     </p>
                   </div>
-                </div>
 
-                <div className="text-right shrink-0">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      evt.isToday
-                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 animate-pulse'
-                        : 'bg-slate-100 dark:bg-obsidian-800 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    {evt.isToday ? 'Hoje' : `${evt.daysRemaining}d (${evt.day}/${evt.month})`}
+                  <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400 shrink-0">
+                    {evt.isToday ? 'Hoje' : `Em ${evt.daysRemaining}d`}
                   </span>
                 </div>
-              </div>
-            ))}
-
-            {upcoming.length === 0 && (
-              <div className="py-8 text-center text-xs text-slate-400">
-                Nenhum evento agendado para os próximos 15 dias.
-              </div>
+              ))
             )}
           </div>
         </div>

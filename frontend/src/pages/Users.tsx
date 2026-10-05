@@ -289,38 +289,36 @@ export function Users({ currentUser }: UsersProps) {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <UsersIcon className="w-5 h-5" />
-            </span>
-            <span>Usuários & Permissões do Sistema</span>
+          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+            Usuários & Permissões do Sistema
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Gerenciamento de operadores e administradores com trava de ativação manual Master.
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Gerenciamento de operadores e administradores com controle de acesso Master
           </p>
         </div>
 
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs shadow-glow-indigo transition-all"
+          className="btn-primary"
         >
-          <UserPlus className="w-4 h-4" /> Novo Usuário
+          <UserPlus className="w-3.5 h-3.5" />
+          <span>Novo Usuário</span>
         </button>
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-colors">
+      <div className="p-3 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Status Filter */}
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs w-full sm:w-auto">
+        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[#F4F4F2] dark:bg-[#1C1C20] text-xs font-medium w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-md transition-colors ${
               statusFilter === 'ALL'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
+                : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             Todos ({users.length})
@@ -329,10 +327,10 @@ export function Users({ currentUser }: UsersProps) {
             <button
               type="button"
               onClick={() => setStatusFilter('PENDING_APPROVAL')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1 ${
                 statusFilter === 'PENDING_APPROVAL'
-                  ? 'bg-amber-500 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-amber-600'
+                  ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300'
+                  : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
               }`}
             >
               <Clock className="w-3.5 h-3.5" /> Pendentes ({pendingUsers.length})
@@ -341,10 +339,10 @@ export function Users({ currentUser }: UsersProps) {
           <button
             type="button"
             onClick={() => setStatusFilter('ACTIVE')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1 ${
               statusFilter === 'ACTIVE'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-500 hover:text-emerald-600'
+                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300'
+                : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" /> Ativos
@@ -353,13 +351,13 @@ export function Users({ currentUser }: UsersProps) {
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nome, e-mail ou empresa..."
-            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-10 pr-4 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+            placeholder="Buscar por nome ou e-mail..."
+            className="w-full bg-[#FBFBFA] dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-lg py-2 pl-9 pr-3 text-xs text-[#18181B] dark:text-[#EDEDEA] placeholder:text-stone-400 outline-none transition-colors"
           />
         </div>
       </div>

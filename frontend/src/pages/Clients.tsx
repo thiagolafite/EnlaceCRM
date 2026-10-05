@@ -435,45 +435,43 @@ export function Clients() {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <Users className="w-5 h-5" />
-            </span>
-            <span>Clientes & Árvore Familiar</span>
+          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+            Clientes & Árvore Familiar
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Cadastre seus clientes com endereços e conecte seus familiares para felicitações humanizadas.
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Gerenciamento de titulares, familiares e preferências de contato
           </p>
         </div>
 
         <button
           onClick={() => handleOpenClientModal()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs shadow-glow-indigo transition-all"
+          className="btn-primary"
         >
-          <UserPlus className="w-4 h-4" /> Novo Cliente
+          <UserPlus className="w-3.5 h-3.5" />
+          <span>Novo Cliente</span>
         </button>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="p-4 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury flex flex-col md:flex-row items-center gap-3">
+      <div className="p-3 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle flex flex-col md:flex-row items-center gap-2.5">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome, CPF/CNPJ, email, telefone, cidade ou bairro..."
-            className="w-full bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/80 dark:border-white/[0.08] focus:border-indigo-500 rounded-2xl py-2.5 pl-10 pr-4 text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+            className="w-full bg-[#FBFBFA] dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-lg py-2 pl-9 pr-3 text-xs text-[#18181B] dark:text-[#EDEDEA] placeholder:text-stone-400 outline-none transition-colors"
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2.5 w-full md:w-auto">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/80 dark:border-white/[0.08] rounded-2xl py-2.5 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none"
+            className="bg-[#FBFBFA] dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] rounded-lg py-2 px-3 text-xs font-medium text-stone-700 dark:text-stone-300 outline-none"
           >
             <option value="">Todos os status</option>
             <option value="ACTIVE">Ativos</option>
@@ -483,33 +481,33 @@ export function Clients() {
       </div>
 
       {/* Clients Table */}
-      <div className="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm transition-colors">
+      <div className="bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] rounded-xl overflow-hidden shadow-subtle transition-colors">
         {loading ? (
-          <div className="py-16 text-center text-slate-400">Carregando lista de clientes...</div>
+          <div className="py-16 text-center text-stone-400 text-xs">Carregando lista de clientes...</div>
         ) : clients.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 space-y-2">
-            <Users className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700" />
-            <p className="font-semibold text-slate-700 dark:text-slate-300">Nenhum cliente encontrado</p>
-            <p className="text-xs">Cadastre seu primeiro cliente para iniciar os alertas.</p>
+          <div className="py-16 text-center text-stone-400 space-y-2">
+            <Users className="w-6 h-6 mx-auto text-stone-300 dark:text-stone-700" />
+            <p className="font-medium text-stone-700 dark:text-stone-300 text-xs">Nenhum cliente encontrado</p>
+            <p className="text-[11px]">Cadastre seu primeiro cliente para iniciar os alertas.</p>
           </div>
         ) : (
           <>
             {/* 1. VISÃO EM TABELA (DESKTOP / TABLET >= 768px) */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold border-b border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#FBFBFA] dark:bg-[#18181B] text-stone-500 dark:text-stone-400 text-[11px] font-semibold border-b border-[#E7E7E4] dark:border-[#26262B]">
                   <tr>
-                    <th className="py-4 px-6">Cliente / Empresa</th>
-                    <th className="py-4 px-6">Contatos</th>
-                    <th className="py-4 px-6">Endereço</th>
-                    <th className="py-4 px-6">Aniversário</th>
-                    <th className="py-4 px-6">Familiares</th>
-                    <th className="py-4 px-6">Status</th>
-                    <th className="py-4 px-6">LGPD</th>
-                    <th className="py-4 px-6 text-right">Ações</th>
+                    <th className="py-3 px-4">Cliente / Empresa</th>
+                    <th className="py-3 px-4">Contatos</th>
+                    <th className="py-3 px-4">Endereço</th>
+                    <th className="py-3 px-4">Aniversário</th>
+                    <th className="py-3 px-4">Familiares</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">LGPD</th>
+                    <th className="py-3 px-4 text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+                <tbody className="divide-y divide-[#E7E7E4]/60 dark:divide-[#26262B]/60 text-stone-700 dark:text-stone-300">
                   {clients.map((client) => {
                     const bDateFormatted = client.birthDate
                       ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
@@ -520,123 +518,120 @@ export function Clients() {
                       .join(', ');
 
                     return (
-                      <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="py-4 px-6">
+                      <tr key={client.id} className="hover:bg-[#FBFBFA] dark:hover:bg-[#1A1A1E] transition-colors">
+                        <td className="py-3 px-4">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-bold text-slate-900 dark:text-slate-100">{client.name}</span>
+                            <span className="font-semibold text-stone-900 dark:text-stone-100">{client.name}</span>
                             {client.isMother && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-100 dark:bg-pink-950/80 text-pink-700 dark:text-pink-300">
-                                🌸 Mãe
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/40">
+                                Mãe
                               </span>
                             )}
                             {client.isFather && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300">
-                                👔 Pai
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-sky-50 text-sky-800 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-300 dark:border-sky-800/40">
+                                Pai
                               </span>
                             )}
                             {!client.isMother && !client.isFather && client.gender === 'FEMALE' && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300">
-                                👩 Mulher
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-stone-100 text-stone-700 border border-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700">
+                                Mulher
                               </span>
                             )}
                             {!client.isMother && !client.isFather && client.gender === 'MALE' && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
-                                👨 Homem
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-stone-100 text-stone-700 border border-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700">
+                                Homem
                               </span>
                             )}
                           </div>
                           {client.companyName && (
-                            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                              <Building2 className="w-3 h-3 text-slate-400" /> {client.companyName}
+                            <div className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
+                              <Building2 className="w-3 h-3 text-stone-400" /> {client.companyName}
                             </div>
                           )}
                           {client.document && (
-                            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{client.document}</div>
+                            <div className="text-[10px] text-stone-400 font-mono mt-0.5">{client.document}</div>
                           )}
                         </td>
 
-                        <td className="py-4 px-6 space-y-1 text-xs">
+                        <td className="py-3 px-4 space-y-0.5">
                           {client.phone && (
                             <a
                               href={`https://wa.me/${client.phone.replace(/\D/g, '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               title="Conversar no WhatsApp"
-                              className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-mono transition-colors group"
+                              className="flex items-center gap-1 text-stone-700 dark:text-stone-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-mono transition-colors"
                             >
-                              <Phone className="w-3 h-3 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
-                              <span className="underline-offset-2 hover:underline">{client.phone}</span>
+                              <Phone className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                              <span>{client.phone}</span>
                             </a>
                           )}
                           {client.email && (
-                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                              <Mail className="w-3 h-3 text-indigo-600 dark:text-indigo-400" /> {client.email}
+                            <div className="flex items-center gap-1 text-stone-500">
+                              <Mail className="w-3 h-3 text-stone-400" /> {client.email}
                             </div>
                           )}
                         </td>
 
-                        <td className="py-4 px-6">
+                        <td className="py-3 px-4">
                           {locationStr || client.address ? (
-                            <div className="text-xs space-y-0.5 max-w-[180px]">
+                            <div className="space-y-0.5 max-w-[180px]">
                               {client.address && (
-                                <div className="text-slate-800 dark:text-slate-200 font-medium truncate" title={`${client.address}, ${client.addressNumber || 'S/N'}`}>
+                                <div className="text-stone-800 dark:text-stone-200 truncate" title={`${client.address}, ${client.addressNumber || 'S/N'}`}>
                                   {client.address}, {client.addressNumber || 'S/N'}
                                 </div>
                               )}
                               {locationStr && (
-                                <div className="text-[11px] text-slate-400 flex items-center gap-1 truncate" title={locationStr}>
-                                  <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
+                                <div className="text-[11px] text-stone-400 flex items-center gap-1 truncate" title={locationStr}>
+                                  <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
                                   <span className="truncate">{locationStr}</span>
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-400 italic">Não informado</span>
+                            <span className="text-stone-400 italic">Não informado</span>
                           )}
                         </td>
 
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                            <span>{bDateFormatted}</span>
-                          </div>
+                        <td className="py-3 px-4 font-mono text-stone-600 dark:text-stone-400">
+                          {bDateFormatted}
                         </td>
 
-                        <td className="py-4 px-6">
+                        <td className="py-3 px-4">
                           <button
                             onClick={() => handleOpenFamilyModal(client)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-950/80 border border-pink-200 dark:border-pink-800/40 text-pink-700 dark:text-pink-300 text-xs font-semibold transition-all"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F4F4F2] hover:bg-[#EAEAE7] dark:bg-[#1A1A1E] dark:hover:bg-[#242429] border border-[#E7E7E4] dark:border-[#26262B] text-stone-800 dark:text-stone-200 text-xs font-medium transition-colors"
                           >
-                            <Heart className="w-3.5 h-3.5 text-pink-500 dark:text-pink-400" />
+                            <Heart className="w-3 h-3 text-stone-500" />
                             <span>{client.familyMembers?.length || 0} familiar(es)</span>
                           </button>
                         </td>
 
-                        <td className="py-4 px-6">
+                        <td className="py-3 px-4">
                           <StatusBadge status={client.status} />
                         </td>
 
-                        <td className="py-4 px-6">
+                        <td className="py-3 px-4">
                           <LgpdBadge
                             consent={client.lgpdConsent}
                             onToggle={() => handleToggleLgpd(client)}
                           />
                         </td>
 
-                        <td className="py-4 px-6 text-right space-x-2">
+                        <td className="py-3 px-4 text-right space-x-1">
                           <button
                             onClick={() => handleOpenClientModal(client)}
                             title="Editar cliente"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1 rounded-md text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-[#F4F4F2] dark:hover:bg-[#202024] transition-colors"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteClient(client.id, client.name)}
                             title="Remover cliente"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1 rounded-md text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -647,7 +642,7 @@ export function Clients() {
             </div>
 
             {/* 2. VISÃO EM CARDS TOUCH (MOBILE < 768px) */}
-            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+            <div className="md:hidden divide-y divide-[#E7E7E4]/60 dark:divide-[#26262B]/60">
               {clients.map((client) => {
                 const bDateFormatted = client.birthDate
                   ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
@@ -659,76 +654,64 @@ export function Clients() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+                          <h4 className="font-semibold text-sm text-[#18181B] dark:text-[#EDEDEA]">
                             {client.name}
                           </h4>
                           {client.isMother && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-100 dark:bg-pink-950/80 text-pink-700 dark:text-pink-300">
-                              🌸 Mãe
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/40">
+                              Mãe
                             </span>
                           )}
                           {client.isFather && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300">
-                              👔 Pai
-                            </span>
-                          )}
-                          {!client.isMother && !client.isFather && client.gender === 'FEMALE' && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300">
-                              👩 Mulher
-                            </span>
-                          )}
-                          {!client.isMother && !client.isFather && client.gender === 'MALE' && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
-                              👨 Homem
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-sky-50 text-sky-800 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-300 dark:border-sky-800/40">
+                              Pai
                             </span>
                           )}
                         </div>
                         {client.companyName && (
-                          <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                            <Building2 className="w-3.5 h-3.5 text-slate-400" /> {client.companyName}
+                          <div className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
+                            <Building2 className="w-3 h-3 text-stone-400" /> {client.companyName}
                           </div>
                         )}
                         {client.document && (
-                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">{client.document}</div>
+                          <div className="text-[10px] text-stone-400 font-mono mt-0.5">{client.document}</div>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <StatusBadge status={client.status} />
-                      </div>
+                      <StatusBadge status={client.status} />
                     </div>
 
                     {/* Contatos & Aniversário */}
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
-                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Aniversário</span>
-                        <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5 text-amber-500" /> {bDateFormatted}
+                      <div className="p-2.5 rounded-lg bg-[#FBFBFA] dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] space-y-0.5">
+                        <span className="text-[10px] font-medium uppercase text-stone-400 block">Aniversário</span>
+                        <div className="font-mono text-stone-700 dark:text-stone-300 text-[11px]">
+                          {bDateFormatted}
                         </div>
                       </div>
 
-                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
-                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Familiares</span>
+                      <div className="p-2.5 rounded-lg bg-[#FBFBFA] dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] space-y-0.5">
+                        <span className="text-[10px] font-medium uppercase text-stone-400 block">Familiares</span>
                         <button
                           onClick={() => handleOpenFamilyModal(client)}
-                          className="font-bold text-pink-600 dark:text-pink-400 flex items-center gap-1 hover:underline"
+                          className="font-medium text-stone-800 dark:text-stone-200 flex items-center gap-1 hover:underline text-[11px]"
                         >
-                          <Heart className="w-3.5 h-3.5 text-pink-500" /> {client.familyMembers?.length || 0} pessoa(s)
+                          <Heart className="w-3 h-3 text-stone-500" /> {client.familyMembers?.length || 0} pessoa(s)
                         </button>
                       </div>
                     </div>
 
                     {/* Botões Rápidos de Ação */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E7E7E4]/60 dark:border-[#26262B]/60">
                       <div className="flex items-center gap-2">
                         {client.phone && (
                           <a
                             href={`https://wa.me/${client.phone.replace(/\D/g, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow-sm"
+                            className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1"
                           >
-                            <Phone className="w-3.5 h-3.5" /> WhatsApp
+                            <Phone className="w-3 h-3" /> WhatsApp
                           </a>
                         )}
                         <LgpdBadge
@@ -737,18 +720,18 @@ export function Clients() {
                         />
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleOpenClientModal(client)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                          className="p-1.5 rounded-md text-stone-500 hover:bg-[#F4F4F2] dark:hover:bg-[#202024]"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteClient(client.id, client.name)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950"
+                          className="p-1.5 rounded-md text-stone-400 hover:text-rose-600"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>

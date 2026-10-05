@@ -188,40 +188,38 @@ export function Templates() {
   const emailCount = templates.filter((t) => t.channel === 'EMAIL').length;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <MessageSquareText className="w-5 h-5" />
-            </span>
-            <span>Templates & Modelos de Mensagem</span>
+          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+            Templates & Modelos de Mensagem
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Modelos humanizados para WhatsApp e E-mail com variáveis dinâmicas de clientes e familiares.
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Modelos de felicitações com variáveis dinâmicas de titulares e familiares
           </p>
         </div>
 
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs shadow-lg shadow-indigo-600/30 transition-all"
+          className="btn-primary"
         >
-          <Plus className="w-4 h-4" /> Novo Template
+          <Plus className="w-3.5 h-3.5" />
+          <span>Novo Template</span>
         </button>
       </div>
 
       {/* Channel Tabs & Filters */}
-      <div className="p-4 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="p-3 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Channel Selector */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/80 dark:bg-obsidian-950/80 border border-slate-200/60 dark:border-white/[0.04] w-full sm:w-auto">
+        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[#F4F4F2] dark:bg-[#1C1C20] w-full sm:w-auto text-xs font-medium">
           <button
             type="button"
             onClick={() => setChannelFilter('ALL')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
               channelFilter === 'ALL'
-                ? 'bg-white dark:bg-obsidian-850 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
+                : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             <Layers className="w-3.5 h-3.5" /> Todos ({templates.length})
@@ -229,10 +227,10 @@ export function Templates() {
           <button
             type="button"
             onClick={() => setChannelFilter('WHATSAPP')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
               channelFilter === 'WHATSAPP'
-                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                ? 'bg-emerald-600 text-white'
+                : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             <MessageCircle className="w-3.5 h-3.5" /> WhatsApp ({whatsappCount})
@@ -240,10 +238,10 @@ export function Templates() {
           <button
             type="button"
             onClick={() => setChannelFilter('EMAIL')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
               channelFilter === 'EMAIL'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
+                : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
             <Mail className="w-3.5 h-3.5" /> E-mail ({emailCount})

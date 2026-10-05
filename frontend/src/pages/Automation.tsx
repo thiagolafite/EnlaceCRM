@@ -64,64 +64,61 @@ export function Automation({ defaultTab = 'simulate' }: AutomationProps) {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <Zap className="w-5 h-5" />
-            </span>
-            <span>Motor de Automação & Simulação</span>
+          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+            Motor de Automação & Simulação
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Controle a execução do job diário de felicitações e teste o comportamento do sistema para qualquer data com o simulador (dry-run).
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Execução do job diário de felicitações e simulador de datas (dry-run)
           </p>
         </div>
       </div>
 
       {/* Mode Selector Tabs */}
-      <div className="flex bg-slate-100/80 dark:bg-obsidian-950/80 p-1.5 rounded-2xl border border-slate-200/60 dark:border-white/[0.04] w-fit">
+      <div className="flex bg-[#F4F4F2] dark:bg-[#1C1C20] p-0.5 rounded-lg w-fit text-xs font-medium">
         <button
           onClick={() => setActiveTab('simulate')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs transition-all ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-colors ${
             activeTab === 'simulate'
-              ? 'bg-white dark:bg-obsidian-850 text-indigo-600 dark:text-indigo-400 shadow-sm'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
+              : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
           }`}
         >
-          <Sparkles className="w-4 h-4" />
+          <Eye className="w-3.5 h-3.5" />
           <span>Simulador de Datas (Dry-Run)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('run')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs transition-all ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-colors ${
             activeTab === 'run'
-              ? 'bg-white dark:bg-obsidian-850 text-indigo-600 dark:text-indigo-400 shadow-sm'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
+              : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
           }`}
         >
-          <Zap className="w-4 h-4" />
+          <Zap className="w-3.5 h-3.5" />
           <span>Disparo Imediato de Hoje</span>
         </button>
       </div>
 
       {/* TAB 1: SIMULADOR (DRY-RUN) */}
       {activeTab === 'simulate' && (
-        <div className="space-y-6">
-          <div className="p-6 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle flex flex-col md:flex-row md:items-end justify-between gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
                 Selecione a Data para Simulação:
               </label>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <input
                   type="date"
                   value={simDate}
                   onChange={(e) => setSimDate(e.target.value)}
-                  className="bg-slate-50/80 dark:bg-obsidian-950/80 border border-slate-200/80 dark:border-white/[0.08] focus:border-indigo-500 rounded-2xl py-2.5 px-4 text-xs font-bold text-slate-900 dark:text-slate-100 outline-none"
+                  className="bg-[#FBFBFA] dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-lg py-2 px-3 text-xs text-stone-900 dark:text-stone-100 outline-none"
                 />
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  (Simula aniversários e feriados dessa data sem enviar nem salvar no histórico)
+                <span className="text-xs text-stone-400">
+                  (Simula aniversários e feriados sem disparar mensagens)
                 </span>
               </div>
             </div>
@@ -129,9 +126,9 @@ export function Automation({ defaultTab = 'simulate' }: AutomationProps) {
             <button
               onClick={handleSimulate}
               disabled={runningSim}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs shadow-glow-indigo transition-all disabled:opacity-50 active:scale-95"
+              className="btn-primary"
             >
-              <Eye className={`w-4 h-4 ${runningSim ? 'animate-spin' : ''}`} />
+              <Eye className={`w-3.5 h-3.5 ${runningSim ? 'animate-spin' : ''}`} />
               <span>{runningSim ? 'Simulando...' : 'Rodar Simulação'}</span>
             </button>
           </div>

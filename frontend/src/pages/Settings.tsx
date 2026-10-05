@@ -136,46 +136,41 @@ export function Settings() {
   return (
     <form onSubmit={handleSave} className="space-y-8 max-w-5xl animate-in fade-in duration-300">
       {/* Header & Save Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <span className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <SettingsIcon className="w-5 h-5" />
-            </span>
-            <span>Configurações do Sistema</span>
+          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+            Configurações do Sistema
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Configure seu WhatsApp pessoal para receber alertas de aniversários, dados da sua empresa e o agendador diário.
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+            Configuração de notificações via WhatsApp, dados da empresa e agendador
           </p>
         </div>
 
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs shadow-glow-indigo transition-all disabled:opacity-50"
+          className="btn-primary"
         >
-          <Save className="w-4 h-4" />
-          {saving ? 'Salvando...' : 'Salvar Alterações'}
+          <Save className="w-3.5 h-3.5" />
+          <span>{saving ? 'Salvando...' : 'Salvar Alterações'}</span>
         </button>
       </div>
 
       {savedSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-          <span>Configurações salvas com sucesso no banco de dados Supabase!</span>
+        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>Configurações salvas com sucesso.</span>
         </div>
       )}
 
       {/* 1. SEÇÃO PRINCIPAL: NOTIFICAÇÃO VIA WHATSAPP (CALLMEBOT) */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white/80 dark:bg-obsidian-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-luxury space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-              <MessageCircle className="w-6 h-6" />
-            </div>
+      <div className="p-5 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E7E7E4] dark:border-[#26262B] pb-3">
+          <div className="flex items-center gap-2.5">
+            <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Notificação no seu WhatsApp (CallMeBot)
+              <h3 className="text-sm font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+                Notificações no WhatsApp (CallMeBot)
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Receba todos os dias no seu WhatsApp pessoal o resumo dos aniversariantes com mensagens prontas para enviar.
