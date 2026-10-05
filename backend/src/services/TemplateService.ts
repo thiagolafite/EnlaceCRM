@@ -8,7 +8,6 @@ export interface CreateTemplateDTO {
   commemorativeDateId?: string | null;
   subject?: string | null;
   content: string;
-  metaTemplateName?: string | null;
   active?: boolean;
 }
 
@@ -56,7 +55,6 @@ export class TemplateService {
         commemorativeDateId: data.commemorativeDateId || null,
         subject: data.subject?.trim() || null,
         content: data.content,
-        metaTemplateName: data.metaTemplateName?.trim() || null,
         active: typeof data.active === 'boolean' ? data.active : true,
       },
     });
@@ -75,7 +73,6 @@ export class TemplateService {
     if (data.commemorativeDateId !== undefined) updateData.commemorativeDateId = data.commemorativeDateId || null;
     if (data.subject !== undefined) updateData.subject = data.subject?.trim() || null;
     if (data.content !== undefined) updateData.content = data.content;
-    if (data.metaTemplateName !== undefined) updateData.metaTemplateName = data.metaTemplateName?.trim() || null;
     if (typeof data.active === 'boolean') updateData.active = data.active;
 
     return prisma.messageTemplate.update({

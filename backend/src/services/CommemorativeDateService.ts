@@ -107,6 +107,13 @@ export class CommemorativeDateService {
       clientId?: string;
       clientName?: string;
       familyMemberId?: string;
+      commemorativeDateId?: string;
+      targetName?: string;
+      phone?: string | null;
+      email?: string | null;
+      gender?: string | null;
+      companyName?: string | null;
+      relationship?: string | null;
       daysRemaining: number;
       isToday: boolean;
     }> = [];

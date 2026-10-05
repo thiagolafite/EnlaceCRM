@@ -34,7 +34,7 @@ export class MessageQueue {
     });
 
     // Atualiza status do histórico para QUEUED
-    await prisma.sendHistory.update({
+    await (prisma as any).sendHistory.update({
       where: { id: payload.sendHistoryId },
       data: { status: 'QUEUED' },
     });
@@ -115,7 +115,7 @@ export class MessageQueue {
       if (!willRetry) {
         // Marca o SendHistory como FAILED se não houver mais tentativas
         const payload: SendMessagePayload = JSON.parse(job.payload);
-        await prisma.sendHistory.update({
+        await (prisma as any).sendHistory.update({
           where: { id: payload.sendHistoryId },
           data: {
             status: 'FAILED',
@@ -161,7 +161,7 @@ export class MessageQueue {
         },
       });
 
-      await prisma.sendHistory.update({
+      await (prisma as any).sendHistory.update({
         where: { id: payload.sendHistoryId },
         data: {
           status: 'SENT',

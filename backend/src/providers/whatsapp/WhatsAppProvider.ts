@@ -26,7 +26,7 @@ export class WhatsAppProvider {
 
   static async send(options: SendWhatsAppOptions): Promise<SendResult> {
     try {
-      const settings = await prisma.companySettings.findFirst();
+      const settings = (await prisma.companySettings.findFirst()) as any;
       const cleanPhone = this.sanitizePhoneNumber(options.toPhone);
 
       if (!cleanPhone || cleanPhone.length < 8) {
@@ -54,7 +54,7 @@ export class WhatsAppProvider {
       }
 
       // Meta Cloud API Dispatch (Official Graph API)
-      const url = `https://graph.facebook.com/v19.0/${settings.metaWhatsappPhoneId}/messages`;
+      const url = `https://graph.facebook.com/v19.0/${settings?.metaWhatsappPhoneId}/messages`;
       
       let payload: any;
       if (options.templateName) {

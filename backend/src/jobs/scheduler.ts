@@ -32,7 +32,7 @@ export async function initScheduler() {
         console.log(`⏰ [Scheduler] Executando rotina diária de felicitações (${new Date().toISOString()})...`);
         try {
           const report = await AutomationService.scanAndDispatch(new Date(), false);
-          console.log(`✅ [Scheduler] Rotina finalizada: ${report.messagesEnqueued} mensagens enfileiradas.`);
+          console.log(`✅ [Scheduler] Rotina finalizada: ${report.alertsGenerated} alertas gerados.`);
         } catch (err) {
           console.error('❌ [Scheduler Error]:', err);
         }

@@ -17,7 +17,7 @@ export interface SendResult {
 export class EmailProvider {
   static async send(options: SendEmailOptions): Promise<SendResult> {
     try {
-      const settings = await prisma.companySettings.findFirst();
+      const settings = (await prisma.companySettings.findFirst()) as any;
 
       const simulate = settings?.emailSimulateMode !== false || !settings?.smtpHost;
 
@@ -36,10 +36,10 @@ export class EmailProvider {
 
       // Real SMTP Dispatch
       const transporter = nodemailer.createTransport({
-        host: settings.smtpHost || undefined,
-        port: settings.smtpPort || 587,
-        secure: settings.smtpSecure || false,
-        auth: settings.smtpUser
+        host: settings?.smtpHost || undefined,
+        port: settings?.smtpPort || 587,
+        secure: settings?.smtpSecure || false,
+        auth: settings?.smtpUser
           ? {
               user: settings.smtpUser,
               pass: settings.smtpPass || '',
@@ -47,7 +47,7 @@ export class EmailProvider {
           : undefined,
       });
 
-      const fromAddress = `"${settings.senderEmailName || 'Enlace'}" <${settings.senderEmailAddress || 'no-reply@enlacecrm.com.br'}>`;
+      const fromAddress = `"${settings?.senderEmailName || 'Enlace'}" <${settings?.senderEmailAddress || 'no-reply@enlacecrm.com.br'}>`;
 
       const info = await transporter.sendMail({
         from: fromAddress,

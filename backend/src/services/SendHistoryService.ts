@@ -42,8 +42,8 @@ export class SendHistoryService {
     }
 
     const [total, items] = await Promise.all([
-      prisma.sendHistory.count({ where }),
-      prisma.sendHistory.findMany({
+      (prisma as any).sendHistory.count({ where }),
+      (prisma as any).sendHistory.findMany({
         where,
         skip,
         take: limit,
@@ -77,7 +77,7 @@ export class SendHistoryService {
   }
 
   static async getById(id: string) {
-    const history = await prisma.sendHistory.findUnique({
+    const history = await (prisma as any).sendHistory.findUnique({
       where: { id },
       include: {
         client: true,
@@ -95,7 +95,7 @@ export class SendHistoryService {
   }
 
   static async retrySingle(id: string) {
-    const history = await prisma.sendHistory.findUnique({
+    const history = await (prisma as any).sendHistory.findUnique({
       where: { id },
       include: { client: true, template: true },
     });
@@ -109,7 +109,7 @@ export class SendHistoryService {
     }
 
     // Reset status to PENDING
-    await prisma.sendHistory.update({
+    await (prisma as any).sendHistory.update({
       where: { id },
       data: {
         status: 'PENDING',
@@ -125,7 +125,7 @@ export class SendHistoryService {
       recipientContact: history.recipientContact,
       subject: history.renderedSubject || undefined,
       body: history.renderedBody,
-      metaTemplateName: history.template?.metaTemplateName || undefined,
+      metaTemplateName: (history.template as any)?.metaTemplateName || undefined,
       clientName: history.client.name,
     });
 
@@ -133,7 +133,7 @@ export class SendHistoryService {
   }
 
   static async retryAllFailed() {
-    const failedList = await prisma.sendHistory.findMany({
+    const failedList = await (prisma as any).sendHistory.findMany({
       where: {
         status: 'FAILED',
         client: {
@@ -147,7 +147,7 @@ export class SendHistoryService {
 
     let count = 0;
     for (const item of failedList) {
-      await prisma.sendHistory.update({
+      await (prisma as any).sendHistory.update({
         where: { id: item.id },
         data: { status: 'PENDING', errorMessage: null },
       });
@@ -159,7 +159,7 @@ export class SendHistoryService {
         recipientContact: item.recipientContact,
         subject: item.renderedSubject || undefined,
         body: item.renderedBody,
-        metaTemplateName: item.template?.metaTemplateName || undefined,
+        metaTemplateName: (item.template as any)?.metaTemplateName || undefined,
         clientName: item.client.name,
       });
 

@@ -17,6 +17,7 @@ export interface NotificationResult {
   success: boolean;
   simulated?: boolean;
   error?: string;
+  message?: string;
 }
 
 export class CallMeBotProvider {

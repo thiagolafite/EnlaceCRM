@@ -166,12 +166,18 @@ export class AlertService {
     const isSimulate = company?.callmebotSimulateMode ?? true;
 
     // Disparar notificação consolidada
-    const result = await CallMeBotProvider.sendDailySummary(
-      alerts,
+    const result = await CallMeBotProvider.sendDailySummary({
+      alerts: alerts.map(a => ({
+        clientName: a.clientName,
+        targetName: a.targetName,
+        context: a.contextDescription,
+        phone: a.clientPhone,
+        renderedMessage: a.renderedMessage,
+      })),
       ownerPhone,
       apiKey,
-      isSimulate
-    );
+      date: targetDate,
+    });
 
     return {
       success: result.success,
