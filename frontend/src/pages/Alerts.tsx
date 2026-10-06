@@ -13,11 +13,15 @@ import {
 import { api } from '../services/api';
 import { Alert } from '../types';
 import { EventTypeBadge, ManualSentBadge, NotificationBadge } from '../components/Badge';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 export function Alerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
+
+  // Estados de Erro Direcionais
+  const [pageError, setPageError] = useState<{ message: string; solution?: string } | null>(null);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -33,6 +37,7 @@ export function Alerts() {
   const loadAlerts = async () => {
     try {
       setLoading(true);
+      setPageError(null);
       const todayStr = new Date().toISOString().split('T')[0];
       const targetDate = activeTab === 'today' ? todayStr : filterDate || undefined;
 
@@ -47,8 +52,12 @@ export function Alerts() {
         limit: 100,
       });
       setAlerts(res.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao carregar alertas:', err);
+      setPageError({
+        message: err.message || 'Erro ao carregar alertas de felicitações.',
+        solution: err.solution || 'Verifique a conexão de rede ou tente recarregar a lista.',
+      });
     } finally {
       setLoading(false);
     }
@@ -73,6 +82,7 @@ export function Alerts() {
   const handleToggleSent = async (id: string, currentStatus: boolean) => {
     try {
       setTogglingId(id);
+      setPageError(null);
       const updated = await api.toggleAlertSent(id, !currentStatus);
       setAlerts((prev) => prev.map((a) => (a.id === id ? updated : a)));
       showToast(
@@ -81,7 +91,10 @@ export function Alerts() {
           : 'Status revertido para pendente.'
       );
     } catch (err: any) {
-      alert(err.message || 'Erro ao alterar status de envio');
+      setPageError({
+        message: err.message || 'Erro ao alterar status de envio do alerta.',
+        solution: err.solution || 'Verifique se o alerta ainda existe no banco de dados.',
+      });
     } finally {
       setTogglingId(null);
     }
@@ -90,12 +103,16 @@ export function Alerts() {
   const handleRunTodayScan = async () => {
     try {
       setRunningScan(true);
+      setPageError(null);
       const res = await api.runTodayAutomation();
       const count = res.report?.alertsGenerated ?? 0;
       showToast(`Varredura concluída. ${count} alerta(s) gerados.`);
       await loadAlerts();
     } catch (err: any) {
-      alert(err.message || 'Erro ao executar varredura');
+      setPageError({
+        message: err.message || 'Erro ao executar varredura de hoje.',
+        solution: err.solution || 'Verifique se a configuração do CallMeBot está preenchida ou se os clientes possuem telefones válidos.',
+      });
     } finally {
       setRunningScan(false);
     }
@@ -107,6 +124,13 @@ export function Alerts() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
+      <ErrorBanner
+        error={pageError?.message || null}
+        solution={pageError?.solution}
+        onClose={() => setPageError(null)}
+        onRetry={loadAlerts}
+      />
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 p-3.5 rounded-xl bg-[#18181B] dark:bg-[#EDEDEA] text-white dark:text-[#18181B] text-xs font-medium shadow-dropdown flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">

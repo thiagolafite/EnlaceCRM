@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import routes from './routes';
 import { LogService } from './services/LogService';
 import { config } from './config';
-import { AppError } from './utils/AppError';
+import { formatErrorForResponse } from './utils/formatError';
 
 const app = express();
 
@@ -25,7 +25,6 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permitir requisições sem origem (como apps mobile, curl, server-to-server)
       if (!origin) return callback(null, true);
 
       const normalizedOrigin = origin.replace(/\/$/, '').toLowerCase();
@@ -55,19 +54,25 @@ app.use(express.json({ limit: '100kb' }));
 
 // 5. Rate Limiters Granulares
 const globalApiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 600, // Máximo de 600 requisições por IP a cada 15 min
+  windowMs: 15 * 60 * 1000,
+  max: 600,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Muitas requisições. Por favor, tente novamente em alguns minutos.' },
+  message: {
+    error: 'Muitas requisições enviadas em curto período de tempo.',
+    solution: 'Aguarde alguns instantes antes de realizar novas operações.',
+  },
 });
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 20, // Máximo de 20 tentativas por janela
+  windowMs: 15 * 60 * 1000,
+  max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Muitas tentativas de login. Por favor, aguarde 15 minutos antes de tentar novamente.' },
+  message: {
+    error: 'Muitas tentativas de login consecutivas.',
+    solution: 'Por motivos de segurança, aguarde 15 minutos antes de tentar acessar novamente.',
+  },
   keyGenerator: (req) => {
     const email = req.body?.email ? String(req.body.email).toLowerCase().trim() : '';
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
@@ -76,14 +81,16 @@ const loginLimiter = rateLimit({
 });
 
 const registerLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hora
-  max: 20, // Máximo de 20 cadastros por IP a cada hora
+  windowMs: 60 * 60 * 1000,
+  max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Limite de cadastros atingido para este endereço IP. Tente novamente mais tarde.' },
+  message: {
+    error: 'Limite de criação de contas atingido para este endereço de rede.',
+    solution: 'Aguarde 1 hora antes de cadastrar uma nova empresa ou entre em contato com o suporte.',
+  },
 });
 
-// Atribuir rate limiters específicos antes das rotas
 app.use('/api/auth/login', loginLimiter);
 app.use('/auth/login', loginLimiter);
 app.use('/api/auth/register', registerLimiter);
@@ -105,27 +112,26 @@ app.get(['/api/health', '/health'], (req: Request, res: Response) => {
 app.use('/api', routes);
 app.use('/', routes);
 
-// 8. Middleware de Tratamento de Erros Global com Auditoria e Sanitização
+// 8. Middleware de Tratamento de Erros Global com Auditoria, Mascaramento e Instruções Direcionais
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   const requestId = crypto.randomUUID();
-  const isAppError = err instanceof AppError;
-  const status = isAppError ? err.statusCode : err.status || 500;
+  const { status, body } = formatErrorForResponse(err, requestId);
   const currentUser = (req as any).user;
 
-  // Registrar erro no banco de dados com dados mascarados (sem senhas ou tokens)
+  // Registrar auditoria no banco de dados para visualização pelo Master
   if (status >= 400) {
     LogService.createLog({
       level: status >= 500 ? 'ERROR' : 'WARN',
       category: 'API',
-      action: isAppError ? `CLIENT_ERROR_${status}` : `SERVER_ERROR_${status}`,
-      message: err.message || 'Erro durante processamento da requisição',
+      action: `API_ERROR_${status}`,
+      message: body.error,
       details: {
         requestId,
+        solution: body.solution,
         path: req.originalUrl || req.url,
         method: req.method,
         status,
-        errorName: err.name,
-        details: isAppError ? err.details : undefined,
+        originalError: err.message,
       },
       ipAddress: req.ip || req.socket.remoteAddress,
       userAgent: req.headers['user-agent'],
@@ -135,22 +141,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     }).catch(() => {});
   }
 
-  // Em produção, para erros 500 não operacionais, devolve mensagem genérica protegida
-  if (config.nodeEnv === 'production' && status >= 500) {
-    return res.status(status).json({
-      error: 'Ocorreu um erro interno no servidor. Por favor, contate o suporte com o código do erro.',
-      requestId,
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  return res.status(status).json({
-    error: err.message || 'Erro interno no servidor',
-    requestId,
-    timestamp: new Date().toISOString(),
-    path: req.originalUrl || req.url,
-    details: isAppError ? err.details : undefined,
-  });
+  return res.status(status).json(body);
 });
 
 export default app;

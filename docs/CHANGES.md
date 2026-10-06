@@ -77,3 +77,32 @@ Documento de rastreamento das alterações efetuadas em cada fase da transição
   - `express-rate-limit` aplicado ao login (10 / 15 min por IP+email), registro e API geral.
   - Global error handler estruturado com classes tipadas `AppError`, geração de `requestId` e mascaramento de campos confidenciais nos logs.
   - Retenção de `SystemLog` configurada para 90 dias com sanitização de passwords/tokens.
+
+---
+
+## 📌 Melhoria de UX & Suporte — Mensagens de Erro Direcionais em Todo o Sistema
+
+### 1. Backend (`backend/src/utils/formatError.ts`)
+- Implementado formatador e tradutor automático de erros de banco de dados (códigos Prisma `P2002`, `P2025`, `P2003`, `P2021`, etc.), erros de validação Zod e `AppError`.
+- Respostas padronizadas com contrato estruturado:
+  - `error`: Explicação clara e em linguagem acessível sobre o que impediu a operação.
+  - `solution`: Ação direta e prática indicando ao usuário exatamente como resolver (ex: "Verifique o formato do CPF", "Informe outro e-mail", "Remova os vínculos antes de excluir").
+  - `requestId`: Identificador UUID único para rastreamento no painel de auditoria do Master.
+
+### 2. Frontend (`frontend/src/components/ErrorBanner.tsx`)
+- Criado componente `ErrorBanner` visualmente elegante com suporte a tema claro e escuro.
+- Exibição destacada da seção **"Como resolver:"**.
+- Botão de retentativa rápida (`Tentar Novamente`) e botão de fechar.
+
+### 3. Telas e Modais Integrados
+- `Login.tsx`: Notificações de bloqueio, pendência de aprovação e credenciais incorretas com passos claros.
+- `Clients.tsx`: Tratamento no formulário de titulares e formulário de familiares.
+- `Settings.tsx`: Feedback na atualização cadastral, configuração e teste de conexão do CallMeBot.
+- `Users.tsx`: Validações de senha, permissões e aprovação de usuários.
+- `Templates.tsx`: Validações de tags, salvamento e preview em tempo real.
+- `Calendar.tsx`: Validação de datas fixas e envio de felicitações.
+- `Alerts.tsx`: Execução de varredura e alteração de status de envio.
+- `Automation.tsx`: Execução imediata e simulador de datas (dry-run).
+- `Dashboard.tsx`: Monitoramento e disparo rápido de automação.
+- `Monitoring.tsx`: Auditoria SOC e limpeza de logs.
+

@@ -17,6 +17,22 @@ function getAuthHeader(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+export class ApiError extends Error {
+  public solution?: string;
+  public requestId?: string;
+  public details?: any;
+  public status?: number;
+
+  constructor(message: string, solution?: string, requestId?: string, status?: number, details?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.solution = solution;
+    this.requestId = requestId;
+    this.status = status;
+    this.details = details;
+  }
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers = {
     'Content-Type': 'application/json',
@@ -40,7 +56,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data?.error || `Erro na requisição (${response.status})`);
+    const message = data?.error || `Erro na requisição (${response.status})`;
+    const solution = data?.solution;
+    const requestId = data?.requestId;
+    throw new ApiError(message, solution, requestId, response.status, data?.details);
   }
 
   return data as T;

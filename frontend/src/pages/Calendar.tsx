@@ -33,6 +33,7 @@ import { api } from '../services/api';
 import { CommemorativeDate, UpcomingEvent, Client, MessageTemplate } from '../types';
 import { Modal } from '../components/Modal';
 import { EventTypeBadge } from '../components/Badge';
+import { ErrorBanner } from '../components/ErrorBanner';
 import {
   detectCommemorativeAudience,
   filterClientsByAudience,
@@ -168,6 +169,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'BIRTHDAYS' | 'FIXED'>('ALL');
 
+  // Estados de Erro Direcionais
+  const [pageError, setPageError] = useState<{ message: string; solution?: string } | null>(null);
+  const [modalError, setModalError] = useState<{ message: string; solution?: string } | null>(null);
+
   // Copy Feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -207,6 +212,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   const loadData = async () => {
     try {
       setLoading(true);
+      setPageError(null);
       const [datesData, upcomingData, clientsRes, tplsData] = await Promise.all([
         api.getDates(),
         api.getUpcomingEvents(60),
@@ -223,8 +229,12 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         ? (clientsRes as any).data
         : [];
       setClients(clientsList);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao carregar dados do calendário:', err);
+      setPageError({
+        message: err.message || 'Erro ao carregar dados do calendário.',
+        solution: err.solution || 'Verifique sua conexão de rede ou tente recarregar a página.',
+      });
     } finally {
       setLoading(false);
     }
@@ -303,6 +313,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   });
 
   const handleOpenModal = (item?: CommemorativeDate, defaultMonth?: number, defaultDay?: number) => {
+    setModalError(null);
     if (item) {
       setEditingDate(item);
       setForm({
@@ -363,6 +374,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setModalError(null);
     try {
       const payload: any = {
         name: form.name,
@@ -383,17 +395,24 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar data comemorativa');
+      setModalError({
+        message: err.message || 'Erro ao salvar data comemorativa.',
+        solution: err.solution || 'Verifique se o dia e mês foram informados corretamente.',
+      });
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Deseja remover a data "${name}"?`)) return;
     try {
+      setPageError(null);
       await api.deleteDate(id);
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao excluir data');
+      setPageError({
+        message: err.message || 'Erro ao excluir data comemorativa.',
+        solution: err.solution || 'Verifique se a data ainda existe e se você possui permissão de administrador.',
+      });
     }
   };
 
@@ -648,6 +667,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <ErrorBanner
+        error={pageError?.message || null}
+        solution={pageError?.solution}
+        onClose={() => setPageError(null)}
+        onRetry={loadData}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
@@ -1112,6 +1138,12 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         maxWidth="lg"
       >
         <form onSubmit={handleSave} className="space-y-4">
+          <ErrorBanner
+            error={modalError?.message || null}
+            solution={modalError?.solution}
+            onClose={() => setModalError(null)}
+          />
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Nome da Data *

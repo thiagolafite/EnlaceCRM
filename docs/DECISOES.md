@@ -40,3 +40,18 @@ Este documento registra todas as decisões técnicas, arquiteturais e de seguran
      - `express-rate-limit` aplicado a endpoints de login (10 / 15 min por IP+email), registro e chamadas gerais de API.
      - Sanitização e mascaramento de senhas, tokens e credenciais em logs de erro e `SystemLog` (retenção padrão de 90 dias).
 - **Consequências**: Conformidade com LGPD, isolamento robusto entre diferentes empresas contratantes e segurança reforçada contra vulnerabilidades OWASP Top 10.
+
+---
+
+## [ADR-003] Tratamento de Erros Direcionais com Instruções de Resolução em Todo o Sistema
+
+- **Data**: 2026-10-05
+- **Status**: Aprovado e Implementado
+- **Contexto**: Erros brutos de banco de dados (Prisma codes `P2002`, `P2025`, falhas de foreign key, timeouts de rede) ou falhas de validação estavam resultando em popups genéricos via `alert()` ou respostas técnicas sem direcionamento ao usuário final sobre o motivo do erro e como solucioná-lo.
+- **Decisão**:
+  1. **Backend**: Criação do módulo `backend/src/utils/formatError.ts` que intercepta erros do Prisma, Zod, AppError e Express, retornando um contrato JSON estruturado: `{ error: string, solution: string, requestId: string, timestamp: string }`.
+  2. **Frontend Service API**: `frontend/src/services/api.ts` atualizado com classe `ApiError` estendendo `Error`, carregando `solution` e `requestId` para que qualquer camada possa exibir orientações claras.
+  3. **Componente Visual Unificado (`ErrorBanner`)**: Criação de `frontend/src/components/ErrorBanner.tsx` com visual moderno, suporte a tema claro e escuro, destaque para "Como resolver" com ícone, ação de retentativa (`onRetry`) e fechamento (`onClose`).
+  4. **Padronização em Todas as Telas**: Substituição de alertas nativos do navegador por `ErrorBanner` em todas as páginas e modais (`Login`, `Clients`, `Settings`, `Users`, `Templates`, `Calendar`, `Alerts`, `Automation`, `Dashboard`, `Monitoring`).
+- **Consequências**: Experiência do usuário (UX) clara e resolutiva, eliminação de stack traces ou detalhes técnicos de infraestrutura visíveis ao usuário final, e facilidade de suporte técnico através do `requestId`.
+

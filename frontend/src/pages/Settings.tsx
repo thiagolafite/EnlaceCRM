@@ -14,12 +14,14 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CompanySettings } from '../types';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 export function Settings() {
   const [settings, setSettings] = useState<CompanySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [errorState, setErrorState] = useState<{ message: string; solution?: string } | null>(null);
 
   // Testing CallMeBot
   const [testingBot, setTestingBot] = useState(false);
@@ -79,6 +81,7 @@ export function Settings() {
     try {
       setSaving(true);
       setSavedSuccess(false);
+      setErrorState(null);
       setTestResult(null);
       await api.updateSettings({
         ...form,
@@ -88,7 +91,10 @@ export function Settings() {
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 4000);
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar configurações');
+      setErrorState({
+        message: err.message || 'Erro ao salvar configurações',
+        solution: err.solution || 'Verifique se os dados informados estão corretos e tente novamente.',
+      });
     } finally {
       setSaving(false);
     }
@@ -96,11 +102,17 @@ export function Settings() {
 
   const handleTestCallMeBot = async () => {
     if (!form.ownerWhatsappPhone) {
-      alert('Informe seu número de WhatsApp com DDD e DDI (ex: +5511999999999)');
+      setTestResult({
+        success: false,
+        message: 'Informe seu número de WhatsApp com DDD e DDI (ex: +5511999999999).',
+      });
       return;
     }
-    if (!form.callmebotApiKey) {
-      alert('Informe sua API Key do CallMeBot. Siga as instruções abaixo para gerar gratuitamente.');
+    if (!form.callmebotApiKey && !settings?.hasCallmebotApiKey) {
+      setTestResult({
+        success: false,
+        message: 'Informe sua API Key do CallMeBot para realizar o teste de envio.',
+      });
       return;
     }
 
@@ -116,7 +128,7 @@ export function Settings() {
       } else {
         setTestResult({
           success: false,
-          message: res.error || 'Não foi possível enviar a mensagem de teste.',
+          message: res.error || 'Não foi possível enviar a mensagem de teste. Verifique sua chave do CallMeBot.',
         });
       }
     } catch (err: any) {
@@ -155,6 +167,15 @@ export function Settings() {
           <span>{saving ? 'Salvando...' : 'Salvar Alterações'}</span>
         </button>
       </div>
+
+      {/* Alerta de Erro Direcional */}
+      {errorState && (
+        <ErrorBanner
+          error={errorState.message}
+          solution={errorState.solution}
+          onClose={() => setErrorState(null)}
+        />
+      )}
 
       {savedSuccess && (
         <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">

@@ -25,12 +25,18 @@ import { api } from '../services/api';
 import { Client, FamilyMember } from '../types';
 import { Modal } from '../components/Modal';
 import { StatusBadge, LgpdBadge } from '../components/Badge';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 export function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  // Estados de Erro Direcionais
+  const [pageError, setPageError] = useState<{ message: string; solution?: string } | null>(null);
+  const [clientModalError, setClientModalError] = useState<{ message: string; solution?: string } | null>(null);
+  const [familyModalError, setFamilyModalError] = useState<{ message: string; solution?: string } | null>(null);
 
   // Modal Cliente (Criar / Editar)
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -184,6 +190,7 @@ export function Clients() {
   };
 
   const handleOpenClientModal = (client?: Client) => {
+    setClientModalError(null);
     if (client) {
       setEditingClient(client);
       setClientForm({
@@ -238,6 +245,7 @@ export function Clients() {
 
   const handleSaveClient = async (e: React.FormEvent) => {
     e.preventDefault();
+    setClientModalError(null);
     try {
       const payload: any = {
         name: clientForm.name,
@@ -270,7 +278,10 @@ export function Clients() {
       setIsClientModalOpen(false);
       await loadClients();
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar cliente');
+      setClientModalError({
+        message: err.message || 'Erro ao salvar cliente',
+        solution: err.solution || 'Verifique se os campos obrigatórios estão preenchidos corretamente.',
+      });
     }
   };
 
@@ -279,10 +290,14 @@ export function Clients() {
       return;
     }
     try {
+      setPageError(null);
       await api.deleteClient(id);
       await loadClients();
     } catch (err: any) {
-      alert(err.message || 'Erro ao excluir cliente');
+      setPageError({
+        message: err.message || 'Erro ao excluir cliente',
+        solution: err.solution || 'Atualize a página e tente novamente.',
+      });
     }
   };
 
@@ -295,10 +310,14 @@ export function Clients() {
     if (!confirm(msg)) return;
 
     try {
+      setPageError(null);
       await api.toggleLgpd(client.id, nextConsent);
       await loadClients();
     } catch (err: any) {
-      alert(err.message || 'Erro ao atualizar consentimento LGPD');
+      setPageError({
+        message: err.message || 'Erro ao atualizar consentimento LGPD',
+        solution: err.solution || 'Verifique a conexão e tente novamente.',
+      });
     }
   };
 
@@ -312,6 +331,7 @@ export function Clients() {
   const handleOpenFamilyModal = async (client: Client) => {
     setSelectedClientForFamily(client);
     setEditingFamilyMember(null);
+    setFamilyModalError(null);
     setFamilyForm({
       name: '',
       gender: 'FEMALE',
@@ -350,6 +370,7 @@ export function Clients() {
   const handleSaveFamilyMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClientForFamily) return;
+    setFamilyModalError(null);
 
     try {
       const payload: any = {
@@ -401,13 +422,17 @@ export function Clients() {
       });
       await loadClients();
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar familiar');
+      setFamilyModalError({
+        message: err.message || 'Erro ao salvar familiar',
+        solution: err.solution || 'Verifique se a data de nascimento e os dados obrigatórios foram preenchidos.',
+      });
     }
   };
 
   const handleDeleteFamilyMember = async (id: string, name: string) => {
     if (!confirm(`Deseja remover o familiar "${name}"?`)) return;
     try {
+      setFamilyModalError(null);
       await api.deleteFamilyMember(id);
       if (selectedClientForFamily) {
         const updatedClient = await api.getClientById(selectedClientForFamily.id);
@@ -415,7 +440,10 @@ export function Clients() {
       }
       await loadClients();
     } catch (err: any) {
-      alert(err.message || 'Erro ao remover familiar');
+      setFamilyModalError({
+        message: err.message || 'Erro ao remover familiar',
+        solution: err.solution || 'Atualize a página e tente novamente.',
+      });
     }
   };
 
@@ -453,6 +481,15 @@ export function Clients() {
           <span>Novo Cliente</span>
         </button>
       </div>
+
+      {/* Alerta de Erro Direcional na Página */}
+      {pageError && (
+        <ErrorBanner
+          error={pageError.message}
+          solution={pageError.solution}
+          onClose={() => setPageError(null)}
+        />
+      )}
 
       {/* Filter & Search Bar */}
       <div className="p-3 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle flex flex-col md:flex-row items-center gap-2.5">
@@ -752,6 +789,14 @@ export function Clients() {
         maxWidth="2xl"
       >
         <form onSubmit={handleSaveClient} className="space-y-5">
+          {clientModalError && (
+            <ErrorBanner
+              error={clientModalError.message}
+              solution={clientModalError.solution}
+              onClose={() => setClientModalError(null)}
+            />
+          )}
+
           {/* Seção 1: Identificação & Contato */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2">
@@ -1046,6 +1091,14 @@ export function Clients() {
         <div className="space-y-6">
           {/* Form Adicionar/Editar Familiar */}
           <form onSubmit={handleSaveFamilyMember} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-4">
+            {familyModalError && (
+              <ErrorBanner
+                error={familyModalError.message}
+                solution={familyModalError.solution}
+                onClose={() => setFamilyModalError(null)}
+              />
+            )}
+
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                 {editingFamilyMember ? 'Editar Familiar' : '+ Adicionar Novo Familiar'}

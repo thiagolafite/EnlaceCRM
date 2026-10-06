@@ -27,6 +27,7 @@ import {
 import { api } from '../services/api';
 import { User as UserType } from '../types';
 import { Modal } from '../components/Modal';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 interface UsersProps {
   currentUser?: UserType | null;
@@ -37,6 +38,10 @@ export function Users({ currentUser }: UsersProps) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING_APPROVAL' | 'ACTIVE' | 'BLOCKED'>('ALL');
+
+  // Estados de Erro Direcionais
+  const [pageError, setPageError] = useState<{ message: string; solution?: string } | null>(null);
+  const [modalError, setModalError] = useState<{ message: string; solution?: string } | null>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,10 +73,15 @@ export function Users({ currentUser }: UsersProps) {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      setPageError(null);
       const data = await api.getUsers();
       setUsers(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao carregar usuários:', err);
+      setPageError({
+        message: err.message || 'Erro ao carregar lista de usuários.',
+        solution: err.solution || 'Verifique sua conexão com o servidor e tente novamente.',
+      });
     } finally {
       setLoading(false);
     }
@@ -83,6 +93,7 @@ export function Users({ currentUser }: UsersProps) {
 
   const handleOpenModal = (userToEdit?: UserType) => {
     setShowPassword(false);
+    setModalError(null);
     if (userToEdit) {
       setEditingUser(userToEdit);
       setForm({
@@ -111,14 +122,21 @@ export function Users({ currentUser }: UsersProps) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setModalError(null);
 
     if (!editingUser && (!form.password || form.password.length < 6)) {
-      alert('A senha deve ter no mínimo 6 caracteres');
+      setModalError({
+        message: 'A senha deve ter no mínimo 6 caracteres.',
+        solution: 'Digite uma senha com 6 ou mais dígitos para garantir a segurança da conta.',
+      });
       return;
     }
 
     if (form.password && form.password !== form.confirmPassword) {
-      alert('As senhas digitadas não conferem');
+      setModalError({
+        message: 'As senhas digitadas não conferem.',
+        solution: 'Certifique-se de que digitou a mesma senha nos campos "Senha" e "Confirme a nova senha".',
+      });
       return;
     }
 
@@ -150,7 +168,10 @@ export function Users({ currentUser }: UsersProps) {
       setIsModalOpen(false);
       await loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar usuário');
+      setModalError({
+        message: err.message || 'Erro ao salvar dados do usuário.',
+        solution: err.solution || 'Verifique se o e-mail já não pertence a outro usuário ou se as permissões estão corretas.',
+      });
     } finally {
       setSaving(false);
     }
@@ -159,10 +180,14 @@ export function Users({ currentUser }: UsersProps) {
   const handleToggleApproval = async (userToApprove: UserType, approve: boolean) => {
     try {
       setApprovingId(userToApprove.id);
+      setPageError(null);
       await api.toggleUserApproval(userToApprove.id, approve);
       await loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Erro ao alterar status de aprovação do usuário');
+      setPageError({
+        message: err.message || 'Erro ao alterar status de aprovação do usuário.',
+        solution: err.solution || 'Verifique se você possui permissões de nível MASTER.',
+      });
     } finally {
       setApprovingId(null);
     }
@@ -170,12 +195,18 @@ export function Users({ currentUser }: UsersProps) {
 
   const handleDelete = async (userToDelete: UserType) => {
     if (currentUser && userToDelete.id === currentUser.id) {
-      alert('Você não pode excluir sua própria conta conectada.');
+      setPageError({
+        message: 'Você não pode excluir sua própria conta conectada.',
+        solution: 'Para remover este usuário, utilize outra conta de administrador.',
+      });
       return;
     }
 
     if (userToDelete.role === 'MASTER') {
-      alert('O usuário MASTER principal não pode ser excluído.');
+      setPageError({
+        message: 'O usuário MASTER principal não pode ser excluído.',
+        solution: 'A conta MASTER é o administrador raiz do sistema e deve ser mantida.',
+      });
       return;
     }
 
@@ -184,10 +215,14 @@ export function Users({ currentUser }: UsersProps) {
     }
 
     try {
+      setPageError(null);
       await api.deleteUser(userToDelete.id);
       await loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Erro ao remover usuário');
+      setPageError({
+        message: err.message || 'Erro ao remover usuário.',
+        solution: err.solution || 'Verifique se o usuário ainda existe no banco de dados.',
+      });
     }
   };
 
@@ -210,6 +245,13 @@ export function Users({ currentUser }: UsersProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <ErrorBanner
+        error={pageError?.message || null}
+        solution={pageError?.solution}
+        onClose={() => setPageError(null)}
+        onRetry={loadUsers}
+      />
+
       {/* Master Mode Banner */}
       {isMaster && (
         <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-indigo-500/15 border border-amber-500/30 flex items-center justify-between gap-4 shadow-luxury">
@@ -552,6 +594,12 @@ export function Users({ currentUser }: UsersProps) {
         maxWidth="lg"
       >
         <form onSubmit={handleSave} className="space-y-4">
+          <ErrorBanner
+            error={modalError?.message || null}
+            solution={modalError?.solution}
+            onClose={() => setModalError(null)}
+          />
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Nome Completo *

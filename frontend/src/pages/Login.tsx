@@ -3,6 +3,7 @@ import { Lock, Mail, User as UserIcon, ShieldCheck, Sun, Moon, ArrowRight } from
 import { api } from '../services/api';
 import { User as UserType } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 interface LoginProps {
   onLoginSuccess: (user: UserType, token: string) => void;
@@ -23,13 +24,13 @@ export function Login({ onLoginSuccess }: LoginProps) {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errorState, setErrorState] = useState<{ message: string; solution?: string } | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setErrorState(null);
 
     try {
       const data = await api.login({ email, password });
@@ -37,7 +38,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
       localStorage.setItem('enlace_user', JSON.stringify(data.user));
       onLoginSuccess(data.user, data.token);
     } catch (err: any) {
-      setError(err.message || 'Erro ao realizar login');
+      setErrorState({
+        message: err.message || 'Erro ao realizar login',
+        solution: err.solution || 'Verifique se seu e-mail e senha estão corretos e tente novamente.',
+      });
     } finally {
       setLoading(false);
     }
@@ -46,16 +50,22 @@ export function Login({ onLoginSuccess }: LoginProps) {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setErrorState(null);
 
-    if (regPassword.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres');
+    if (regPassword.length < 10) {
+      setErrorState({
+        message: 'A senha deve ter no mínimo 10 caracteres para conformidade de segurança.',
+        solution: 'Crie uma senha mais longa combinando letras, números e símbolos.',
+      });
       setLoading(false);
       return;
     }
 
     if (regPassword !== regConfirmPassword) {
-      setError('As senhas digitadas não coincidem');
+      setErrorState({
+        message: 'As senhas digitadas não coincidem.',
+        solution: 'Verifique a digitação da confirmação de senha.',
+      });
       setLoading(false);
       return;
     }
@@ -83,7 +93,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
         onLoginSuccess(data.user, data.token);
       }
     } catch (err: any) {
-      setError(err.message || 'Erro ao criar conta');
+      setErrorState({
+        message: err.message || 'Erro ao criar conta',
+        solution: err.solution || 'Verifique se o e-mail informado já não está em uso por outra conta.',
+      });
     } finally {
       setLoading(false);
     }
@@ -98,38 +111,33 @@ export function Login({ onLoginSuccess }: LoginProps) {
           title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
           className="p-2 rounded-lg border border-[#E7E7E4] dark:border-[#26262B] bg-white dark:bg-[#141416] text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-[#F4F4F2] dark:hover:bg-[#1C1C20] transition-colors"
         >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4" />
-          ) : (
-            <Moon className="w-4 h-4" />
-          )}
+          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-600" />}
         </button>
       </div>
 
-      {/* Central Studio Container */}
-      <div className="w-full max-w-sm relative z-10 my-8">
+      <div className="w-full max-w-sm">
         {/* Brand Header */}
-        <div className="text-center mb-6 space-y-2">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#18181B] dark:bg-[#EDEDEA] text-white dark:text-[#18181B] font-bold text-sm mb-1 tracking-widest shadow-subtle">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#18181B] dark:bg-[#EDEDEA] text-white dark:text-[#18181B] font-bold text-sm tracking-tight mb-3 shadow-subtle">
             E
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-[#18181B] dark:text-[#EDEDEA]">
+          <h1 className="text-xl font-bold tracking-tight text-[#18181B] dark:text-[#EDEDEA]">
             Enlace CRM
           </h1>
-          <p className="text-xs text-stone-500 dark:text-stone-400">
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
             Relacionamento & Felicitações
           </p>
         </div>
 
-        {/* Minimalist Card */}
-        <div className="p-6 sm:p-7 rounded-2xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-panel space-y-5">
-          {/* Mode Switcher Tabs */}
-          <div className="flex bg-[#F4F4F2] dark:bg-[#1C1C20] p-1 rounded-xl">
+        {/* Card */}
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle space-y-5">
+          {/* Tabs Mode */}
+          <div className="flex p-1 bg-[#F4F4F2] dark:bg-[#1A1A1E] rounded-xl text-xs">
             <button
               type="button"
               onClick={() => {
                 setMode('login');
-                setError('');
+                setErrorState(null);
                 setSuccessMessage('');
               }}
               className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -144,7 +152,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
               type="button"
               onClick={() => {
                 setMode('register');
-                setError('');
+                setErrorState(null);
                 setSuccessMessage('');
               }}
               className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -168,11 +176,13 @@ export function Login({ onLoginSuccess }: LoginProps) {
             </div>
           )}
 
-          {/* Error Message */}
-          {error && (
-            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-300 text-xs font-medium">
-              {error}
-            </div>
+          {/* Error Banner Direcional */}
+          {errorState && (
+            <ErrorBanner
+              error={errorState.message}
+              solution={errorState.solution}
+              onClose={() => setErrorState(null)}
+            />
           )}
 
           {/* Form */}
@@ -215,15 +225,15 @@ export function Login({ onLoginSuccess }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-[#18181B] text-white dark:bg-[#EDEDEA] dark:text-[#18181B] hover:bg-[#27272A] dark:hover:bg-[#FFFFFF] font-medium text-xs flex items-center justify-center gap-1.5 shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 mt-2"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] dark:bg-[#EDEDEA] dark:hover:bg-[#FFFFFF] text-white dark:text-[#18181B] font-medium text-xs shadow-subtle transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
               >
-                <span>{loading ? 'Entrando...' : 'Acessar Sistema'}</span>
-                {!loading && <ArrowRight className="w-3.5 h-3.5" />}
+                <span>{loading ? 'Acessando...' : 'Acessar Sistema'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </form>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
                   Nome Completo
                 </label>
@@ -234,15 +244,15 @@ export function Login({ onLoginSuccess }: LoginProps) {
                     required
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
-                    placeholder="Seu Nome"
+                    placeholder="Seu nome"
                     className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
-                  E-mail
+                  E-mail Corporativo
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
@@ -251,30 +261,31 @@ export function Login({ onLoginSuccess }: LoginProps) {
                     required
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="seu@email.com"
+                    placeholder="seu@empresa.com"
                     className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
-                  Senha
+                  Senha (mínimo 10 caracteres)
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
                   <input
                     type="password"
                     required
+                    minLength={10}
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="••••••••••"
                     className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
                   Confirmar Senha
                 </label>
@@ -283,9 +294,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
                   <input
                     type="password"
                     required
+                    minLength={10}
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    placeholder="Repita a senha"
+                    placeholder="••••••••••"
                     className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
                   />
                 </div>
@@ -294,18 +306,14 @@ export function Login({ onLoginSuccess }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-[#18181B] text-white dark:bg-[#EDEDEA] dark:text-[#18181B] hover:bg-[#27272A] dark:hover:bg-[#FFFFFF] font-medium text-xs flex items-center justify-center gap-1.5 shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 mt-2"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] dark:bg-[#EDEDEA] dark:hover:bg-[#FFFFFF] text-white dark:text-[#18181B] font-medium text-xs shadow-subtle transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-3"
               >
-                <span>{loading ? 'Cadastrando...' : 'Solicitar Acesso'}</span>
-                {!loading && <ArrowRight className="w-3.5 h-3.5" />}
+                <span>{loading ? 'Cadastrando...' : 'Criar Conta de Acesso'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </form>
           )}
         </div>
-
-        <p className="text-center text-[11px] text-stone-400 dark:text-stone-500 mt-6">
-          Privacidade & Segurança com LGPD Ativa
-        </p>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import {
 import { api } from '../services/api';
 import { DashboardStats, UpcomingEvent } from '../types';
 import { EventTypeBadge, ManualSentBadge } from '../components/Badge';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 interface DashboardProps {
   onNavigate: (tab: string) => void;
@@ -25,19 +26,25 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [runningJob, setRunningJob] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; solution?: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [statsData, eventsData] = await Promise.all([
         api.getDashboardStats().catch(() => null),
         api.getUpcomingEvents(15).catch(() => [] as UpcomingEvent[]),
       ]);
       setStats(statsData);
       setUpcoming(Array.isArray(eventsData) ? eventsData : []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao carregar dados do dashboard:', err);
+      setError({
+        message: err.message || 'Erro ao carregar métricas do painel.',
+        solution: err.solution || 'Verifique a conexão com o servidor e recarregue a página.',
+      });
     } finally {
       setLoading(false);
     }
@@ -50,12 +57,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const handleRunToday = async () => {
     try {
       setRunningJob(true);
+      setError(null);
       const res = await api.runTodayAutomation();
       const count = res.report?.alertsGenerated ?? 0;
       setFeedbackMessage(`Varredura concluída. ${count} alerta(s) gerados.`);
       await loadDashboardData();
     } catch (err: any) {
-      setFeedbackMessage(err.message || 'Erro ao executar varredura.');
+      setError({
+        message: err.message || 'Erro ao executar varredura de hoje.',
+        solution: err.solution || 'Verifique as credenciais da integração e tente novamente.',
+      });
     } finally {
       setRunningJob(false);
       setTimeout(() => setFeedbackMessage(null), 5000);
@@ -114,6 +125,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
+      <ErrorBanner
+        error={error?.message || null}
+        solution={error?.solution}
+        onClose={() => setError(null)}
+        onRetry={loadDashboardData}
+      />
+
       {/* Top Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>

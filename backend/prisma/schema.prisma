@@ -31,7 +31,7 @@ model Company {
 
 model CompanySettings {
   id                    String   @id @default(uuid())
-  companyId             String   @unique
+  companyId             String   @unique @default("default_company")
   company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   
   // CallMeBot WhatsApp Notification Settings (para o dono/operador da empresa)

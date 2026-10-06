@@ -132,6 +132,7 @@ export interface CompanySettings {
   
   ownerWhatsappPhone?: string | null;
   callmebotApiKey?: string | null;
+  hasCallmebotApiKey?: boolean;
   callmebotEnabled: boolean;
   callmebotSimulateMode: boolean;
 

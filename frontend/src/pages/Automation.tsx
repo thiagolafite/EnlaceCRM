@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { ChannelBadge, EventTypeBadge } from '../components/Badge';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 interface AutomationProps {
   defaultTab?: 'run' | 'simulate';
@@ -29,6 +30,9 @@ export function Automation({ defaultTab = 'simulate' }: AutomationProps) {
   const [simReport, setSimReport] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<'run' | 'simulate'>(defaultTab);
 
+  // Estados de Erro Direcionais
+  const [error, setError] = useState<{ message: string; solution?: string } | null>(null);
+
   React.useEffect(() => {
     if (defaultTab) {
       setActiveTab(defaultTab);
@@ -38,11 +42,15 @@ export function Automation({ defaultTab = 'simulate' }: AutomationProps) {
   const handleRunToday = async () => {
     try {
       setRunningReal(true);
+      setError(null);
       setRealReport(null);
       const res = await api.runTodayAutomation();
       setRealReport(res.report);
     } catch (err: any) {
-      alert(err.message || 'Erro ao executar automação');
+      setError({
+        message: err.message || 'Erro ao executar o motor de automação diário.',
+        solution: err.solution || 'Verifique se há templates ativos e se os dados de configuração da empresa estão preenchidos.',
+      });
     } finally {
       setRunningReal(false);
     }
@@ -51,11 +59,15 @@ export function Automation({ defaultTab = 'simulate' }: AutomationProps) {
   const handleSimulate = async () => {
     try {
       setRunningSim(true);
+      setError(null);
       setSimReport(null);
       const res = await api.simulateAutomation(simDate);
       setSimReport(res.report);
     } catch (err: any) {
-      alert(err.message || 'Erro ao simular data');
+      setError({
+        message: err.message || 'Erro ao rodar simulação de automação para a data selecionada.',
+        solution: err.solution || 'Verifique o formato da data selecionada e tente novamente.',
+      });
     } finally {
       setRunningSim(false);
     }
@@ -63,6 +75,12 @@ export function Automation({ defaultTab = 'simulate' }: AutomationProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      <ErrorBanner
+        error={error?.message || null}
+        solution={error?.solution}
+        onClose={() => setError(null)}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>

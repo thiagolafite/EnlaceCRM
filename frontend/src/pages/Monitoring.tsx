@@ -27,6 +27,7 @@ import {
 import { api } from '../services/api';
 import { SystemLog, SystemMetrics, User as UserType } from '../types';
 import { Modal } from '../components/Modal';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 interface MonitoringProps {
   currentUser?: UserType | null;
@@ -37,6 +38,9 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Estados de Erro Direcionais
+  const [error, setError] = useState<{ message: string; solution?: string } | null>(null);
 
   // Filters
   const [levelFilter, setLevelFilter] = useState('ALL');
@@ -58,6 +62,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [logsRes, metricsRes] = await Promise.all([
         api.getLogs({
           level: levelFilter !== 'ALL' ? levelFilter : undefined,
@@ -74,6 +79,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
       setMetrics(metricsRes);
     } catch (err: any) {
       console.error('Erro ao carregar logs de monitoramento:', err);
+      setError({
+        message: err.message || 'Erro ao carregar logs de auditoria e monitoramento.',
+        solution: err.solution || 'Verifique se você possui permissões de nível MASTER.',
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -98,6 +107,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   const handleSimulateLog = async (type: 'ERROR' | 'SECURITY') => {
     try {
       setSimulating(true);
+      setError(null);
       const message =
         type === 'SECURITY'
           ? `[Alerta de Segurança Simulado] Tentativa de injeção ou token inválido bloqueada com sucesso.`
@@ -108,7 +118,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
       setTimeout(() => setActionSuccessMessage(null), 4000);
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao simular log');
+      setError({
+        message: err.message || 'Erro ao simular log.',
+        solution: err.solution || 'A funcionalidade de simulação de log está desabilitada em produção.',
+      });
     } finally {
       setSimulating(false);
     }
@@ -117,11 +130,16 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   const handleClearLogs = async () => {
     if (!confirm('Deseja realmente limpar logs com mais de 30 dias?')) return;
     try {
+      setError(null);
       const res = await api.clearLogs(30);
-      alert(`${res.deletedCount} logs antigos foram removidos com sucesso.`);
+      setActionSuccessMessage(`${res.deletedCount} logs antigos foram removidos com sucesso.`);
+      setTimeout(() => setActionSuccessMessage(null), 4000);
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao limpar logs');
+      setError({
+        message: err.message || 'Erro ao limpar logs antigos.',
+        solution: err.solution || 'Verifique se você possui privilégios de MASTER.',
+      });
     }
   };
 
@@ -177,6 +195,13 @@ export function Monitoring({ currentUser }: MonitoringProps) {
 
   return (
     <div className="space-y-6">
+      <ErrorBanner
+        error={error?.message || null}
+        solution={error?.solution}
+        onClose={() => setError(null)}
+        onRetry={loadData}
+      />
+
       {/* Toast de Confirmação */}
       {actionSuccessMessage && (
         <div className="p-3 rounded-xl bg-[#18181B] dark:bg-[#EDEDEA] text-white dark:text-[#18181B] font-medium text-xs flex items-center gap-2 shadow-subtle animate-in fade-in">

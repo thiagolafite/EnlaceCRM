@@ -18,12 +18,18 @@ import { api } from '../services/api';
 import { MessageTemplate, CommemorativeDate } from '../types';
 import { Modal } from '../components/Modal';
 import { EventTypeBadge } from '../components/Badge';
+import { ErrorBanner } from '../components/ErrorBanner';
 
 export function Templates() {
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [dates, setDates] = useState<CommemorativeDate[]>([]);
   const [variables, setVariables] = useState<Array<{ tag: string; description: string }>>([]);
   const [loading, setLoading] = useState(true);
+
+  // Estados de Erro Direcionais
+  const [pageError, setPageError] = useState<{ message: string; solution?: string } | null>(null);
+  const [modalError, setModalError] = useState<{ message: string; solution?: string } | null>(null);
+  const [previewError, setPreviewError] = useState<{ message: string; solution?: string } | null>(null);
 
   // Filters
   const [eventTypeFilter, setEventTypeFilter] = useState('');
@@ -63,6 +69,7 @@ export function Templates() {
   const loadData = async () => {
     try {
       setLoading(true);
+      setPageError(null);
       const [tpls, datesData, varsData] = await Promise.all([
         api.getTemplates({
           eventType: eventTypeFilter || undefined,
@@ -73,8 +80,12 @@ export function Templates() {
       setTemplates(Array.isArray(tpls) ? tpls : []);
       setDates(Array.isArray(datesData) ? datesData : []);
       setVariables(Array.isArray(varsData) ? varsData : []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao carregar templates:', err);
+      setPageError({
+        message: err.message || 'Erro ao carregar modelos de mensagem.',
+        solution: err.solution || 'Verifique sua conexão ou recarregue a página.',
+      });
     } finally {
       setLoading(false);
     }
@@ -85,6 +96,7 @@ export function Templates() {
   }, [eventTypeFilter]);
 
   const handleOpenModal = (item?: MessageTemplate) => {
+    setModalError(null);
     if (item) {
       setEditingTemplate(item);
       setForm({
@@ -127,6 +139,7 @@ export function Templates() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setModalError(null);
     try {
       const payload: any = {
         name: form.name,
@@ -146,28 +159,40 @@ export function Templates() {
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao salvar template');
+      setModalError({
+        message: err.message || 'Erro ao salvar modelo de mensagem.',
+        solution: err.solution || 'Verifique se todos os campos obrigatórios foram preenchidos corretamente.',
+      });
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Deseja realmente excluir o template "${name}"?`)) return;
     try {
+      setPageError(null);
       await api.deleteTemplate(id);
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Erro ao excluir template');
+      setPageError({
+        message: err.message || 'Erro ao excluir modelo de mensagem.',
+        solution: err.solution || 'Verifique se você possui permissões de administrador.',
+      });
     }
   };
 
   const handlePreview = async (template: MessageTemplate) => {
     try {
+      setPreviewError(null);
       setPreviewTemplate(template);
       const res = await api.previewTemplate(template.id);
       setPreviewData(res);
       setIsPreviewModalOpen(true);
     } catch (err: any) {
-      alert(err.message || 'Erro ao gerar preview');
+      setPreviewError({
+        message: err.message || 'Erro ao gerar prévia da mensagem.',
+        solution: err.solution || 'Verifique se as tags dinâmicas do template estão formatadas corretamente.',
+      });
+      setIsPreviewModalOpen(true);
     }
   };
 
@@ -189,6 +214,13 @@ export function Templates() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
+      <ErrorBanner
+        error={pageError?.message || null}
+        solution={pageError?.solution}
+        onClose={() => setPageError(null)}
+        onRetry={loadData}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
         <div>
@@ -372,6 +404,12 @@ export function Templates() {
         maxWidth="2xl"
       >
         <form onSubmit={handleSave} className="space-y-4">
+          <ErrorBanner
+            error={modalError?.message || null}
+            solution={modalError?.solution}
+            onClose={() => setModalError(null)}
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -531,8 +569,15 @@ export function Templates() {
         subtitle="Simulação em tempo real com os dados reais de cliente e empresa"
         maxWidth="lg"
       >
-        {previewData && (
-          <div className="space-y-4">
+        <div className="space-y-4">
+          <ErrorBanner
+            error={previewError?.message || null}
+            solution={previewError?.solution}
+            onClose={() => setPreviewError(null)}
+          />
+
+          {previewData && (
+            <div className="space-y-4">
             {previewTemplate?.channel === 'EMAIL' ? (
               /* Preview Envelope E-mail */
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-md">
@@ -597,6 +642,19 @@ export function Templates() {
             </div>
           </div>
         )}
+
+        {!previewData && (
+          <div className="flex justify-end pt-2">
+            <button
+              type="button"
+              onClick={() => setIsPreviewModalOpen(false)}
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-200 dark:hover:bg-slate-700"
+            >
+              Fechar
+            </button>
+          </div>
+        )}
+        </div>
       </Modal>
     </div>
   );
