@@ -99,7 +99,7 @@ app.use('/api', globalApiLimiter);
 app.use('/', globalApiLimiter);
 
 // 6. Rota de Healthcheck
-app.get(['/api/health', '/health'], (req: Request, res: Response) => {
+app.get(['/api/health', '/health'], (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     system: 'Enlace CRM API',
@@ -113,7 +113,7 @@ app.use('/api', routes);
 app.use('/', routes);
 
 // 8. Middleware de Tratamento de Erros Global com Auditoria, Mascaramento e Instruções Direcionais
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
   const requestId = crypto.randomUUID();
   const { status, body } = formatErrorForResponse(err, requestId);
   const currentUser = (req as any).user;

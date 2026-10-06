@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertCircle, HelpCircle, RefreshCw, X } from 'lucide-react';
 
 export interface ErrorBannerProps {

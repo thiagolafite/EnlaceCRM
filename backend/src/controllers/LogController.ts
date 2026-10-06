@@ -20,7 +20,7 @@ export class LogController {
     }
   }
 
-  static async getMetrics(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  static async getMetrics(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const metrics = await LogService.getMetrics();
       return res.json(metrics);

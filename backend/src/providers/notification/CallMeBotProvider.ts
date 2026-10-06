@@ -1,9 +1,11 @@
 import { prisma } from '../../utils/prisma';
+import { config } from '../../config';
 
 export interface SendAlertSummaryOptions {
   ownerPhone: string;
   apiKey: string;
   date: Date;
+  companyId?: string;
   alerts: Array<{
     clientName: string;
     targetName: string;
@@ -46,8 +48,10 @@ export class CallMeBotProvider {
     }
 
     if (simulate || !apiKey || !apiKey.trim()) {
-      console.log(`\n[CallMeBot - SIMULAÇÃO] Para: +${cleanPhone}`);
-      console.log(`[CallMeBot - SIMULAÇÃO] Mensagem:\n${text}\n`);
+      if (config.nodeEnv !== 'production') {
+        console.log(`\n[CallMeBot - SIMULAÇÃO] Para: +${cleanPhone}`);
+        console.log(`[CallMeBot - SIMULAÇÃO] Mensagem:\n${text}\n`);
+      }
       return {
         success: true,
         simulated: true,
@@ -70,18 +74,15 @@ export class CallMeBotProvider {
       const responseText = await response.text();
 
       if (!response.ok || responseText.toLowerCase().includes('error') || responseText.toLowerCase().includes('invalid')) {
-        console.error('[CallMeBot Error Response]:', responseText);
         return {
           success: false,
           error: `Falha na API do CallMeBot: ${responseText || `Status HTTP ${response.status}`}`,
         };
       }
 
-      console.log(`✅ [CallMeBot] Notificação enviada com sucesso para +${cleanPhone}`);
       return { success: true };
     } catch (err: any) {
       const errMsg = err.name === 'AbortError' ? 'Tempo limite de conexão excedido com CallMeBot' : err.message;
-      console.error('[CallMeBot Catch Error]:', errMsg);
       return {
         success: false,
         error: errMsg || 'Erro ao conectar à API do CallMeBot',
@@ -97,7 +98,9 @@ export class CallMeBotProvider {
       return { success: true, simulated: false };
     }
 
-    const settings = await prisma.companySettings.findFirst();
+    const settings = options.companyId
+      ? await prisma.companySettings.findUnique({ where: { companyId: options.companyId } })
+      : await prisma.companySettings.findFirst();
     const simulate = settings?.callmebotSimulateMode || !options.apiKey;
 
     const dateFormatted = options.date.toLocaleDateString('pt-BR');
@@ -117,7 +120,7 @@ export class CallMeBotProvider {
     });
 
     body += `━━━━━━━━━━━━━━━━━━━\n\n`;
-    body += `👉 *Acesse o painel para copiar ou marcar como enviado:*\nhttp://localhost:5173`;
+    body += `👉 *Acesse o painel para copiar ou marcar como enviado:*\n${config.appUrl}`;
 
     return this.sendTextMessage(options.ownerPhone, body, options.apiKey, simulate);
   }

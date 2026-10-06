@@ -106,3 +106,42 @@ Documento de rastreamento das alterações efetuadas em cada fase da transição
 - `Dashboard.tsx`: Monitoramento e disparo rápido de automação.
 - `Monitoring.tsx`: Auditoria SOC e limpeza de logs.
 
+---
+
+## 📌 Fase 2 — Unificação de Build, Strict Mode, Docker & Deploy (Concluída)
+
+### 1. Limpeza de Código Morto e Refatoração
+- **Remoção de Módulos Legados**:
+  - `backend/src/controllers/SendHistoryController.ts` & `backend/src/services/SendHistoryService.ts`.
+  - `backend/src/queues/MessageQueue.ts`.
+  - `backend/src/providers/email/EmailProvider.ts` & `backend/src/providers/whatsapp/WhatsAppProvider.ts`.
+  - `frontend/src/pages/History.tsx`.
+- **Modernização de Provedores**:
+  - `CallMeBotProvider` atualizado com tipagem limpa, configuração centralizada e logs seguros.
+
+### 2. TypeScript Strict Mode
+- **Backend & Frontend**:
+  - Ativação das diretivas: `strict: true`, `noImplicitAny: true`, `strictNullChecks: true`, `noUnusedLocals: true`, `noUnusedParameters: true`, `noFallthroughCasesInSwitch: true`.
+  - Remoção de todos os imports e parâmetros não utilizados em todas as páginas, componentes e utilitários.
+  - Verificação de compilação sem emissão (`tsc --noEmit`) passando com **0 erros** no backend e no frontend.
+
+### 3. Unificação de Build e Testes
+- **Build Unificado**:
+  - `npm run build` na raiz executa sequencialmente: geração do cliente Prisma, compilação do backend TypeScript (`tsc`) e compilação do frontend SPA (`tsc && vite build && node copy-dist.js`).
+  - Scripts dedicados adicionados: `build:backend` e `build:frontend`.
+- **Suíte de Testes Unitários**:
+  - `backend/tests/automation.test.ts` validando 15 asserções (interpolação dinâmica, cálculo de datas/idades, criptografia AES-256-GCM, normalização telefônica E.164, escopo de tenant e validações Zod). **15/15 testes passando**.
+
+### 4. Containerização & Arquivos de Deploy
+- **`backend/Dockerfile`**:
+  - Multi-stage build (`node:20-alpine`), separação de dependências de desenvolvimento/produção, execução com usuário sem privilégios `node` e `HEALTHCHECK` configurado para `/health`.
+- **`frontend/Dockerfile`**:
+  - Multi-stage build com distribuição estática de alta performance servida via `nginx:alpine` com suporte a roteamento SPA e `/health`.
+- **`docker-compose.yml`**:
+  - Orquestração de desenvolvimento/produção local integrando `PostgreSQL 16 Alpine` (com checagem de integridade e volume persistente), `Backend API` e `Frontend Web`.
+- **`vercel.json`**:
+  - Configuração de roteamento SPA e injeção de cabeçalhos de segurança HTTP (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`).
+- **`render.yaml` & `railway.toml`**:
+  - Blueprints declarativos para deploy em nuvem do serviço backend com monitoramento contínuo em `/health`.
+
+

@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bell, ArrowRight, Calendar } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Bell } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 
 interface NotificationBellDropdownProps {
   onNavigate?: (tab: string) => void;
 }
 
-export function NotificationBellDropdown({ onNavigate }: NotificationBellDropdownProps) {
+export function NotificationBellDropdown({ onNavigate: _onNavigate }: NotificationBellDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { todayEvents, upcomingEvents, openDailyModal } = useNotifications();

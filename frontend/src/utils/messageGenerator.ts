@@ -71,6 +71,7 @@ export function generateEventMessage(
   const vars = {
     nome_cliente: event.clientName || targetFullName,
     primeiro_nome: targetFirstName,
+    primeiro_nome_cliente: clientFirstName,
     nome_familiar: targetFullName,
     nome_homenageado: targetFullName,
     primeiro_nome_homenageado: targetFirstName,

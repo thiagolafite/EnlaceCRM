@@ -3,7 +3,6 @@ import { config } from '../config';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96 bits for GCM
-const KEY_LENGTH = 32;
 
 /**
  * Deriva uma chave de 32 bytes a partir do segredo configurado

@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Users,
-  Bell,
-  CheckCircle2,
-  Clock,
   Zap,
   ArrowRight,
   MessageCircle,
   Copy,
   Check,
-  Calendar,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { DashboardStats, UpcomingEvent } from '../types';

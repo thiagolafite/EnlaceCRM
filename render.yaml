@@ -1,34 +1,28 @@
 services:
-  # Backend API + Scheduler Service
   - type: web
-    name: enlace-backend
+    name: enlace-crm-backend
     runtime: node
     rootDir: backend
-    buildCommand: npm install && npx prisma generate
-    startCommand: npx ts-node src/server.ts
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    plan: free
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3333
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
         sync: false
       - key: JWT_SECRET
         generateValue: true
-
-  # Frontend Web Static Site
-  - type: web
-    name: enlace-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: MASTER_EMAIL
+        value: admin@enlacecrm.com.br
+      - key: APP_URL
+        sync: false
+      - key: CORS_ORIGINS
         sync: false

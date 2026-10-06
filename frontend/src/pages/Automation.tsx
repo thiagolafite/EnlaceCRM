@@ -1,20 +1,10 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Zap,
-  Play,
-  Calendar,
-  Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  ShieldCheck,
-  Send,
   Eye,
-  Activity,
-  Terminal,
 } from 'lucide-react';
 import { api } from '../services/api';
-import { ChannelBadge, EventTypeBadge } from '../components/Badge';
+import { EventTypeBadge } from '../components/Badge';
 import { ErrorBanner } from '../components/ErrorBanner';
 
 interface AutomationProps {
@@ -33,7 +23,7 @@ export function Automation({ defaultTab = 'simulate' }: AutomationProps) {
   // Estados de Erro Direcionais
   const [error, setError] = useState<{ message: string; solution?: string } | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (defaultTab) {
       setActiveTab(defaultTab);
     }

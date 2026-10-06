@@ -1,11 +1,9 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { isSameDayAndMonth, calculateAge } from '../src/utils/dateUtils';
 import { interpolateTemplate } from '../src/utils/interpolator';
 import { encrypt, decrypt } from '../src/utils/crypto';
 import { normalizePhoneBR } from '../src/utils/phone';
 import { scopeByCompany } from '../src/utils/tenant';
-import { loginSchema, registerSchema, createClientSchema, updateSettingsSchema } from '../src/validators';
+import { loginSchema, registerSchema, createClientSchema } from '../src/validators';
 
 async function runTests() {
   console.log('🧪 ===============================================');

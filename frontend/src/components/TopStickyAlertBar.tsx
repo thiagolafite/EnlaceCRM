@@ -1,5 +1,4 @@
-import React from 'react';
-import { Send, X, ArrowRight, CalendarDays, Bell } from 'lucide-react';
+import { X, ArrowRight, CalendarDays } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 
 interface TopStickyAlertBarProps {

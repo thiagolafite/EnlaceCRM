@@ -1,28 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Activity,
-  Shield,
   ShieldAlert,
   AlertTriangle,
   CheckCircle2,
   XCircle,
   RefreshCw,
   Search,
-  Server,
   Database,
-  Cpu,
-  Clock,
   Building2,
-  User,
-  Terminal,
   Eye,
   Trash2,
-  Zap,
   Lock,
   Flame,
   FileCode,
-  Sparkles,
-  Crown,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { SystemLog, SystemMetrics, User as UserType } from '../types';

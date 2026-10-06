@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -6,27 +6,20 @@ import {
   Trash2,
   Sparkles,
   Clock,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Gift,
   Heart,
   Briefcase,
   Star,
-  PartyPopper,
-  CalendarDays,
   List,
   RefreshCw,
   Cake,
-  Users,
   MessageCircle,
   Mail,
   Copy,
-  ExternalLink,
   Search,
   Check,
   Send,
-  Sliders,
   Filter,
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -36,7 +29,6 @@ import { EventTypeBadge } from '../components/Badge';
 import { ErrorBanner } from '../components/ErrorBanner';
 import {
   detectCommemorativeAudience,
-  filterClientsByAudience,
   getEligibleBroadcastRecipients,
   BroadcastRecipient,
   AudienceFilterKey,
@@ -555,7 +547,6 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         (t.commemorativeDateId === holiday.id || t.name.toLowerCase().includes(holiday.name.toLowerCase()))
     );
 
-    const isDirect = recipient.type === 'CLIENT' || recipient.isDirectContact;
     const targetFirstName = recipient.targetName.split(' ')[0];
     const clientFirstName = recipient.clientName.split(' ')[0];
 

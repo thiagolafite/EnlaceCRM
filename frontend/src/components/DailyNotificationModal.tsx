@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   X,
   MessageCircle,
   Mail,
   Copy,
   Check,
-  CalendarDays,
-  Clock,
   ArrowRight,
 } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';

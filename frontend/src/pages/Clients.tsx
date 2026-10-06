@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Users,
   UserPlus,
   Search,
-  Filter,
-  MoreVertical,
   Edit2,
   Trash2,
   Heart,
@@ -12,14 +10,9 @@ import {
   Mail,
   Building2,
   Calendar,
-  ShieldCheck,
-  ShieldAlert,
-  Plus,
-  X,
   Sparkles,
   MapPin,
   Home,
-  Check,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Client, FamilyMember } from '../types';

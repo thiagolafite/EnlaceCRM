@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Component, ErrorInfo, ReactNode } from 'react';
+import { useEffect, useState, Component, ErrorInfo, ReactNode } from 'react';
 import { User } from './types';
 import { api } from './services/api';
 import { Layout } from './components/Layout';
@@ -14,7 +14,7 @@ import { Users } from './pages/Users';
 import { Monitoring } from './pages/Monitoring';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
-import { HeartHandshake, RefreshCw, LogOut } from 'lucide-react';
+import { HeartHandshake, RefreshCw } from 'lucide-react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;

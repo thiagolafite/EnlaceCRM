@@ -76,7 +76,7 @@ export class TemplateController {
     }
   }
 
-  static getVariables(req: AuthenticatedRequest, res: Response) {
+  static getVariables(_req: AuthenticatedRequest, res: Response) {
     const variables = TemplateService.getAvailableVariables();
     return res.json(variables);
   }

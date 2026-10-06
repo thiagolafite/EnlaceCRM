@@ -9,7 +9,6 @@ import {
   Clock,
   Settings,
   LogOut,
-  ShieldCheck,
   Sun,
   Moon,
   Bell,

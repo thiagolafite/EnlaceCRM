@@ -8,11 +8,7 @@ import {
   MessageCircle,
   Mail,
   Sparkles,
-  Check,
-  Copy,
   Layers,
-  Send,
-  HelpCircle,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { MessageTemplate, CommemorativeDate } from '../types';

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Settings as SettingsIcon,
   Building2,
   Clock,
   Save,
@@ -9,8 +8,6 @@ import {
   Sparkles,
   Send,
   HelpCircle,
-  ExternalLink,
-  ShieldCheck,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CompanySettings } from '../types';

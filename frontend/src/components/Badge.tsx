@@ -1,8 +1,6 @@
-import React from 'react';
 import {
   MessageCircle,
   Mail,
-  CheckCircle2,
   XCircle,
   Clock,
   AlertCircle,
@@ -120,6 +118,7 @@ export function LgpdBadge({ consent, date, onToggle }: { consent: boolean; date?
       <button
         type="button"
         onClick={onToggle}
+        title={date ? `Consentimento LGPD concedido em ${new Date(date).toLocaleDateString('pt-BR')}` : 'LGPD Ativo'}
         className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/30 dark:text-teal-300 dark:border-teal-800/40 transition-colors ${onToggle ? 'hover:bg-teal-100 dark:hover:bg-teal-900/40' : ''}`}
       >
         <ShieldCheck className="w-3 h-3 text-teal-600 dark:text-teal-400" />
@@ -131,6 +130,7 @@ export function LgpdBadge({ consent, date, onToggle }: { consent: boolean; date?
     <button
       type="button"
       onClick={onToggle}
+      title={date ? `Opt-out LGPD registrado em ${new Date(date).toLocaleDateString('pt-BR')}` : 'Opt-out LGPD'}
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/40 transition-colors ${onToggle ? 'hover:bg-rose-100 dark:hover:bg-rose-900/40' : ''}`}
     >
       <ShieldAlert className="w-3 h-3 text-rose-600 dark:text-rose-400" />

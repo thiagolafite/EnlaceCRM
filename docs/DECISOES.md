@@ -55,3 +55,24 @@ Este documento registra todas as decisões técnicas, arquiteturais e de seguran
   4. **Padronização em Todas as Telas**: Substituição de alertas nativos do navegador por `ErrorBanner` em todas as páginas e modais (`Login`, `Clients`, `Settings`, `Users`, `Templates`, `Calendar`, `Alerts`, `Automation`, `Dashboard`, `Monitoring`).
 - **Consequências**: Experiência do usuário (UX) clara e resolutiva, eliminação de stack traces ou detalhes técnicos de infraestrutura visíveis ao usuário final, e facilidade de suporte técnico através do `requestId`.
 
+---
+
+## [ADR-004] Fase 2 — Unificação de Build, TypeScript Strict, Eliminação de Código Morto e Configurações de Deploy
+
+- **Data**: 2026-10-05
+- **Status**: Aprovado e Implementado
+- **Contexto**: O projeto continha múltiplos módulos órfãos e obsoletos do v1 (`SendHistoryService`, `MessageQueue`, `EmailProvider`, `WhatsAppProvider`, `History.tsx`), configurações permissivas do compilador TypeScript que mascaravam `any` e variáveis não utilizadas, scripts de build fragmentados e ausência de especificações formais para orquestração e deploy em nuvem (Docker, Vercel, Render, Railway).
+- **Decisão**:
+  1. **Eliminação de Código Morto**: Exclusão de controladores legados, provedores obsoletos e telas não utilizadas, consolidando a arquitetura em torno dos serviços multi-tenant ativos e do provedor CallMeBot/Email moderno.
+  2. **TypeScript Strict Mode**: Ativação rigorosa de `strict: true`, `noImplicitAny: true`, `strictNullChecks: true`, `noUnusedLocals: true`, `noUnusedParameters: true` tanto em `backend/tsconfig.json` quanto em `frontend/tsconfig.json`, com correção de todas as declarações não utilizadas.
+  3. **Pipeline de Build Unificada**: Script `"build"` no `package.json` raiz orquestra a geração do cliente Prisma, compilação do backend (`tsc`) e compilação do frontend SPA (`vite build` + `copy-dist.js`).
+  4. **Containerização Multi-Estágio**:
+     - `backend/Dockerfile`: Baseado em `node:20-alpine`, com build separado, execução por usuário não-root `node` e verificação de saúde periódica via `HEALTHCHECK` no endpoint `/health`.
+     - `frontend/Dockerfile`: Build otimizado em Node.js com distribuição servida via `nginx:alpine` e roteamento SPA.
+     - `docker-compose.yml`: Orquestração local completa com PostgreSQL 16 Alpine com healthcheck e volumes persistentes.
+  5. **Configurações de Deploy Prontas para Nuvem**:
+     - `vercel.json`: Regras de rewrite SPA e cabeçalhos de segurança HTTP (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`).
+     - `render.yaml` & `railway.toml`: Blueprints declarativos com comandos de build, start e monitoramento de saúde `/health`.
+- **Consequências**: Repositório limpo, tipagem segura garantida pelo compilador, processos de CI/CD automatizáveis e empacotamento pronto para qualquer provedor de nuvem ou servidor próprio.
+
+

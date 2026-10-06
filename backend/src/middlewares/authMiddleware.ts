@@ -39,15 +39,6 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     const now = Date.now();
     const cached = userCache.get(decoded.id);
 
-    let dbUser: {
-      id: string;
-      name: string;
-      email: string;
-      role: string;
-      status: string;
-      companyId: string;
-    } | null = null;
-
     if (cached && now - cached.cachedAt < CACHE_TTL_MS) {
       if (cached.status === 'BLOCKED') {
         return res.status(403).json({ error: 'Sua conta está bloqueada pelo administrador.' });
