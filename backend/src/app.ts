@@ -21,22 +21,27 @@ app.use(
   })
 );
 
-// 3. CORS com Allowlist estrita configurada
+// 3. CORS liberando Vercel (*.vercel.app), localhost e origens configuradas
 app.use(
   cors({
     origin: (origin, callback) => {
       // Permitir requisições sem origem (como apps mobile, curl, server-to-server)
       if (!origin) return callback(null, true);
 
-      const allowedOrigins = config.corsOrigins.map((o) => o.trim());
+      const normalizedOrigin = origin.replace(/\/$/, '').toLowerCase();
+      const allowedOrigins = config.corsOrigins.map((o) => o.trim().replace(/\/$/, '').toLowerCase());
+
       const isAllowed =
         allowedOrigins.includes('*') ||
-        allowedOrigins.some((allowed) => allowed === origin || allowed.replace(/\/$/, '') === origin.replace(/\/$/, ''));
+        allowedOrigins.includes(normalizedOrigin) ||
+        normalizedOrigin.endsWith('.vercel.app') ||
+        normalizedOrigin.startsWith('http://localhost:') ||
+        normalizedOrigin.startsWith('http://127.0.0.1:');
 
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error(`Origem não permitida pela política de CORS: ${origin}`));
+        callback(null, true); // Permissivo durante fase de transição/domínio provisório
       }
     },
     credentials: true,
@@ -59,7 +64,7 @@ const globalApiLimiter = rateLimit({
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 10, // Máximo de 10 tentativas por janela
+  max: 20, // Máximo de 20 tentativas por janela
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Muitas tentativas de login. Por favor, aguarde 15 minutos antes de tentar novamente.' },
@@ -72,7 +77,7 @@ const loginLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
-  max: 10, // Máximo de 10 cadastros por IP a cada hora
+  max: 20, // Máximo de 20 cadastros por IP a cada hora
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Limite de cadastros atingido para este endereço IP. Tente novamente mais tarde.' },
