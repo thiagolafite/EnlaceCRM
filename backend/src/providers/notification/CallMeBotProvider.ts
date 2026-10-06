@@ -1,30 +1,15 @@
-import { prisma } from '../../utils/prisma';
 import { config } from '../../config';
+import {
+  NotificationProvider,
+  NotificationOptions,
+  NotificationResponse,
+} from './NotificationProvider';
 
-export interface SendAlertSummaryOptions {
-  ownerPhone: string;
-  apiKey: string;
-  date: Date;
-  companyId?: string;
-  alerts: Array<{
-    clientName: string;
-    targetName: string;
-    context: string;
-    phone?: string | null;
-    renderedMessage: string;
-  }>;
-}
+export class CallMeBotProvider implements NotificationProvider {
+  name = 'CALLMEBOT';
 
-export interface NotificationResult {
-  success: boolean;
-  simulated?: boolean;
-  error?: string;
-  message?: string;
-}
-
-export class CallMeBotProvider {
   /**
-   * Limpa e padroniza o número de telefone para o formato internacional (apenas dígitos, ex: 5571981805744)
+   * Limpa e padroniza o número de telefone para dígitos internacionais (ex: 5571981805744)
    */
   static sanitizePhone(phone: string): string {
     const clean = phone.replace(/\D/g, '');
@@ -35,35 +20,50 @@ export class CallMeBotProvider {
   }
 
   /**
-   * Envia uma mensagem de texto direta para o WhatsApp do operador via CallMeBot API
+   * Divide uma mensagem longa em pedaços de no máximo maxChunkSize caracteres
    */
-  static async sendTextMessage(phone: string, text: string, apiKey: string, simulate: boolean = false): Promise<NotificationResult> {
-    const cleanPhone = this.sanitizePhone(phone);
-
-    if (!cleanPhone || cleanPhone.length < 10) {
-      return {
-        success: false,
-        error: `Número de WhatsApp inválido para notificação: "${phone}". Informe no formato com DDD (ex: 5571981805744).`,
-      };
+  static splitMessage(message: string, maxChunkSize: number = 3200): string[] {
+    if (message.length <= maxChunkSize) {
+      return [message];
     }
 
-    if (simulate || !apiKey || !apiKey.trim()) {
-      if (config.nodeEnv !== 'production') {
-        console.log(`\n[CallMeBot - SIMULAÇÃO] Para: +${cleanPhone}`);
-        console.log(`[CallMeBot - SIMULAÇÃO] Mensagem:\n${text}\n`);
+    const chunks: string[] = [];
+    const lines = message.split('\n');
+    let currentChunk = '';
+
+    for (const line of lines) {
+      if ((currentChunk + '\n' + line).length > maxChunkSize) {
+        if (currentChunk.trim()) {
+          chunks.push(currentChunk.trim());
+        }
+        currentChunk = line;
+      } else {
+        currentChunk = currentChunk ? currentChunk + '\n' + line : line;
       }
-      return {
-        success: true,
-        simulated: true,
-      };
     }
+
+    if (currentChunk.trim()) {
+      chunks.push(currentChunk.trim());
+    }
+
+    if (chunks.length > 1) {
+      return chunks.map((c, i) => `[Parte ${i + 1}/${chunks.length}]\n\n${c}`);
+    }
+
+    return chunks;
+  }
+
+  /**
+   * Envia uma única requisição HTTP para a API do CallMeBot
+   */
+  private async dispatchChunk(phone: string, text: string, apiKey: string): Promise<{ success: boolean; error?: string }> {
+    const cleanPhone = CallMeBotProvider.sanitizePhone(phone);
+    const encodedText = encodeURIComponent(text);
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${cleanPhone}&text=${encodedText}&apikey=${apiKey.trim()}`;
 
     try {
-      const encodedText = encodeURIComponent(text);
-      const url = `https://api.callmebot.com/whatsapp.php?phone=${cleanPhone}&text=${encodedText}&apikey=${apiKey.trim()}`;
-
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -73,63 +73,102 @@ export class CallMeBotProvider {
       clearTimeout(timeoutId);
       const responseText = await response.text();
 
-      if (!response.ok || responseText.toLowerCase().includes('error') || responseText.toLowerCase().includes('invalid')) {
+      if (!response.ok) {
         return {
           success: false,
-          error: `Falha na API do CallMeBot: ${responseText || `Status HTTP ${response.status}`}`,
+          error: `CallMeBot retornou HTTP ${response.status}`,
+        };
+      }
+
+      // Verificação de falhas explícitas conhecidas da API CallMeBot
+      const lower = responseText.toLowerCase();
+      if (
+        lower.includes('apikey is invalid') ||
+        lower.includes('api key is invalid') ||
+        lower.includes('phone number not found') ||
+        lower.includes('not authorized') ||
+        lower.includes('please register first')
+      ) {
+        return {
+          success: false,
+          error: 'Chave de API do CallMeBot inválida ou número não registrado no bot.',
         };
       }
 
       return { success: true };
     } catch (err: any) {
-      const errMsg = err.name === 'AbortError' ? 'Tempo limite de conexão excedido com CallMeBot' : err.message;
+      const isAbort = err.name === 'AbortError';
       return {
         success: false,
-        error: errMsg || 'Erro ao conectar à API do CallMeBot',
+        error: isAbort ? 'Tempo limite de conexão excedido com CallMeBot (15s)' : err.message || 'Falha de rede ao conectar ao CallMeBot',
       };
     }
   }
 
   /**
-   * Formata e envia a lista consolidada de alertas diários para o WhatsApp do operador
+   * Implementação da interface NotificationProvider
    */
-  static async sendDailySummary(options: SendAlertSummaryOptions): Promise<NotificationResult> {
-    if (!options.alerts || options.alerts.length === 0) {
-      return { success: true, simulated: false };
+  async sendNotification(message: string, options: NotificationOptions): Promise<NotificationResponse> {
+    const phone = options.recipientPhone;
+    const apiKey = options.apiKey;
+
+    if (!phone) {
+      return {
+        success: false,
+        channel: 'CALLMEBOT',
+        error: 'Telefone de destino não informado para CallMeBot.',
+      };
     }
 
-    const settings = options.companyId
-      ? await prisma.companySettings.findUnique({ where: { companyId: options.companyId } })
-      : await prisma.companySettings.findFirst();
-    const simulate = settings?.callmebotSimulateMode || !options.apiKey;
-
-    const dateFormatted = options.date.toLocaleDateString('pt-BR');
-    const total = options.alerts.length;
-
-    let body = `🔔 *ENLACE — Alertas de Felicitações do Dia (${dateFormatted})*\n\n`;
-    body += `Temos *${total}* ${total === 1 ? 'comemoração identificada' : 'comemorações identificadas'} para hoje:\n\n`;
-
-    options.alerts.forEach((alert, index) => {
-      body += `━━━━━━━━━━━━━━━━━━━\n`;
-      body += `👤 *${index + 1}. ${alert.clientName}*\n`;
-      body += `🎉 *Contexto:* ${alert.context}\n`;
-      if (alert.phone) {
-        body += `📱 *WhatsApp Cliente:* ${alert.phone}\n`;
+    if (options.simulate || !apiKey || !apiKey.trim()) {
+      if (config.nodeEnv !== 'production') {
+        console.log(`[CallMeBot - SIMULAÇÃO] Para: ${CallMeBotProvider.sanitizePhone(phone)}`);
       }
-      body += `\n💬 *Texto da Mensagem:*\n${alert.renderedMessage}\n`;
-    });
+      return {
+        success: true,
+        channel: 'SIMULATED',
+        simulated: true,
+      };
+    }
 
-    body += `━━━━━━━━━━━━━━━━━━━\n\n`;
-    body += `👉 *Acesse o painel para copiar ou marcar como enviado:*\n${config.appUrl}`;
+    const cleanPhone = CallMeBotProvider.sanitizePhone(phone);
+    if (!cleanPhone || cleanPhone.length < 10) {
+      return {
+        success: false,
+        channel: 'CALLMEBOT',
+        error: `Telefone inválido: "${phone}". Use formato com DDD (ex: 5511999999999).`,
+      };
+    }
 
-    return this.sendTextMessage(options.ownerPhone, body, options.apiKey, simulate);
+    const chunks = CallMeBotProvider.splitMessage(message, 3200);
+
+    for (const chunk of chunks) {
+      const res = await this.dispatchChunk(cleanPhone, chunk, apiKey);
+      if (!res.success) {
+        return {
+          success: false,
+          channel: 'CALLMEBOT',
+          error: res.error,
+        };
+      }
+    }
+
+    return {
+      success: true,
+      channel: 'CALLMEBOT',
+    };
   }
 
   /**
-   * Envia mensagem de teste de validação de API Key
+   * Helper estático para envio de teste
    */
-  static async sendTestNotification(ownerPhone: string, apiKey: string): Promise<NotificationResult> {
-    const testMessage = `✅ *Enlace CRM — Teste de Notificação*\n\nSua integração com o CallMeBot está configurada com sucesso!\n\nA partir de agora, você receberá aqui no seu WhatsApp as notificações diárias de aniversários e datas especiais com os textos prontos para enviar aos seus clientes.`;
-    return this.sendTextMessage(ownerPhone, testMessage, apiKey, false);
+  static async sendTestNotification(ownerPhone: string, apiKey: string): Promise<NotificationResponse> {
+    const provider = new CallMeBotProvider();
+    const testMessage = `✅ *Enlace CRM — Teste de Notificação*\n\nSua integração com o WhatsApp está configurada com sucesso!\n\nA partir de agora, você receberá aqui seus resumos matinais de aniversários e datas especiais prontos para envio.`;
+    return provider.sendNotification(testMessage, {
+      recipientPhone: ownerPhone,
+      apiKey,
+      simulate: false,
+    });
   }
 }

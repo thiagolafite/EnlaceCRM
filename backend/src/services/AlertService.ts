@@ -1,8 +1,7 @@
 import { prisma } from '../utils/prisma';
-import { CallMeBotProvider } from '../providers/notification/CallMeBotProvider';
 import { scopeByCompany, AuthenticatedUserContext } from '../utils/tenant';
 import { AppError } from '../utils/AppError';
-import { decrypt } from '../utils/crypto';
+import { AutomationService } from './AutomationService';
 
 export interface ListAlertsParams {
   date?: string; // YYYY-MM-DD
@@ -127,7 +126,7 @@ export class AlertService {
   }
 
   /**
-   * Reenvia o resumo consolidado de alertas do dia para o WhatsApp do dono via CallMeBot
+   * Reenvia o resumo consolidado de alertas do dia para o WhatsApp do dono
    */
   static async resendDailyNotification(
     targetDateStr?: string,
@@ -135,70 +134,8 @@ export class AlertService {
   ) {
     const companyScope = scopeByCompany(currentUser);
     const targetDate = targetDateStr ? new Date(targetDateStr) : new Date();
-    const dateOnly = targetDate.toISOString().split('T')[0];
 
-    const startOfDay = new Date(`${dateOnly}T00:00:00.000Z`);
-    const endOfDay = new Date(`${dateOnly}T23:59:59.999Z`);
-
-    const where: any = {
-      ...companyScope,
-      alertDate: { gte: startOfDay, lte: endOfDay },
-    };
-
-    const alerts = await prisma.alert.findMany({
-      where,
-      include: { client: true, familyMember: true },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    if (alerts.length === 0) {
-      return {
-        success: true,
-        message: 'Nenhum alerta pendente para a data informada.',
-        alertsCount: 0,
-      };
-    }
-
-    // Buscar configurações da empresa
-    const companySettings = await prisma.companySettings.findUnique({
-      where: { companyId: companyScope.companyId },
-    });
-
-    let rawApiKey = '';
-    if (companySettings?.callmebotApiKey && companySettings.callmebotApiKeyIv && companySettings.callmebotApiKeyTag) {
-      rawApiKey = decrypt(
-        companySettings.callmebotApiKey,
-        companySettings.callmebotApiKeyIv,
-        companySettings.callmebotApiKeyTag
-      );
-    } else if (companySettings?.callmebotApiKey) {
-      rawApiKey = companySettings.callmebotApiKey;
-    }
-
-    const ownerPhone = companySettings?.ownerWhatsappPhone || '';
-    const isSimulate = companySettings?.callmebotSimulateMode ?? true;
-
-    // Disparar notificação consolidada
-    const result = await CallMeBotProvider.sendDailySummary({
-      alerts: alerts.map((a) => ({
-        clientName: a.clientName,
-        targetName: a.targetName,
-        context: a.contextDescription,
-        phone: a.clientPhone,
-        renderedMessage: a.renderedMessage,
-      })),
-      ownerPhone,
-      apiKey: rawApiKey,
-      date: targetDate,
-    });
-
-    return {
-      success: result.success,
-      simulated: isSimulate,
-      message: result.message,
-      error: result.error,
-      alertsCount: alerts.length,
-    };
+    return AutomationService.resendDailyNotification(companyScope.companyId, targetDate, currentUser);
   }
 
   /**

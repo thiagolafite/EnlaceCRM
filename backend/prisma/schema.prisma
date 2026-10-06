@@ -195,10 +195,14 @@ model Alert {
   contextDescription  String             // Ex: "Aniversário do Cliente (36 anos)" ou "Aniversário da Mãe"
   renderedMessage     String             // Texto final pronto para envio no WhatsApp
   
-  // Status da notificação enviada ao dono via CallMeBot
+  // Status da notificação enviada ao dono
   notificationStatus  String             @default("PENDING") // PENDING, SENT, FAILED, SIMULATED
+  notificationChannel String?            @default("CALLMEBOT") // CALLMEBOT, ULTRAMSG, EMAIL
   notificationError   String?
   
+  // Chave de deduplicação idempotente diária
+  dedupeKey           String?            @unique // companyId|clientId|familyMemberId?|commemorativeDateId?|eventType|YYYY-MM-DD
+
   // Controle de envio manual para o cliente final
   sentToClientManual  Boolean            @default(false)
   sentToClientManualAt DateTime?
@@ -209,6 +213,7 @@ model Alert {
 
   @@index([companyId, alertDate])
   @@index([companyId, notificationStatus])
+  @@index([companyId, eventType])
 }
 
 model QueueJob {

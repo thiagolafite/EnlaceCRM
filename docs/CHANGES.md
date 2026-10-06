@@ -144,4 +144,62 @@ Documento de rastreamento das alterações efetuadas em cada fase da transição
 - **`render.yaml` & `railway.toml`**:
   - Blueprints declarativos para deploy em nuvem do serviço backend com monitoramento contínuo em `/health`.
 
+---
+
+## 📌 Fase 3 — Fluxo Principal de Automação & Notificação (Concluída)
+
+### 1. Schema do Banco de Dados & Deduplicação
+- **`backend/prisma/schema.prisma`**:
+  - Adicionada coluna `dedupeKey String? @unique` ao modelo `Alert`.
+  - Adicionada coluna `notificationChannel String? @default("CALLMEBOT")` ao modelo `Alert`.
+  - Índice único composto garante que o mesmo evento comemorativo ou aniversário para o mesmo cliente/familiar nunca seja registrado mais de uma vez na mesma data para a mesma empresa.
+  - Script idempotente de migração de dedupe keys existente: `backend/scripts/migrate_dedupe_keys.ts` com `--dry-run`.
+  - Schema sincronizado com a base de dados PostgreSQL.
+
+### 2. Tratamento de Fuso Horário e Regras de Datas
+- **`backend/src/utils/time.ts` & `backend/src/utils/dateUtils.ts`**:
+  - `todayInSaoPaulo()` / `parseDateSP()`: Cálculos centralizados no fuso horário oficial `America/Sao_Paulo` (UTC-3).
+  - `getBirthDateUtcParts()`: Datas de nascimento avaliadas de forma determinística em UTC.
+  - Regra de 29 de Fevereiro: comemoração automática em 28/02 para anos não bissextos e exatamente em 29/02 para anos bissextos.
+  - `calculateAgeSP()`: Cálculo preciso de idade evitando variações de fuso horário.
+
+### 3. Audience Matcher Estrito
+- **`backend/src/utils/audienceMatcher.ts`**:
+  - Eliminação de inferências genéricas de gênero + filhos.
+  - `MOTHERS_ONLY`: Exclusivo para clientes com `isMother: true` ou familiares com parentesco `MOTHER`.
+  - `FATHERS_ONLY`: Exclusivo para clientes com `isFather: true` ou familiares com parentesco `FATHER`.
+  - `WOMEN_ONLY` / `MEN_ONLY`: Validação estrita baseada na coluna `gender`.
+
+### 4. Provedores de Notificação e Resiliência
+- **`backend/src/providers/notification/`**:
+  - `NotificationProvider.ts`: Interface comum e padronizada para provedores.
+  - `CallMeBotProvider.ts`: Normalização E.164, quebra inteligente de mensagens com mais de 3.200 caracteres em blocos numerados `[Parte 1/N]`, sanitização de telefones e proteção contra vazamento de chaves nos logs.
+  - `UltraMsgProvider.ts`: Provedor alternativo para contingência via API UltraMsg.
+  - `EmailProvider.ts`: Provedor de fallback corporativo via Nodemailer.
+  - `NotificationDispatcher.ts`: Despachante orquestrado que executa a cadeia de contingência (CallMeBot -> UltraMsg -> Email) com até 3 tentativas e backoff exponencial.
+
+### 5. Motor de Automação Multi-Tenant & Scheduler
+- **`backend/src/services/AutomationService.ts`**:
+  - `scanAndDispatchForCompany`: Varredura estritamente isolada por tenant, mesclagem inteligente de templates (empresa sobrepõe global), eliminação de N+1 queries com inserção em lote (`createMany({ skipDuplicates: true })`), e envio de resumo para o contato/chave do administrador daquela empresa.
+  - `runGlobalSchedulerTick`: Varredura periódica de empresas por minuto; falhas em um tenant não afetam o processamento dos demais.
+  - `resendDailyNotification`: Reenvio manual com orientações direcionais caso a chave ou telefone não estejam configurados.
+- **`backend/src/jobs/scheduler.ts`**:
+  - Agendador por minuto operando no fuso de São Paulo e mantendo estado de última execução (`lastCronRunAt`, `lastCronStatus`).
+- **`backend/src/app.ts`**:
+  - `/api/health` monitorando latência real do banco de dados e status do agendador.
+
+### 6. Testes Automatizados
+- **`backend/tests/automation.test.ts`**:
+  - Suíte completa de 31 testes unitários cobrindo:
+    1. Interpolação dinâmica de variáveis
+    2. Fuso SP, datas UTC e 29 de Fevereiro
+    3. Audience Matcher e regras de gênero/paternidade
+    4. Criptografia AES-256-GCM
+    5. Normalização telefônica E.164
+    6. Chunking de mensagens longas
+    7. Escopo e isolamento multi-tenant
+    8. Validações de payload Zod
+  - **31/31 testes aprovados com sucesso**.
+
+
 

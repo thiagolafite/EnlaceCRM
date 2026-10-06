@@ -75,4 +75,41 @@ Este documento registra todas as decisões técnicas, arquiteturais e de seguran
      - `render.yaml` & `railway.toml`: Blueprints declarativos com comandos de build, start e monitoramento de saúde `/health`.
 - **Consequências**: Repositório limpo, tipagem segura garantida pelo compilador, processos de CI/CD automatizáveis e empacotamento pronto para qualquer provedor de nuvem ou servidor próprio.
 
+---
+
+## [ADR-005] Fase 3 — Fluxo Principal de Automação, Fuso Horário São Paulo, Deduplicação e Cadeia de Notificação
+
+- **Data**: 2026-10-05
+- **Status**: Aprovado e Implementado
+- **Contexto**: A automação original misturava clientes de diferentes empresas em um único envio para um WhatsApp centralizado, não calculava fusos horários de forma determinística (podendo falhar ao cruzar meia-noite em servidores em UTC), não tratava 29 de fevereiro em anos não bissextos, inferia paternidade/maternidade de forma insegura por gênero, sofria com consultas N+1 ao banco de dados e não possuía chave única de deduplicação nem provedores de contingência caso o CallMeBot falhasse.
+- **Decisão**:
+  1. **Isolamento por Empresa na Automação (`AutomationService`)**:
+     - `scanAndDispatchForCompany(companyId, referenceDate, isDryRun)`: Processa estritamente os clientes, familiares e configurações da empresa alvo.
+     - Mesclagem de templates com fallback inteligente (templates personalizados da empresa sobrepõem os modelos globais).
+     - Assinatura e contexto com o nome comercial (`tradeName` / `name`) da empresa.
+     - Alertas gerados contendo obrigatoriamente `companyId`.
+     - Notificação diária enviada diretamente para o telefone e chave do administrador daquela empresa.
+  2. **Tratamento de Fuso Horário (`America/Sao_Paulo`) e 29 de Fevereiro**:
+     - Centralizado em `backend/src/utils/time.ts` e `backend/src/utils/dateUtils.ts`.
+     - Datas de nascimento armazenadas em UTC e avaliadas contra os componentes do dia no fuso de São Paulo (`todayInSaoPaulo`).
+     - Clientes/familiares nascidos em 29/02: em anos bissextos disparam em 29/02; em anos não bissextos (como 2025, 2026) disparam automaticamente no dia 28/02.
+  3. **Audience Matcher com Regras Estritas**:
+     - `MOTHERS_ONLY`: aceita `isMother === true` ou parentesco `MOTHER`. Rejeita inferências genéricas de gênero + filhos.
+     - `FATHERS_ONLY`: aceita `isFather === true` ou parentesco `FATHER`.
+     - `WOMEN_ONLY` / `MEN_ONLY`: validação estrita do gênero cadastrado.
+  4. **Deduplicação e Eliminação de Consultas N+1**:
+     - Adicionada coluna `dedupeKey String? @unique` na tabela `Alert` no padrão: `${companyId}|${clientId}|${familyMemberId || 'CLIENT'}|${commemorativeDateId || 'BIRTHDAY'}|${eventType}|${targetSP.year}-${targetSP.month}-${targetSP.day}`.
+     - Busca prévia em lote dos alertas existentes e inserção via `createMany({ skipDuplicates: true })`.
+     - Script idempotente de migração com suporte a `--dry-run` em `backend/scripts/migrate_dedupe_keys.ts`.
+  5. **Cadeia de Notificação com Fallback e Chunking**:
+     - Arquitetura de provedores sob interface comum `NotificationProvider`.
+     - `CallMeBotProvider`: Normalização E.164, quebra de mensagens longas (>3200 caracteres) em partes numeradas `[Parte X/N]`, sem vazamento de segredos em logs.
+     - `UltraMsgProvider`: Provedor WhatsApp alternativo de contingência.
+     - `EmailProvider`: Provedor de fallback via e-mail corporativo (`Nodemailer`).
+     - `NotificationDispatcher`: Executa a cadeia sequencialmente com até 3 retentativas e backoff exponencial em caso de instabilidade.
+  6. **Orquestrador e Monitoramento do Scheduler**:
+     - `runGlobalSchedulerTick`: Varre empresas a cada minuto no fuso de São Paulo; o erro em uma empresa é capturado e registrado em `SystemLog` sem interromper as demais.
+     - Endpoint `/api/health` retorna latência do banco de dados, `lastCronRunAt` e `lastCronStatus`.
+- **Consequências**: Automação multi-tenant 100% isolada, imune a duplicações acidentais de alertas, resiliente a falhas de canal de comunicação e pontual no fuso horário do Brasil.
+
 

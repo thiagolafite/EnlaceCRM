@@ -7,6 +7,8 @@ import routes from './routes';
 import { LogService } from './services/LogService';
 import { config } from './config';
 import { formatErrorForResponse } from './utils/formatError';
+import { getCronState } from './jobs/scheduler';
+import { prisma } from './utils/prisma';
 
 const app = express();
 
@@ -98,11 +100,33 @@ app.use('/auth/register', registerLimiter);
 app.use('/api', globalApiLimiter);
 app.use('/', globalApiLimiter);
 
-// 6. Rota de Healthcheck
-app.get(['/api/health', '/health'], (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
+// 6. Rota de Healthcheck com Verificação de Banco e Estado do Cron
+app.get(['/api/health', '/health'], async (_req: Request, res: Response) => {
+  let dbStatus = 'HEALTHY';
+  let dbLatencyMs = 0;
+  try {
+    const start = Date.now();
+    await prisma.$queryRaw`SELECT 1`;
+    dbLatencyMs = Date.now() - start;
+  } catch {
+    dbStatus = 'UNHEALTHY';
+  }
+
+  const cronState = getCronState();
+  const isHealthy = dbStatus === 'HEALTHY';
+
+  return res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'ok' : 'degraded',
     system: 'Enlace CRM API',
+    database: {
+      status: dbStatus,
+      latencyMs: dbLatencyMs,
+    },
+    cron: {
+      lastCronRunAt: cronState.lastCronRunAt,
+      lastCronStatus: cronState.lastCronStatus,
+      lastCronDetails: cronState.lastCronDetails,
+    },
     environment: config.nodeEnv,
     timestamp: new Date().toISOString(),
   });

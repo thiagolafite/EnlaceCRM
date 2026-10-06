@@ -1,7 +1,8 @@
 import { prisma } from '../utils/prisma';
-import { RELATIONSHIP_LABELS, calculateAge, getDayAndMonth } from '../utils/dateUtils';
+import { RELATIONSHIP_LABELS } from '../utils/dateUtils';
 import { scopeByCompany, AuthenticatedUserContext } from '../utils/tenant';
 import { AppError } from '../utils/AppError';
+import { todayInSaoPaulo, matchesBirthdaySP, calculateAgeSP } from '../utils/time';
 
 export interface CreateCommemorativeDateDTO {
   name: string;
@@ -134,7 +135,6 @@ export class CommemorativeDateService {
    * estritamente isolados para a empresa do usuário autenticado.
    */
   static async getUpcomingEvents(daysAhead: number = 30, currentUser?: AuthenticatedUserContext | null) {
-    const today = new Date();
     const companyScope = scopeByCompany(currentUser);
 
     const activeClients = await prisma.client.findMany({
@@ -179,21 +179,21 @@ export class CommemorativeDateService {
       isToday: boolean;
     }> = [];
 
-    for (let offset = 0; offset <= daysAhead; offset++) {
-      const targetDate = new Date();
-      targetDate.setDate(today.getDate() + offset);
+    const baseNow = new Date();
 
-      const targetDay = targetDate.getDate();
-      const targetMonth = targetDate.getMonth() + 1; // 1-12
+    for (let offset = 0; offset <= daysAhead; offset++) {
+      const targetDate = new Date(baseNow);
+      targetDate.setDate(baseNow.getDate() + offset);
+      const targetSP = todayInSaoPaulo(targetDate);
       const isToday = offset === 0;
 
       // 1. Fixas do calendário
       for (const fd of fixedDates) {
-        if (fd.day === targetDay && fd.month === targetMonth) {
+        if (fd.day === targetSP.day && fd.month === targetSP.month) {
           events.push({
-            date: targetDate.toISOString().split('T')[0],
-            day: targetDay,
-            month: targetMonth,
+            date: targetSP.dateKey,
+            day: targetSP.day,
+            month: targetSP.month,
             type: 'FIXED_DATE',
             title: fd.name,
             subtitle: fd.description || 'Data comemorativa do calendário',
@@ -206,56 +206,50 @@ export class CommemorativeDateService {
 
       // 2. Aniversários de Clientes
       for (const client of activeClients) {
-        if (client.birthDate) {
-          const { day: bDay, month: bMonth } = getDayAndMonth(client.birthDate);
-          if (bDay === targetDay && bMonth + 1 === targetMonth) {
-            const age = calculateAge(client.birthDate, targetDate);
-            events.push({
-              date: targetDate.toISOString().split('T')[0],
-              day: targetDay,
-              month: targetMonth,
-              type: 'CLIENT_BIRTHDAY',
-              title: `Aniversário de ${client.name}`,
-              subtitle: age > 0 ? `Completando ${age} anos` : 'Aniversário do cliente',
-              clientId: client.id,
-              clientName: client.name,
-              targetName: client.name,
-              phone: client.phone,
-              email: client.email,
-              gender: client.gender,
-              companyName: client.companyName,
-              daysRemaining: offset,
-              isToday,
-            });
-          }
+        if (client.birthDate && matchesBirthdaySP(client.birthDate, targetSP)) {
+          const age = calculateAgeSP(client.birthDate, targetSP);
+          events.push({
+            date: targetSP.dateKey,
+            day: targetSP.day,
+            month: targetSP.month,
+            type: 'CLIENT_BIRTHDAY',
+            title: `Aniversário de ${client.name}`,
+            subtitle: age > 0 ? `Completando ${age} anos` : 'Aniversário do cliente',
+            clientId: client.id,
+            clientName: client.name,
+            targetName: client.name,
+            phone: client.phone,
+            email: client.email,
+            gender: client.gender,
+            companyName: client.companyName,
+            daysRemaining: offset,
+            isToday,
+          });
         }
 
         // 3. Aniversários de Familiares
         for (const fm of client.familyMembers) {
-          if (fm.birthDate) {
-            const { day: bDay, month: bMonth } = getDayAndMonth(fm.birthDate);
-            if (bDay === targetDay && bMonth + 1 === targetMonth) {
-              const relName = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
-              const age = calculateAge(fm.birthDate, targetDate);
-              events.push({
-                date: targetDate.toISOString().split('T')[0],
-                day: targetDay,
-                month: targetMonth,
-                type: 'FAMILY_BIRTHDAY',
-                title: `Aniversário de ${fm.name} (${relName})`,
-                subtitle: `Familiar do cliente ${client.name}${age > 0 ? ` (${age} anos)` : ''}`,
-                clientId: client.id,
-                clientName: client.name,
-                familyMemberId: fm.id,
-                targetName: fm.name,
-                relationship: fm.relationship,
-                phone: fm.phone || client.phone,
-                email: fm.email || client.email,
-                gender: fm.gender,
-                daysRemaining: offset,
-                isToday,
-              });
-            }
+          if (fm.birthDate && matchesBirthdaySP(fm.birthDate, targetSP)) {
+            const relName = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
+            const age = calculateAgeSP(fm.birthDate, targetSP);
+            events.push({
+              date: targetSP.dateKey,
+              day: targetSP.day,
+              month: targetSP.month,
+              type: 'FAMILY_BIRTHDAY',
+              title: `Aniversário de ${fm.name} (${relName})`,
+              subtitle: `Familiar do cliente ${client.name}${age > 0 ? ` (${age} anos)` : ''}`,
+              clientId: client.id,
+              clientName: client.name,
+              familyMemberId: fm.id,
+              targetName: fm.name,
+              relationship: fm.relationship,
+              phone: fm.phone || client.phone,
+              email: fm.email || client.email,
+              gender: fm.gender,
+              daysRemaining: offset,
+              isToday,
+            });
           }
         }
       }

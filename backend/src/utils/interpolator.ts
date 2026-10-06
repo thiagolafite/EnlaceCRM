@@ -5,8 +5,10 @@ export interface InterpolationContext {
   familyMemberName?: string;
   familyName?: string;
   relationship?: string;
+  relationshipPossessive?: string;
   companyName?: string;
   commemorativeDateName?: string;
+  targetName?: string;
   birthDate?: Date;
   currentDate?: Date;
 }
@@ -17,12 +19,12 @@ export function interpolateTemplate(template: string, ctx: InterpolationContext)
   const clientName = ctx.clientName || 'Cliente';
   const clientFirstName = clientName.split(' ')[0] || clientName;
 
-  const familyMemberName = ctx.familyMemberName || ctx.familyName || '';
+  const familyMemberName = ctx.familyMemberName || ctx.familyName || ctx.targetName || '';
   const familyMemberFirstName = familyMemberName ? familyMemberName.split(' ')[0] : '';
 
   const rawRel = ctx.relationship || '';
   const parentesco = RELATIONSHIP_LABELS[rawRel] || rawRel || 'Familiar';
-  const parentescoPossessivo = RELATIONSHIP_POSSESSIVE[rawRel] || `seu(sua) ${rawRel.toLowerCase()}`;
+  const parentescoPossessivo = ctx.relationshipPossessive || RELATIONSHIP_POSSESSIVE[rawRel] || `seu(sua) ${rawRel.toLowerCase()}`;
 
   const companyName = ctx.companyName || 'Nossa Equipe';
   const eventName = ctx.commemorativeDateName || 'Data Especial';
