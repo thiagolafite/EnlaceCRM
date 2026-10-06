@@ -3,6 +3,10 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 import { config } from '../config';
 import { LogService } from './LogService';
+import { AppError } from '../utils/AppError';
+
+// Hash fictício de tamanho realista para evitar timing attacks quando o usuário não existe
+const DUMMY_HASH = '$2a$10$7EqJtq98hPqEX7fNZaFWoO9y9bL/o5l7m3Y3wz3Wq1j.9H1rY/m4q';
 
 export class AuthService {
   static async login(email: string, password: string, reqContext?: { ip?: string; userAgent?: string }) {
@@ -12,6 +16,9 @@ export class AuthService {
     });
 
     if (!user) {
+      // Realiza comparação fictícia para equalizar tempo de resposta
+      await bcrypt.compare(password, DUMMY_HASH);
+      
       await LogService.createLog({
         level: 'SECURITY',
         category: 'AUTH',
@@ -21,7 +28,7 @@ export class AuthService {
         ipAddress: reqContext?.ip,
         userAgent: reqContext?.userAgent,
       });
-      throw new Error('Credenciais inválidas');
+      throw new AppError('Credenciais inválidas', 401);
     }
 
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
@@ -37,7 +44,7 @@ export class AuthService {
         ipAddress: reqContext?.ip,
         userAgent: reqContext?.userAgent,
       });
-      throw new Error('Credenciais inválidas');
+      throw new AppError('Credenciais inválidas', 401);
     }
 
     // Verificação de status e role a partir do banco de dados
@@ -57,7 +64,7 @@ export class AuthService {
         ipAddress: reqContext?.ip,
         userAgent: reqContext?.userAgent,
       });
-      throw new Error('🔒 Sua conta foi criada, mas está aguardando liberação e aprovação pelo administrador Master para ser ativada.');
+      throw new AppError('🔒 Sua conta foi criada, mas está aguardando liberação e aprovação pelo administrador Master para ser ativada.', 403);
     }
 
     // Se a conta foi desativada/bloqueada
@@ -73,19 +80,20 @@ export class AuthService {
         ipAddress: reqContext?.ip,
         userAgent: reqContext?.userAgent,
       });
-      throw new Error('⛔ Sua conta está bloqueada ou desativada pelo administrador. Entre em contato com o suporte.');
+      throw new AppError('⛔ Sua conta está bloqueada ou desativada pelo administrador. Entre em contato com o suporte.', 403);
     }
 
+    // Token JWT com validade reduzida de 8 horas
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
         name: user.name,
         role,
-        companyId: user.companyId || 'default_company',
+        companyId: user.companyId,
       },
       config.jwtSecret,
-      { expiresIn: '7d' }
+      { expiresIn: '8h' }
     );
 
     // Registrar login bem-sucedido
@@ -108,44 +116,74 @@ export class AuthService {
         email: user.email,
         role,
         status,
-        companyId: user.companyId || 'default_company',
+        companyId: user.companyId,
       },
       token,
     };
   }
 
   static async register(name: string, email: string, password: string, reqContext?: { ip?: string; userAgent?: string }) {
-    if (!name || !name.trim()) {
-      throw new Error('Nome é obrigatório');
+    const cleanName = name.trim();
+    const cleanEmail = email.toLowerCase().trim();
+
+    if (!cleanName) {
+      throw new AppError('Nome é obrigatório', 400);
     }
-    if (!email || !email.trim()) {
-      throw new Error('E-mail é obrigatório');
+    if (!cleanEmail) {
+      throw new AppError('E-mail é obrigatório', 400);
     }
-    if (!password || password.length < 6) {
-      throw new Error('A senha deve ter no mínimo 6 caracteres');
+    if (!password || password.length < 10) {
+      throw new AppError('A senha deve ter no mínimo 10 caracteres', 400);
     }
 
-    const cleanEmail = email.toLowerCase().trim();
     const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existing) {
-      throw new Error('Já existe uma conta cadastrada com este e-mail');
+      throw new AppError('Já existe uma conta cadastrada com este e-mail', 400);
     }
 
-    const role = 'ADMIN';
-    const status = 'PENDING_APPROVAL';
     const passwordHash = await bcrypt.hash(password, 10);
     
-    // Cada novo cadastro gera sua própria empresa/tenant isolada
-    const companyId = 'comp_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    // Criação transacional da Empresa (Company), CompanySettings e Usuário ADMIN com status TRIAL e PENDING_APPROVAL
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 dias de teste
+
+    const company = await prisma.company.create({
+      data: {
+        name: `${cleanName}'s Workspace`,
+        tradeName: cleanName,
+        status: 'TRIAL',
+        plan: 'STARTER',
+        maxClients: 500,
+        trialEndsAt,
+        settings: {
+          create: {
+            ownerWhatsappPhone: '',
+            callmebotApiKey: '',
+            callmebotEnabled: true,
+            callmebotSimulateMode: false,
+            schedulerHour: 6,
+            schedulerMinute: 0,
+            schedulerEnabled: true,
+          },
+        },
+      },
+    });
 
     const user = await prisma.user.create({
       data: {
-        name: name.trim(),
+        name: cleanName,
         email: cleanEmail,
         passwordHash,
-        role,
-        status,
-        companyId,
+        role: 'ADMIN',
+        status: 'PENDING_APPROVAL',
+        companyId: company.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        companyId: true,
       },
     });
 
@@ -154,10 +192,10 @@ export class AuthService {
       level: 'WARN',
       category: 'SECURITY',
       action: 'USER_REGISTERED_PENDING_APPROVAL',
-      message: `🚨 Novo cadastro realizado: ${user.name} (${user.email}) — Aguardando aprovação do usuário Master para ativação!`,
+      message: `🚨 Novo cadastro realizado: ${user.name} (${user.email}) — Empresa: ${company.name} — Aguardando aprovação do Master!`,
       userId: user.id,
       userEmail: user.email,
-      companyId: user.companyId || undefined,
+      companyId: user.companyId,
       ipAddress: reqContext?.ip,
       userAgent: reqContext?.userAgent,
     });
@@ -165,13 +203,7 @@ export class AuthService {
     return {
       pendingApproval: true,
       message: 'Cadastro recebido com sucesso! Por questões de segurança, sua conta foi enviada para análise e só será ativada mediante aprovação do administrador Master.',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-      },
+      user,
     };
   }
 
@@ -186,11 +218,22 @@ export class AuthService {
         status: true,
         companyId: true,
         createdAt: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            tradeName: true,
+            status: true,
+            plan: true,
+            maxClients: true,
+            trialEndsAt: true,
+          },
+        },
       },
     });
 
     if (!user) {
-      throw new Error('Usuário não encontrado');
+      throw new AppError('Usuário não encontrado', 404);
     }
 
     return user;

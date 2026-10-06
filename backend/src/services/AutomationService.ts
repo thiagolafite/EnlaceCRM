@@ -1,11 +1,15 @@
 import { prisma } from '../utils/prisma';
-import { isSameDayAndMonth, calculateAge, RELATIONSHIP_LABELS, RELATIONSHIP_POSSESSIVE } from '../utils/dateUtils';
+import { isSameDayAndMonth, calculateAge, RELATIONSHIP_LABELS } from '../utils/dateUtils';
 import { interpolateTemplate } from '../utils/interpolator';
 import { CallMeBotProvider } from '../providers/notification/CallMeBotProvider';
-import { matchesAudience, detectAudienceType } from '../utils/audienceMatcher';
+import { detectAudienceType } from '../utils/audienceMatcher';
+import { AuthenticatedUserContext } from '../utils/tenant';
+import { decrypt } from '../utils/crypto';
+import { AppError } from '../utils/AppError';
 
 export interface DailyAutomationReport {
   executionDate: string;
+  companyId?: string;
   clientsScanned: number;
   clientBirthdaysFound: number;
   familyBirthdaysFound: number;
@@ -29,11 +33,16 @@ export interface DailyAutomationReport {
 
 export class AutomationService {
   /**
-   * Executa a varredura de datas para um dia de referência (hoje ou data simulada)
+   * Executa a varredura para uma empresa específica
    */
-  static async scanAndDispatch(referenceDate: Date = new Date(), isDryRun: boolean = false): Promise<DailyAutomationReport> {
+  static async scanAndDispatchForCompany(
+    targetCompanyId: string,
+    referenceDate: Date = new Date(),
+    isDryRun: boolean = false
+  ): Promise<DailyAutomationReport> {
     const report: DailyAutomationReport = {
       executionDate: referenceDate.toISOString(),
+      companyId: targetCompanyId,
       clientsScanned: 0,
       clientBirthdaysFound: 0,
       familyBirthdaysFound: 0,
@@ -49,21 +58,37 @@ export class AutomationService {
     const targetDay = referenceDate.getDate();
     const targetMonth = referenceDate.getMonth() + 1; // 1-12
 
-    // 1. Carregar configurações da empresa e CallMeBot
-    const settings = await prisma.companySettings.findFirst();
-    const companyName = settings?.tradeName || settings?.companyName || 'Enlace CRM';
+    // 1. Carregar configurações da empresa
+    const company = await prisma.company.findUnique({
+      where: { id: targetCompanyId },
+      include: { settings: true },
+    });
 
-    // 2. Carregar todos os clientes ativos com consentimento LGPD
+    if (!company) {
+      throw new AppError('Empresa não encontrada', 404);
+    }
+
+    const settings = company.settings;
+    const companyName = company.tradeName || company.name || 'Enlace CRM';
+
+    // 2. Carregar todos os clientes ativos da empresa com consentimento LGPD
     const allClients = await prisma.client.findMany({
+      where: { companyId: targetCompanyId },
       include: {
         familyMembers: true,
       },
     });
     report.clientsScanned = allClients.length;
 
-    // 3. Carregar datas comemorativas fixas ativas
+    // 3. Carregar datas comemorativas ativas (globais e da empresa)
     const fixedDates = await prisma.commemorativeDate.findMany({
-      where: { active: true },
+      where: {
+        active: true,
+        OR: [
+          { companyId: null },
+          { companyId: targetCompanyId },
+        ],
+      },
     });
 
     const activeFixedDatesForToday = fixedDates.filter(
@@ -71,9 +96,15 @@ export class AutomationService {
     );
     report.fixedDatesFound = activeFixedDatesForToday.length;
 
-    // 4. Carregar templates padrão
+    // 4. Carregar templates (globais e da empresa)
     const templates = await prisma.messageTemplate.findMany({
-      where: { active: true },
+      where: {
+        active: true,
+        OR: [
+          { companyId: null },
+          { companyId: targetCompanyId },
+        ],
+      },
     });
 
     const getTemplate = (eventType: string, commDateId?: string | null) => {
@@ -103,7 +134,7 @@ export class AutomationService {
     const createdAlertIds: string[] = [];
 
     // =========================================================================
-    // LOOP PRINCIPAL DE CLIENTES
+    // LOOP PRINCIPAL DE CLIENTES DA EMPRESA
     // =========================================================================
     for (const client of allClients) {
       if (client.status !== 'ACTIVE' || !client.lgpdConsent) {
@@ -122,6 +153,7 @@ export class AutomationService {
         // Verificar se alerta já foi gerado hoje
         const alreadyCreated = await prisma.alert.findFirst({
           where: {
+            companyId: targetCompanyId,
             clientId: client.id,
             eventType: 'CLIENT_BIRTHDAY',
             alertDate: { gte: startOfDay, lte: endOfDay },
@@ -158,6 +190,7 @@ export class AutomationService {
           if (!isDryRun) {
             const newAlert = await prisma.alert.create({
               data: {
+                companyId: targetCompanyId,
                 clientId: client.id,
                 templateId: template?.id || null,
                 eventType: 'CLIENT_BIRTHDAY',
@@ -201,12 +234,12 @@ export class AutomationService {
         if (fm.birthDate && isSameDayAndMonth(fm.birthDate, referenceDate)) {
           report.familyBirthdaysFound++;
           const relName = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
-          const relPossessive = RELATIONSHIP_POSSESSIVE[fm.relationship] || 'seu familiar';
           const age = calculateAge(fm.birthDate, referenceDate);
           const contextDesc = `Aniversário de ${relName}: ${fm.name}${age > 0 ? ` (${age} anos)` : ''}`;
 
           const alreadyCreated = await prisma.alert.findFirst({
             where: {
+              companyId: targetCompanyId,
               clientId: client.id,
               familyMemberId: fm.id,
               eventType: 'FAMILY_BIRTHDAY',
@@ -246,6 +279,7 @@ export class AutomationService {
             if (!isDryRun) {
               const newAlert = await prisma.alert.create({
                 data: {
+                  companyId: targetCompanyId,
                   clientId: client.id,
                   familyMemberId: fm.id,
                   templateId: template?.id || null,
@@ -294,7 +328,6 @@ export class AutomationService {
         const isClientMale = client.gender === 'MALE';
         const hasChildren = family.some((fm) => ['CHILD', 'SON', 'DAUGHTER'].includes(fm.relationship));
 
-        // 1. Verificar se o próprio Cliente Titular se enquadra
         let clientMatches = false;
         let clientReason = '';
 
@@ -322,6 +355,7 @@ export class AutomationService {
           const contextDesc = `Data Comemorativa (${clientReason}): ${fd.name}`;
           const alreadyCreated = await prisma.alert.findFirst({
             where: {
+              companyId: targetCompanyId,
               clientId: client.id,
               familyMemberId: null,
               commemorativeDateId: fd.id,
@@ -359,6 +393,7 @@ export class AutomationService {
             if (!isDryRun) {
               const newAlert = await prisma.alert.create({
                 data: {
+                  companyId: targetCompanyId,
                   clientId: client.id,
                   commemorativeDateId: fd.id,
                   templateId: template?.id || null,
@@ -395,129 +430,24 @@ export class AutomationService {
             });
           }
         }
-
-        // 2. Verificar se algum Familiar se enquadra (ex: Mãe, Pai, Mulheres da família, etc.)
-        for (const fm of family) {
-          let fmMatches = false;
-          let fmReason = '';
-          const isFmFemale = fm.gender === 'FEMALE' || ['MOTHER', 'DAUGHTER', 'SISTER', 'GRANDMOTHER'].includes(fm.relationship);
-          const isFmMale = fm.gender === 'MALE' || ['FATHER', 'SON', 'BROTHER', 'GRANDFATHER'].includes(fm.relationship);
-
-          if (audType === 'MOTHERS_ONLY' && (fm.relationship === 'MOTHER' || (fm.gender === 'FEMALE' && ['MOTHER', 'GRANDMOTHER'].includes(fm.relationship)))) {
-            fmMatches = true;
-            fmReason = `🌸 Mãe de ${client.name}`;
-          } else if (audType === 'FATHERS_ONLY' && (fm.relationship === 'FATHER' || (fm.gender === 'MALE' && ['FATHER', 'GRANDFATHER'].includes(fm.relationship)))) {
-            fmMatches = true;
-            fmReason = `👔 Pai de ${client.name}`;
-          } else if (audType === 'WOMEN_ONLY' && isFmFemale) {
-            fmMatches = true;
-            fmReason = `💐 Mulher (Familiar de ${client.name})`;
-          } else if (audType === 'MEN_ONLY' && isFmMale) {
-            fmMatches = true;
-            fmReason = `🎩 Homem (Familiar de ${client.name})`;
-          }
-
-          if (fmMatches) {
-            const relName = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
-            const contextDesc = `Data Comemorativa (${fmReason}): ${fd.name} para ${fm.name} (${relName})`;
-            const targetPhone = fm.phone || client.phone;
-
-            const alreadyCreatedFm = await prisma.alert.findFirst({
-              where: {
-                clientId: client.id,
-                familyMemberId: fm.id,
-                commemorativeDateId: fd.id,
-                eventType: 'FIXED_DATE',
-                alertDate: { gte: startOfDay, lte: endOfDay },
-              },
-            });
-
-            if (alreadyCreatedFm && !isDryRun) {
-              report.alreadyGeneratedSkipped++;
-              report.details.push({
-                eventType: 'FIXED_DATE',
-                clientName: client.name,
-                targetName: `${fm.name} (${relName})`,
-                context: contextDesc,
-                clientPhone: targetPhone,
-                renderedMessage: alreadyCreatedFm.renderedMessage,
-                status: 'ALREADY_GENERATED',
-              });
-              alertsToNotify.push({
-                clientName: client.name,
-                targetName: `${fm.name} (${relName})`,
-                context: contextDesc,
-                phone: targetPhone,
-                renderedMessage: alreadyCreatedFm.renderedMessage,
-              });
-            } else {
-              const template = getTemplate('FIXED_DATE', fd.id);
-              let content = '';
-              if (fm.phone) {
-                content = template?.content || `Olá, *{{nome_familiar}}*! ✨ Neste(a) *${fd.name}*, a equipe da {{nome_empresa}} deseja a você um dia maravilhoso, com muita saúde e alegrias!`;
-              } else {
-                content = `Olá, *{{primeiro_nome}}*! ✨ Neste(a) *${fd.name}*, a equipe da {{nome_empresa}} envia um carinhoso abraço e felicitações para sua *{{parentesco}}*, *{{nome_familiar}}*! 🎉`;
-              }
-
-              const renderedMessage = interpolateTemplate(content, {
-                clientName: client.name,
-                familyName: fm.name,
-                relationship: relName,
-                companyName,
-              });
-
-              if (!isDryRun) {
-                const newAlert = await prisma.alert.create({
-                  data: {
-                    clientId: client.id,
-                    familyMemberId: fm.id,
-                    commemorativeDateId: fd.id,
-                    templateId: template?.id || null,
-                    eventType: 'FIXED_DATE',
-                    clientName: client.name,
-                    clientPhone: targetPhone,
-                    targetName: `${fm.name} (${relName})`,
-                    contextDescription: contextDesc,
-                    renderedMessage,
-                    alertDate: referenceDate,
-                    notificationStatus: 'PENDING',
-                  },
-                });
-                createdAlertIds.push(newAlert.id);
-                report.alertsGenerated++;
-              }
-
-              report.details.push({
-                eventType: 'FIXED_DATE',
-                clientName: client.name,
-                targetName: `${fm.name} (${relName})`,
-                context: contextDesc,
-                clientPhone: targetPhone,
-                renderedMessage,
-                status: isDryRun ? 'SIMULATED_READY' : 'GENERATED',
-              });
-
-              alertsToNotify.push({
-                clientName: client.name,
-                targetName: `${fm.name} (${relName})`,
-                context: contextDesc,
-                phone: targetPhone,
-                renderedMessage,
-              });
-            }
-          }
-        }
       }
     }
 
     // =========================================================================
-    // NOTIFICAÇÃO VIA CALLMEBOT PARA O DONO DO SISTEMA
+    // NOTIFICAÇÃO VIA CALLMEBOT PARA O DONO DO SISTEMA / OPERADOR DA EMPRESA
     // =========================================================================
     if (!isDryRun && alertsToNotify.length > 0) {
       if (settings && settings.callmebotEnabled && settings.ownerWhatsappPhone) {
+        let rawApiKey = '';
+        if (settings.callmebotApiKey && settings.callmebotApiKeyIv && settings.callmebotApiKeyTag) {
+          rawApiKey = decrypt(settings.callmebotApiKey, settings.callmebotApiKeyIv, settings.callmebotApiKeyTag);
+        } else if (settings.callmebotApiKey) {
+          rawApiKey = settings.callmebotApiKey;
+        }
+
         const notifResult = await CallMeBotProvider.sendDailySummary({
           ownerPhone: settings.ownerWhatsappPhone,
-          apiKey: settings.callmebotApiKey || '',
+          apiKey: rawApiKey,
           date: referenceDate,
           alerts: alertsToNotify,
         });
@@ -530,7 +460,6 @@ export class AutomationService {
           : 'FAILED';
         report.ownerNotificationError = notifResult.error;
 
-        // Atualizar status nos alertas gravados
         if (createdAlertIds.length > 0) {
           await prisma.alert.updateMany({
             where: { id: { in: createdAlertIds } },
@@ -548,5 +477,43 @@ export class AutomationService {
     }
 
     return report;
+  }
+
+  /**
+   * Executa a varredura para a empresa do usuário autenticado
+   */
+  static async scanAndDispatch(
+    currentUser?: AuthenticatedUserContext | null,
+    referenceDate: Date = new Date(),
+    isDryRun: boolean = false
+  ): Promise<DailyAutomationReport> {
+    if (!currentUser?.companyId) {
+      throw new AppError('Empresa não identificada no usuário autenticado', 400);
+    }
+
+    return this.scanAndDispatchForCompany(currentUser.companyId, referenceDate, isDryRun);
+  }
+
+  /**
+   * Executa a varredura para todas as empresas ativas (usado pelo scheduler/cron global)
+   */
+  static async scanAndDispatchAll(referenceDate: Date = new Date()): Promise<DailyAutomationReport[]> {
+    const activeCompanies = await prisma.company.findMany({
+      where: {
+        status: { in: ['ACTIVE', 'TRIAL'] },
+      },
+    });
+
+    const reports: DailyAutomationReport[] = [];
+    for (const company of activeCompanies) {
+      try {
+        const report = await this.scanAndDispatchForCompany(company.id, referenceDate, false);
+        reports.push(report);
+      } catch (err) {
+        console.error(`Erro ao rodar automação para empresa ${company.id}:`, err);
+      }
+    }
+
+    return reports;
   }
 }

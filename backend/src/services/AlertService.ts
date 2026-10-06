@@ -1,5 +1,8 @@
 import { prisma } from '../utils/prisma';
 import { CallMeBotProvider } from '../providers/notification/CallMeBotProvider';
+import { scopeByCompany, AuthenticatedUserContext } from '../utils/tenant';
+import { AppError } from '../utils/AppError';
+import { decrypt } from '../utils/crypto';
 
 export interface ListAlertsParams {
   date?: string; // YYYY-MM-DD
@@ -16,7 +19,7 @@ export class AlertService {
    */
   static async listAlerts(
     params: ListAlertsParams = {},
-    currentUser?: { id: string; role: string; companyId?: string | null }
+    currentUser?: AuthenticatedUserContext | null
   ) {
     const {
       date,
@@ -27,12 +30,10 @@ export class AlertService {
       limit = 50,
     } = params;
 
-    const where: any = {};
-
-    // Isolamento multi-tenant
-    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
-      where.companyId = currentUser.companyId;
-    }
+    const companyScope = scopeByCompany(currentUser);
+    const where: any = {
+      ...companyScope,
+    };
 
     if (date) {
       const startOfDay = new Date(`${date}T00:00:00.000Z`);
@@ -57,7 +58,8 @@ export class AlertService {
       ];
     }
 
-    const skip = (page - 1) * limit;
+    const maxLimit = Math.min(Number(limit), 100);
+    const skip = (Math.max(Number(page), 1) - 1) * maxLimit;
 
     const [total, alerts] = await Promise.all([
       prisma.alert.count({ where }),
@@ -71,17 +73,17 @@ export class AlertService {
         },
         orderBy: [{ alertDate: 'desc' }, { createdAt: 'desc' }],
         skip,
-        take: limit,
+        take: maxLimit,
       }),
     ]);
 
     return {
       data: alerts,
       pagination: {
-        page,
-        limit,
+        page: Number(page),
+        limit: maxLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / maxLimit),
       },
     };
   }
@@ -92,22 +94,25 @@ export class AlertService {
   static async toggleSentManual(
     id: string,
     sentManual?: boolean,
-    currentUser?: { id: string; role: string; companyId?: string | null }
+    currentUser?: AuthenticatedUserContext | null
   ) {
-    const existing = await prisma.alert.findUnique({ where: { id } });
-    if (!existing) {
-      throw new Error('Alerta não encontrado');
-    }
+    const companyScope = scopeByCompany(currentUser);
+    const existing = await prisma.alert.findFirst({
+      where: {
+        id,
+        ...companyScope,
+      },
+    });
 
-    if (currentUser?.role !== 'MASTER' && currentUser?.companyId && existing.companyId !== currentUser.companyId) {
-      throw new Error('Acesso não permitido a este alerta');
+    if (!existing) {
+      throw new AppError('Alerta não encontrado', 404);
     }
 
     const newStatus = typeof sentManual === 'boolean' ? sentManual : !existing.sentToClientManual;
     const sentAt = newStatus ? new Date() : null;
 
     const updated = await prisma.alert.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         sentToClientManual: newStatus,
         sentToClientManualAt: sentAt,
@@ -126,8 +131,9 @@ export class AlertService {
    */
   static async resendDailyNotification(
     targetDateStr?: string,
-    currentUser?: { id: string; role: string; companyId?: string | null }
+    currentUser?: AuthenticatedUserContext | null
   ) {
+    const companyScope = scopeByCompany(currentUser);
     const targetDate = targetDateStr ? new Date(targetDateStr) : new Date();
     const dateOnly = targetDate.toISOString().split('T')[0];
 
@@ -135,12 +141,9 @@ export class AlertService {
     const endOfDay = new Date(`${dateOnly}T23:59:59.999Z`);
 
     const where: any = {
+      ...companyScope,
       alertDate: { gte: startOfDay, lte: endOfDay },
     };
-
-    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
-      where.companyId = currentUser.companyId;
-    }
 
     const alerts = await prisma.alert.findMany({
       where,
@@ -157,17 +160,27 @@ export class AlertService {
     }
 
     // Buscar configurações da empresa
-    const company = await prisma.companySettings.findFirst({
-      where: currentUser?.companyId ? { id: currentUser.companyId } : {},
+    const companySettings = await prisma.companySettings.findUnique({
+      where: { companyId: companyScope.companyId },
     });
 
-    const apiKey = company?.callmebotApiKey || '';
-    const ownerPhone = company?.ownerWhatsappPhone || '';
-    const isSimulate = company?.callmebotSimulateMode ?? true;
+    let rawApiKey = '';
+    if (companySettings?.callmebotApiKey && companySettings.callmebotApiKeyIv && companySettings.callmebotApiKeyTag) {
+      rawApiKey = decrypt(
+        companySettings.callmebotApiKey,
+        companySettings.callmebotApiKeyIv,
+        companySettings.callmebotApiKeyTag
+      );
+    } else if (companySettings?.callmebotApiKey) {
+      rawApiKey = companySettings.callmebotApiKey;
+    }
+
+    const ownerPhone = companySettings?.ownerWhatsappPhone || '';
+    const isSimulate = companySettings?.callmebotSimulateMode ?? true;
 
     // Disparar notificação consolidada
     const result = await CallMeBotProvider.sendDailySummary({
-      alerts: alerts.map(a => ({
+      alerts: alerts.map((a) => ({
         clientName: a.clientName,
         targetName: a.targetName,
         context: a.contextDescription,
@@ -175,7 +188,7 @@ export class AlertService {
         renderedMessage: a.renderedMessage,
       })),
       ownerPhone,
-      apiKey,
+      apiKey: rawApiKey,
       date: targetDate,
     });
 
@@ -191,15 +204,12 @@ export class AlertService {
   /**
    * Estatísticas de alertas para o Dashboard
    */
-  static async getStats(currentUser?: { id: string; role: string; companyId?: string | null }) {
+  static async getStats(currentUser?: AuthenticatedUserContext | null) {
     const today = new Date().toISOString().split('T')[0];
     const startOfToday = new Date(`${today}T00:00:00.000Z`);
     const endOfToday = new Date(`${today}T23:59:59.999Z`);
 
-    const whereBase: any = {};
-    if (currentUser?.role !== 'MASTER' && currentUser?.companyId) {
-      whereBase.companyId = currentUser.companyId;
-    }
+    const companyScope = scopeByCompany(currentUser);
 
     const [
       totalToday,
@@ -212,46 +222,44 @@ export class AlertService {
       todayAlertsList,
     ] = await Promise.all([
       prisma.alert.count({
-        where: { ...whereBase, alertDate: { gte: startOfToday, lte: endOfToday } },
+        where: { ...companyScope, alertDate: { gte: startOfToday, lte: endOfToday } },
       }),
       prisma.alert.count({
         where: {
-          ...whereBase,
+          ...companyScope,
           alertDate: { gte: startOfToday, lte: endOfToday },
           sentToClientManual: true,
         },
       }),
       prisma.alert.count({
         where: {
-          ...whereBase,
+          ...companyScope,
           alertDate: { gte: startOfToday, lte: endOfToday },
           sentToClientManual: false,
         },
       }),
       prisma.alert.count({
         where: {
-          ...whereBase,
+          ...companyScope,
           alertDate: { gte: startOfToday, lte: endOfToday },
           eventType: { in: ['CLIENT_BIRTHDAY', 'FAMILY_BIRTHDAY'] },
         },
       }),
       prisma.alert.count({
         where: {
-          ...whereBase,
+          ...companyScope,
           alertDate: { gte: startOfToday, lte: endOfToday },
           eventType: 'FIXED_DATE',
         },
       }),
       prisma.client.count({
-        where: { ...whereBase, status: 'ACTIVE' },
+        where: { ...companyScope, status: 'ACTIVE' },
       }),
       prisma.familyMember.count({
-        where: currentUser?.role !== 'MASTER' && currentUser?.companyId
-          ? { client: { companyId: currentUser.companyId } }
-          : {},
+        where: { client: companyScope },
       }),
       prisma.alert.findMany({
-        where: { ...whereBase, alertDate: { gte: startOfToday, lte: endOfToday } },
+        where: { ...companyScope, alertDate: { gte: startOfToday, lte: endOfToday } },
         orderBy: [{ sentToClientManual: 'asc' }, { createdAt: 'desc' }],
         take: 30,
       }),

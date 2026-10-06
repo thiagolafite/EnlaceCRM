@@ -1,43 +1,51 @@
-import { Request, Response } from 'express';
+import { Response, NextFunction } from 'express';
 import { SettingsService } from '../services/SettingsService';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
+import { updateSettingsSchema } from '../validators';
+import { AppError } from '../utils/AppError';
 import { restartDailyScheduler } from '../jobs/scheduler';
 
 export class SettingsController {
-  static async get(req: Request, res: Response) {
+  static async get(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const settings = await SettingsService.getSettings();
+      const settings = await SettingsService.getSettings(req.user);
       return res.json(settings);
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async update(req: Request, res: Response) {
+  static async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const settings = await SettingsService.updateSettings(req.body);
+      const parsed = updateSettingsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AppError(parsed.error.errors[0]?.message || 'Configurações inválidas', 400);
+      }
+
+      const settings = await SettingsService.updateSettings(parsed.data as any, req.user);
 
       // Reinicia o scheduler se o horário foi alterado
       if (
-        req.body.schedulerHour !== undefined ||
-        req.body.schedulerMinute !== undefined ||
-        req.body.schedulerEnabled !== undefined
+        parsed.data.schedulerHour !== undefined ||
+        parsed.data.schedulerMinute !== undefined ||
+        parsed.data.schedulerEnabled !== undefined
       ) {
         restartDailyScheduler();
       }
 
       return res.json(settings);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async testCallMeBot(req: Request, res: Response) {
+  static async testCallMeBot(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { phone, apiKey } = req.body;
-      const result = await SettingsService.testCallMeBot(phone, apiKey);
+      const result = await SettingsService.testCallMeBot(phone, apiKey, req.user);
       return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message || 'Erro ao testar CallMeBot' });
+    } catch (err) {
+      next(err);
     }
   }
 }

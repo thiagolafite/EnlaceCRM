@@ -1,18 +1,12 @@
-import { Request, Response } from 'express';
+import { Response, NextFunction } from 'express';
 import { AlertService } from '../services/AlertService';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
+import { AppError } from '../utils/AppError';
 
 export class AlertController {
-  static async list(req: Request, res: Response) {
+  static async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const {
-        date,
-        sentToClientManual,
-        eventType,
-        search,
-        page,
-        limit,
-      } = req.query;
-      const currentUser = (req as any).user;
+      const { date, sentToClientManual, eventType, search, page, limit } = req.query;
 
       let sentManualBool: boolean | undefined = undefined;
       if (sentToClientManual === 'true') sentManualBool = true;
@@ -20,54 +14,51 @@ export class AlertController {
 
       const result = await AlertService.listAlerts(
         {
-          date: date ? String(date) : undefined,
+          date: date as string,
           sentToClientManual: sentManualBool,
-          eventType: eventType ? String(eventType) : undefined,
-          search: search ? String(search) : undefined,
+          eventType: eventType as string,
+          search: search as string,
           page: page ? Number(page) : 1,
-          limit: limit ? Number(limit) : 50,
+          limit: limit ? Math.min(Number(limit), 100) : 50,
         },
-        currentUser
+        req.user
       );
 
       return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message || 'Erro ao listar alertas' });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async toggleSent(req: Request, res: Response) {
+  static async toggleSent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const { sentManual } = req.body;
-      const currentUser = (req as any).user;
+      if (!id) throw new AppError('ID do alerta é obrigatório', 400);
 
-      const updated = await AlertService.toggleSentManual(id, sentManual, currentUser);
-      return res.json(updated);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message || 'Erro ao atualizar status de envio do alerta' });
+      const alert = await AlertService.toggleSentManual(id, sentManual, req.user);
+      return res.json(alert);
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async resendNotification(req: Request, res: Response) {
+  static async resendNotification(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { date } = req.body;
-      const currentUser = (req as any).user;
-
-      const result = await AlertService.resendDailyNotification(date ? String(date) : undefined, currentUser);
+      const result = await AlertService.resendDailyNotification(date, req.user);
       return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message || 'Erro ao reenviar notificação' });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async getStats(req: Request, res: Response) {
+  static async getStats(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const currentUser = (req as any).user;
-      const stats = await AlertService.getStats(currentUser);
+      const stats = await AlertService.getStats(req.user);
       return res.json(stats);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message || 'Erro ao buscar métricas do dashboard' });
+    } catch (err) {
+      next(err);
     }
   }
 }

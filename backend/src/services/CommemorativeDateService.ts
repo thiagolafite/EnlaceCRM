@@ -1,20 +1,37 @@
 import { prisma } from '../utils/prisma';
 import { RELATIONSHIP_LABELS, calculateAge, getDayAndMonth } from '../utils/dateUtils';
+import { scopeByCompany, AuthenticatedUserContext } from '../utils/tenant';
+import { AppError } from '../utils/AppError';
 
 export interface CreateCommemorativeDateDTO {
   name: string;
   day: number;
   month: number;
   year?: number | null;
-  description?: string;
+  description?: string | null;
   category?: 'FIXED' | 'CULTURAL' | 'CORPORATE';
   targetAudience?: 'ALL_CLIENTS' | 'MOTHERS_ONLY' | 'FATHERS_ONLY' | 'CUSTOM';
   active?: boolean;
+  isGlobal?: boolean;
 }
 
 export class CommemorativeDateService {
-  static async list() {
+  static async list(currentUser?: AuthenticatedUserContext | null) {
+    const where: any = {};
+
+    if (currentUser?.role === 'MASTER') {
+      // MASTER vê datas globais e de todas as empresas
+    } else if (currentUser?.companyId) {
+      where.OR = [
+        { companyId: null },
+        { companyId: currentUser.companyId },
+      ];
+    } else {
+      where.companyId = null;
+    }
+
     return prisma.commemorativeDate.findMany({
+      where,
       orderBy: [{ month: 'asc' }, { day: 'asc' }],
       include: {
         _count: {
@@ -24,15 +41,20 @@ export class CommemorativeDateService {
     });
   }
 
-  static async create(data: CreateCommemorativeDateDTO) {
+  static async create(data: CreateCommemorativeDateDTO, currentUser?: AuthenticatedUserContext | null) {
     if (!data.name || !data.name.trim()) {
-      throw new Error('Nome da data comemorativa é obrigatório');
+      throw new AppError('Nome da data comemorativa é obrigatório', 400);
     }
     if (!data.day || data.day < 1 || data.day > 31) {
-      throw new Error('Dia inválido (1-31)');
+      throw new AppError('Dia inválido (1-31)', 400);
     }
     if (!data.month || data.month < 1 || data.month > 12) {
-      throw new Error('Mês inválido (1-12)');
+      throw new AppError('Mês inválido (1-12)', 400);
+    }
+
+    let targetCompanyId: string | null = currentUser?.companyId || null;
+    if (currentUser?.role === 'MASTER' && data.isGlobal) {
+      targetCompanyId = null;
     }
 
     return prisma.commemorativeDate.create({
@@ -45,14 +67,28 @@ export class CommemorativeDateService {
         category: data.category || 'FIXED',
         targetAudience: data.targetAudience || 'ALL_CLIENTS',
         active: typeof data.active === 'boolean' ? data.active : true,
+        companyId: targetCompanyId,
       },
     });
   }
 
-  static async update(id: string, data: Partial<CreateCommemorativeDateDTO>) {
+  static async update(id: string, data: Partial<CreateCommemorativeDateDTO>, currentUser?: AuthenticatedUserContext | null) {
     const existing = await prisma.commemorativeDate.findUnique({ where: { id } });
     if (!existing) {
-      throw new Error('Data comemorativa não encontrada');
+      throw new AppError('Data comemorativa não encontrada', 404);
+    }
+
+    // Regra: datas globais só podem ser modificadas pelo MASTER
+    if (existing.companyId === null && currentUser?.role !== 'MASTER') {
+      throw new AppError('Datas comemorativas globais do sistema só podem ser alteradas pelo Master', 403);
+    }
+
+    if (
+      existing.companyId !== null &&
+      currentUser?.role !== 'MASTER' &&
+      existing.companyId !== currentUser?.companyId
+    ) {
+      throw new AppError('Data comemorativa não encontrada', 404);
     }
 
     const updateData: any = {};
@@ -71,10 +107,22 @@ export class CommemorativeDateService {
     });
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, currentUser?: AuthenticatedUserContext | null) {
     const existing = await prisma.commemorativeDate.findUnique({ where: { id } });
     if (!existing) {
-      throw new Error('Data comemorativa não encontrada');
+      throw new AppError('Data comemorativa não encontrada', 404);
+    }
+
+    if (existing.companyId === null && currentUser?.role !== 'MASTER') {
+      throw new AppError('Datas comemorativas globais do sistema só podem ser excluídas pelo Master', 403);
+    }
+
+    if (
+      existing.companyId !== null &&
+      currentUser?.role !== 'MASTER' &&
+      existing.companyId !== currentUser?.companyId
+    ) {
+      throw new AppError('Data comemorativa não encontrada', 404);
     }
 
     await prisma.commemorativeDate.delete({ where: { id } });
@@ -83,18 +131,31 @@ export class CommemorativeDateService {
 
   /**
    * Retorna os próximos eventos nos próximos N dias (aniversários de clientes, familiares e datas fixas)
+   * estritamente isolados para a empresa do usuário autenticado.
    */
-  static async getUpcomingEvents(daysAhead: number = 30) {
+  static async getUpcomingEvents(daysAhead: number = 30, currentUser?: AuthenticatedUserContext | null) {
     const today = new Date();
+    const companyScope = scopeByCompany(currentUser);
+
     const activeClients = await prisma.client.findMany({
-      where: { status: 'ACTIVE', lgpdConsent: true },
+      where: {
+        ...companyScope,
+        status: 'ACTIVE',
+        lgpdConsent: true,
+      },
       include: {
         familyMembers: true,
       },
     });
 
     const fixedDates = await prisma.commemorativeDate.findMany({
-      where: { active: true },
+      where: {
+        active: true,
+        OR: [
+          { companyId: null },
+          { companyId: companyScope.companyId },
+        ],
+      },
     });
 
     const events: Array<{

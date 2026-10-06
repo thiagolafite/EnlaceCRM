@@ -1,93 +1,98 @@
-import { Request, Response } from 'express';
+import { Response, NextFunction } from 'express';
 import { ClientService } from '../services/ClientService';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
+import { createClientSchema, updateClientSchema, listClientQuerySchema } from '../validators';
+import { AppError } from '../utils/AppError';
 
 export class ClientController {
-  static async list(req: Request, res: Response) {
+  static async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { search, status, preferredChannel, lgpdConsent, page, limit } = req.query;
-      const currentUser = (req as any).user;
-      
-      const lgpdBool = lgpdConsent !== undefined ? lgpdConsent === 'true' : undefined;
+      const parsed = listClientQuerySchema.safeParse(req.query);
+      if (!parsed.success) {
+        throw new AppError(parsed.error.errors[0]?.message || 'Parâmetros de busca inválidos', 400);
+      }
 
-      const result = await ClientService.list(
-        {
-          search: search as string,
-          status: status as string,
-          lgpdConsent: lgpdBool,
-          page: page ? Number(page) : undefined,
-          limit: limit ? Number(limit) : undefined,
-        },
-        currentUser
-      );
-
+      const result = await ClientService.list(parsed.data, req.user);
       return res.json(result);
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message || 'Erro ao listar clientes' });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async getById(req: Request, res: Response) {
+  static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const currentUser = (req as any).user;
-      const client = await ClientService.getById(id, currentUser);
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const client = await ClientService.getById(id, req.user);
       return res.json(client);
-    } catch (err: any) {
-      return res.status(404).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async create(req: Request, res: Response) {
+  static async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const currentUser = (req as any).user;
-      const client = await ClientService.create(req.body, currentUser);
+      const parsed = createClientSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AppError(parsed.error.errors[0]?.message || 'Dados do cliente inválidos', 400);
+      }
+
+      const client = await ClientService.create(parsed.data as any, req.user);
       return res.status(201).json(client);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async update(req: Request, res: Response) {
+  static async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const currentUser = (req as any).user;
-      const client = await ClientService.update(id, req.body, currentUser);
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const parsed = updateClientSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AppError(parsed.error.errors[0]?.message || 'Dados de atualização inválidos', 400);
+      }
+
+      const client = await ClientService.update(id, parsed.data as any, req.user);
       return res.json(client);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async delete(req: Request, res: Response) {
+  static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const currentUser = (req as any).user;
-      const result = await ClientService.delete(id, currentUser);
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const result = await ClientService.delete(id, req.user);
       return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async toggleLgpd(req: Request, res: Response) {
+  static async toggleLgpd(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const { consent } = req.body;
-      const currentUser = (req as any).user;
-      const updated = await ClientService.toggleLgpdConsent(id, Boolean(consent), currentUser);
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const updated = await ClientService.toggleLgpdConsent(id, Boolean(consent), req.user);
       return res.json(updated);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async getStats(req: Request, res: Response) {
+  static async getStats(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const currentUser = (req as any).user;
-      const stats = await ClientService.getStats(currentUser);
+      const stats = await ClientService.getStats(req.user);
       return res.json(stats);
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 }

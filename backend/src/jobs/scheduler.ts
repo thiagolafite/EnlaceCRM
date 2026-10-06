@@ -6,6 +6,7 @@ let scheduledTask: ScheduledTask | null = null;
 
 export async function initScheduler() {
   try {
+    // Busca configurações globais / padrão
     const settings = await prisma.companySettings.findFirst();
     const isEnabled = settings ? settings.schedulerEnabled : true;
     const hour = settings ? settings.schedulerHour : 6;
@@ -29,10 +30,11 @@ export async function initScheduler() {
     scheduledTask = cron.schedule(
       cronExpression,
       async () => {
-        console.log(`⏰ [Scheduler] Executando rotina diária de felicitações (${new Date().toISOString()})...`);
+        console.log(`⏰ [Scheduler] Executando rotina diária de felicitações para todas as empresas (${new Date().toISOString()})...`);
         try {
-          const report = await AutomationService.scanAndDispatch(new Date(), false);
-          console.log(`✅ [Scheduler] Rotina finalizada: ${report.alertsGenerated} alertas gerados.`);
+          const reports = await AutomationService.scanAndDispatchAll(new Date());
+          const totalAlerts = reports.reduce((acc, r) => acc + r.alertsGenerated, 0);
+          console.log(`✅ [Scheduler] Rotina finalizada: ${totalAlerts} alertas gerados em ${reports.length} empresas.`);
         } catch (err) {
           console.error('❌ [Scheduler Error]:', err);
         }

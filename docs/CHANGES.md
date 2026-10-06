@@ -38,6 +38,42 @@ Documento de rastreamento das alterações efetuadas em cada fase da transição
 | `BOOTSTRAP_ADMIN_EMAIL` | Opcional | E-mail do Admin a criar no seed | `admin@suaempresa.com.br` |
 | `BOOTSTRAP_ADMIN_PASSWORD` | Opcional | Senha do Admin a criar no seed | `senha_segura_min_10` |
 
-### 3. Ações Manuais Necessárias pelo Usuário
-- Nenhuma alteração disruptiva necessária no banco de dados para a Fase 0.
-- Certificar-se de que o `JWT_SECRET` nas variáveis de ambiente possui pelo menos 32 caracteres.
+---
+
+## 📌 Fase 1 — Multi-Tenant e Permissões (Concluída)
+
+### 1. Modificações de Modelo e Banco de Dados
+- **`backend/prisma/schema.prisma`**:
+  - Adicionado modelo `Company` (`id`, `name`, `tradeName`, `document`, `status: TRIAL|ACTIVE|SUSPENDED|CANCELED`, `plan: STARTER|PRO|ENTERPRISE`, `maxClients`, `trialEndsAt`).
+  - Adicionado modelo `CompanySettings` (relação 1:1 com `Company`, com campos `callmebotApiKeyIv` e `callmebotApiKeyTag` para suporte a criptografia AES-256-GCM).
+  - FK `companyId` obrigatória em `User`, `Client`, `Alert` e `CompanySettings`.
+  - FK `companyId` opcional em `MessageTemplate` e `CommemorativeDate` (nulo = modelo global compartilhado).
+  - Índices multi-tenant criados em `[companyId, status]`, `[companyId, alertDate]`, `[companyId, notificationStatus]`, `[companyId, active]`, etc.
+  - Criado script de migração idempotente `backend/scripts/migrate_tenants.ts` com flag `--dry-run`.
+
+### 2. Isolamento e Regras de Negócio Multi-Tenant
+- **Helper `scopeByCompany` e AppError 404**:
+  - Aplicado em todos os serviços (`ClientService`, `FamilyMemberService`, `AlertService`, `SettingsService`, `TemplateService`, `CommemorativeDateService`, `UserService`, `AutomationService`).
+  - Consultas por ID utilizam `findFirst({ where: { id, ...scopeByCompany(user) } })` e retornam `404` em caso de incompatibilidade de tenant, evitando enumeração de recursos.
+- **Criptografia de Segredos em Repouso**:
+  - Implementado `backend/src/utils/crypto.ts` com cifra `AES-256-GCM` para chaves de terceiros (`callmebotApiKey`).
+  - API sanitizada para retornar `hasCallmebotApiKey: boolean`, mascarando ou omitindo o valor real na resposta.
+- **Controle de Acesso RBAC**:
+  - Middleware `requireRole` protegendo rotas críticas (`/users*`, `/logs*`, `/settings*`, `/automation*`, `/commemorative-dates`, `/templates`).
+  - `OPERATOR`: Permissões restritas a clientes, familiares e alertas (leitura de templates/datas).
+  - `ADMIN`: Controle de recursos de sua empresa; impossibilitado de criar/promover para `MASTER`, mudar o próprio perfil ou excluir/bloquear o último `ADMIN` da empresa.
+  - `MASTER`: Visualização de logs e métricas agregadas globais, aprovação de novos cadastros e manutenção de datas/templates globais.
+- **Autenticação Reforçada**:
+  - Dummy `bcrypt.compare` implementado em `AuthService.login` contra ataques de temporização (timing attacks).
+  - Validade do token JWT reduzida de 7 dias para 8 horas.
+  - `authMiddleware` com cache em memória (45s) e checagem de contas bloqueadas ou pendentes de aprovação.
+  - Novo cadastro (`register`) cria automaticamente uma nova `Company` com status `TRIAL` e usuário `ADMIN` com status `PENDING_APPROVAL`.
+
+### 3. Endurecimento de Segurança
+- **`backend/src/app.ts`**:
+  - Ativação do `helmet` para proteção de cabeçalhos HTTP.
+  - `trust proxy` ativado para compatibilidade com gateways e proxies reversos.
+  - Limite estrito de 100kb para payloads JSON.
+  - `express-rate-limit` aplicado ao login (10 / 15 min por IP+email), registro e API geral.
+  - Global error handler estruturado com classes tipadas `AppError`, geração de `requestId` e mascaramento de campos confidenciais nos logs.
+  - Retenção de `SystemLog` configurada para 90 dias com sanitização de passwords/tokens.

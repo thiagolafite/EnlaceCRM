@@ -10,82 +10,104 @@ import { AutomationController } from '../controllers/AutomationController';
 import { SettingsController } from '../controllers/SettingsController';
 import { LogController } from '../controllers/LogController';
 import { authMiddleware } from '../middlewares/authMiddleware';
+import { requireRole } from '../middlewares/requireRole';
 
 const routes = Router();
 
 // ==========================================
-// Rotas Públicas
+// 1. Rotas Públicas de Autenticação
 // ==========================================
 routes.post('/auth/login', AuthController.login);
 routes.post('/auth/register', AuthController.register);
 
 // ==========================================
-// Rotas Protegidas (JWT)
+// 2. Proteção JWT Global para todas as rotas seguintes
 // ==========================================
 routes.use(authMiddleware as any);
 
-// Usuário Conectado
+// Perfil do Usuário Conectado
 routes.get('/auth/me', AuthController.me as any);
 
-// Monitoramento e Auditoria de Segurança (Exclusivo Master)
-routes.get('/logs/metrics', LogController.getMetrics);
-routes.get('/logs', LogController.list);
-routes.post('/logs/test', LogController.testLog);
-routes.delete('/logs', LogController.clear);
+// ==========================================
+// 3. Monitoramento e Auditoria de Segurança (Exclusivo MASTER)
+// ==========================================
+routes.get('/logs/metrics', requireRole('MASTER'), LogController.getMetrics as any);
+routes.get('/logs', requireRole('MASTER'), LogController.list as any);
+routes.post('/logs/test', requireRole('MASTER'), LogController.testLog as any);
+routes.delete('/logs', requireRole('MASTER'), LogController.clear as any);
 
-// Gestão de Usuários do Sistema
-routes.get('/users', UserController.list);
-routes.get('/users/:id', UserController.getById);
-routes.post('/users', UserController.create);
-routes.put('/users/:id', UserController.update);
-routes.patch('/users/:id/approval', UserController.toggleApproval);
-routes.delete('/users/:id', UserController.delete);
+// ==========================================
+// 4. Gestão de Usuários (ADMIN e MASTER)
+// ==========================================
+routes.get('/users', requireRole('ADMIN', 'MASTER'), UserController.list as any);
+routes.get('/users/:id', requireRole('ADMIN', 'MASTER'), UserController.getById as any);
+routes.post('/users', requireRole('ADMIN', 'MASTER'), UserController.create as any);
+routes.put('/users/:id', requireRole('ADMIN', 'MASTER'), UserController.update as any);
+routes.patch('/users/:id/approval', requireRole('MASTER'), UserController.toggleApproval as any);
+routes.delete('/users/:id', requireRole('ADMIN', 'MASTER'), UserController.delete as any);
 
-// Alertas & Dashboard Stats
-routes.get('/alerts/stats', AlertController.getStats);
-routes.get('/alerts', AlertController.list);
-routes.patch('/alerts/:id/toggle-sent', AlertController.toggleSent);
-routes.post('/alerts/resend-notification', AlertController.resendNotification);
+// ==========================================
+// 5. Alertas & Dashboard Stats (OPERATOR, ADMIN, MASTER)
+// ==========================================
+routes.get('/alerts/stats', AlertController.getStats as any);
+routes.get('/alerts', AlertController.list as any);
+routes.patch('/alerts/:id/toggle-sent', AlertController.toggleSent as any);
+routes.post('/alerts/resend-notification', requireRole('ADMIN', 'MASTER'), AlertController.resendNotification as any);
 
-// Clientes
-routes.get('/clients/stats', ClientController.getStats);
-routes.get('/clients', ClientController.list);
-routes.get('/clients/:id', ClientController.getById);
-routes.post('/clients', ClientController.create);
-routes.put('/clients/:id', ClientController.update);
-routes.delete('/clients/:id', ClientController.delete);
-routes.patch('/clients/:id/lgpd', ClientController.toggleLgpd);
+// ==========================================
+// 6. Gestão de Clientes (OPERATOR, ADMIN, MASTER)
+// ==========================================
+routes.get('/clients/stats', ClientController.getStats as any);
+routes.get('/clients', ClientController.list as any);
+routes.get('/clients/:id', ClientController.getById as any);
+routes.post('/clients', ClientController.create as any);
+routes.put('/clients/:id', ClientController.update as any);
+routes.delete('/clients/:id', ClientController.delete as any);
+routes.patch('/clients/:id/lgpd', ClientController.toggleLgpd as any);
 
-// Familiares
-routes.post('/family-members', FamilyMemberController.create);
-routes.put('/family-members/:id', FamilyMemberController.update);
-routes.delete('/family-members/:id', FamilyMemberController.delete);
-routes.get('/family-members/client/:clientId', FamilyMemberController.listByClient);
+// ==========================================
+// 7. Familiares do Cliente (OPERATOR, ADMIN, MASTER)
+// ==========================================
+routes.post('/family-members', FamilyMemberController.create as any);
+routes.put('/family-members/:id', FamilyMemberController.update as any);
+routes.delete('/family-members/:id', FamilyMemberController.delete as any);
+routes.get('/family-members/client/:clientId', FamilyMemberController.listByClient as any);
 
-// Datas Comemorativas & Agenda
-routes.get('/commemorative-dates/upcoming', CommemorativeDateController.getUpcoming);
-routes.get('/commemorative-dates', CommemorativeDateController.list);
-routes.post('/commemorative-dates', CommemorativeDateController.create);
-routes.put('/commemorative-dates/:id', CommemorativeDateController.update);
-routes.delete('/commemorative-dates/:id', CommemorativeDateController.delete);
+// ==========================================
+// 8. Datas Comemorativas & Agenda
+// Leitura: Todos; Criação/Edição/Exclusão: ADMIN e MASTER
+// ==========================================
+routes.get('/commemorative-dates/upcoming', CommemorativeDateController.getUpcoming as any);
+routes.get('/commemorative-dates', CommemorativeDateController.list as any);
+routes.post('/commemorative-dates', requireRole('ADMIN', 'MASTER'), CommemorativeDateController.create as any);
+routes.put('/commemorative-dates/:id', requireRole('ADMIN', 'MASTER'), CommemorativeDateController.update as any);
+routes.delete('/commemorative-dates/:id', requireRole('ADMIN', 'MASTER'), CommemorativeDateController.delete as any);
 
-// Templates de Mensagem
-routes.get('/templates/variables', TemplateController.getVariables);
-routes.get('/templates', TemplateController.list);
-routes.get('/templates/:id', TemplateController.getById);
-routes.post('/templates', TemplateController.create);
-routes.put('/templates/:id', TemplateController.update);
-routes.delete('/templates/:id', TemplateController.delete);
-routes.post('/templates/:id/preview', TemplateController.preview);
-routes.post('/templates/preview-custom', TemplateController.previewCustom);
+// ==========================================
+// 9. Templates de Mensagem
+// Leitura/Preview: Todos; Criação/Edição/Exclusão: ADMIN e MASTER
+// ==========================================
+routes.get('/templates/variables', TemplateController.getVariables as any);
+routes.get('/templates', TemplateController.list as any);
+routes.get('/templates/:id', TemplateController.getById as any);
+routes.post('/templates', requireRole('ADMIN', 'MASTER'), TemplateController.create as any);
+routes.put('/templates/:id', requireRole('ADMIN', 'MASTER'), TemplateController.update as any);
+routes.delete('/templates/:id', requireRole('ADMIN', 'MASTER'), TemplateController.delete as any);
+routes.post('/templates/:id/preview', TemplateController.preview as any);
+routes.post('/templates/preview-custom', TemplateController.previewCustom as any);
 
-// Motor de Automação
-routes.post('/automation/run-today', AutomationController.runToday);
-routes.post('/automation/simulate', AutomationController.simulate);
+// ==========================================
+// 10. Motor de Automação (ADMIN e MASTER)
+// ==========================================
+routes.post('/automation/run-today', requireRole('ADMIN', 'MASTER'), AutomationController.runToday as any);
+routes.post('/automation/simulate', requireRole('ADMIN', 'MASTER'), AutomationController.simulate as any);
 
-// Configurações
-routes.get('/settings', SettingsController.get);
-routes.put('/settings', SettingsController.update);
-routes.post('/settings/test-callmebot', SettingsController.testCallMeBot);
+// ==========================================
+// 11. Configurações da Empresa
+// Leitura: Todos; Edição/Teste: ADMIN e MASTER
+// ==========================================
+routes.get('/settings', SettingsController.get as any);
+routes.put('/settings', requireRole('ADMIN', 'MASTER'), SettingsController.update as any);
+routes.post('/settings/test-callmebot', requireRole('ADMIN', 'MASTER'), SettingsController.testCallMeBot as any);
 
 export default routes;

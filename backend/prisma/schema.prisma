@@ -8,6 +8,49 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Company {
+  id                 String             @id @default(uuid())
+  name               String
+  tradeName          String?            @default("")
+  document           String?            @default("")
+  status             String             @default("TRIAL") // TRIAL, ACTIVE, SUSPENDED, CANCELED
+  plan               String             @default("STARTER") // STARTER, PRO, ENTERPRISE
+  maxClients         Int                @default(500)
+  trialEndsAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  settings           CompanySettings?
+  users              User[]
+  clients            Client[]
+  alerts             Alert[]
+  templates          MessageTemplate[]
+  commemorativeDates CommemorativeDate[]
+  systemLogs         SystemLog[]
+}
+
+model CompanySettings {
+  id                    String   @id @default(uuid())
+  companyId             String   @unique
+  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // CallMeBot WhatsApp Notification Settings (para o dono/operador da empresa)
+  ownerWhatsappPhone    String?  @default("")
+  callmebotApiKey       String?  @default("")
+  callmebotApiKeyIv     String?
+  callmebotApiKeyTag    String?
+  callmebotEnabled      Boolean  @default(true)
+  callmebotSimulateMode Boolean  @default(false)
+
+  // Scheduler Settings por empresa
+  schedulerHour         Int      @default(6) // 06:00
+  schedulerMinute       Int      @default(0)
+  schedulerEnabled      Boolean  @default(true)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -15,101 +58,86 @@ model User {
   passwordHash String
   role         String   @default("ADMIN") // MASTER, ADMIN, OPERATOR
   status       String   @default("PENDING_APPROVAL") // ACTIVE, PENDING_APPROVAL, BLOCKED
-  companyId    String?  @default("default_company")
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-}
 
-model CompanySettings {
-  id                     String   @id @default("default_company")
-  companyName            String   @default("Empresa Enlace")
-  tradeName              String   @default("Enlace CRM")
-  document               String?  @default("")
-  contactEmail           String?  @default("")
-  contactPhone           String?  @default("")
-  
-  // CallMeBot WhatsApp Notification Settings (para o dono/operador)
-  ownerWhatsappPhone     String?  @default("")
-  callmebotApiKey        String?  @default("")
-  callmebotEnabled       Boolean  @default(true)
-  callmebotSimulateMode  Boolean  @default(false)
-
-  // Scheduler Settings
-  schedulerHour          Int      @default(6) // 06:00
-  schedulerMinute        Int      @default(0)
-  schedulerEnabled       Boolean  @default(true)
-
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  @@index([companyId, status])
 }
 
 model Client {
-  id               String         @id @default(uuid())
-  name             String
-  document         String?        // CPF ou CNPJ
-  email            String?
-  phone            String?        // Formato E.164 (ex: +5511999999999)
-  companyName      String?        // Empresa onde trabalha / PJ
-  birthDate        DateTime?      // Data de nascimento
+  id                String         @id @default(uuid())
+  companyId         String
+  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name              String
+  document          String?        // CPF ou CNPJ
+  email             String?
+  phone             String?        // Formato E.164 (ex: +5511999999999)
+  companyName       String?        // Empresa onde trabalha / PJ
+  birthDate         DateTime?      // Data de nascimento
   
   // Endereço do Cliente
-  zipCode          String?        // CEP (ex: 41810-010)
-  address          String?        // Logradouro / Rua / Avenida
-  addressNumber    String?        // Número
-  addressComplement String?       // Complemento (Apto, Sala, Bloco, etc.)
-  neighborhood     String?        // Bairro
-  city             String?        // Cidade
-  state            String?        // Estado / UF
+  zipCode           String?        // CEP (ex: 41810-010)
+  address           String?        // Logradouro / Rua / Avenida
+  addressNumber     String?        // Número
+  addressComplement String?        // Complemento (Apto, Sala, Bloco, etc.)
+  neighborhood      String?        // Bairro
+  city              String?        // Cidade
+  state             String?        // Estado / UF
 
-  status           String         @default("ACTIVE") // ACTIVE, INACTIVE
-  companyId        String?        @default("default_company")
+  status            String         @default("ACTIVE") // ACTIVE, INACTIVE
   
   // Segmentação e Perfil Familiar para Datas Comemorativas
-  gender           String?        @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
-  isMother         Boolean        @default(false)           // É Mãe
-  isFather         Boolean        @default(false)           // É Pai
-  profession       String?                                  // Profissão ou Cargo (ex: Médico, Advogado, Professor)
+  gender            String?        @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
+  isMother          Boolean        @default(false)           // É Mãe
+  isFather          Boolean        @default(false)           // É Pai
+  profession        String?                                  // Profissão ou Cargo (ex: Médico, Advogado, Professor)
 
-  lgpdConsent      Boolean        @default(true) // Opt-in de comunicação
-  lgpdConsentDate  DateTime       @default(now())
-  notes            String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  lgpdConsent       Boolean        @default(true) // Opt-in de comunicação
+  lgpdConsentDate   DateTime       @default(now())
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
-  familyMembers    FamilyMember[]
-  alerts           Alert[]
+  familyMembers     FamilyMember[]
+  alerts            Alert[]
+
+  @@index([companyId, status])
 }
 
 model FamilyMember {
-  id                String        @id @default(uuid())
-  clientId          String
-  client            Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  name              String
-  gender            String?       @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
-  relationship      String        // MOTHER, FATHER, SON, DAUGHTER, SPOUSE, BROTHER, SISTER, GRANDFATHER, GRANDMOTHER, OTHER
-  birthDate         DateTime      // Data de nascimento para cálculo do aniversário
-  phone             String?       // Opcional conforme princípio da minimização LGPD
-  email             String?       // Opcional conforme princípio da minimização LGPD
+  id                  String        @id @default(uuid())
+  clientId            String
+  client              Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name                String
+  gender              String?       @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
+  relationship        String        // MOTHER, FATHER, SON, DAUGHTER, SPOUSE, BROTHER, SISTER, GRANDFATHER, GRANDMOTHER, OTHER
+  birthDate           DateTime      // Data de nascimento para cálculo do aniversário
+  phone               String?       // Opcional conforme princípio da minimização LGPD
+  email               String?       // Opcional conforme princípio da minimização LGPD
   
   // Endereço do Familiar
-  sameAddressAsClient Boolean     @default(false)
-  zipCode           String?
-  address           String?
-  addressNumber     String?
-  addressComplement String?
-  neighborhood      String?
-  city              String?
-  state             String?
+  sameAddressAsClient Boolean       @default(false)
+  zipCode             String?
+  address             String?
+  addressNumber       String?
+  addressComplement   String?
+  neighborhood        String?
+  city                String?
+  state               String?
 
-  notes             String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  notes               String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
-  alerts            Alert[]
+  alerts              Alert[]
 }
 
 model CommemorativeDate {
   id             String            @id @default(uuid())
+  companyId      String?
+  company        Company?          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name           String            // ex: "Dia das Mães", "Natal", "Dia do Cliente"
   day            Int               // 1-31
   month          Int               // 1-12
@@ -123,14 +151,17 @@ model CommemorativeDate {
 
   templates      MessageTemplate[]
   alerts         Alert[]
+
+  @@index([companyId, active])
 }
 
 model MessageTemplate {
   id                  String             @id @default(uuid())
+  companyId           String?
+  company             Company?           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name                String             // ex: "Aniversário do Cliente"
   eventType           String             // CLIENT_BIRTHDAY, FAMILY_BIRTHDAY, FIXED_DATE
   channel             String             @default("WHATSAPP")
-  companyId           String?            // Nulo para templates globais do sistema, ou específico da empresa
   commemorativeDateId String?
   commemorativeDate   CommemorativeDate? @relation(fields: [commemorativeDateId], references: [id], onDelete: SetNull)
   subject             String?            // Assunto opcional
@@ -140,11 +171,14 @@ model MessageTemplate {
   updatedAt           DateTime           @updatedAt
 
   alerts              Alert[]
+
+  @@index([companyId, eventType])
 }
 
 model Alert {
   id                  String             @id @default(uuid())
-  companyId           String?            @default("default_company")
+  companyId           String
+  company             Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
   clientId            String
   client              Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
   familyMemberId      String?
@@ -172,6 +206,9 @@ model Alert {
   alertDate           DateTime           @default(now())
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
+
+  @@index([companyId, alertDate])
+  @@index([companyId, notificationStatus])
 }
 
 model QueueJob {
@@ -200,6 +237,9 @@ model SystemLog {
   userId      String?
   userEmail   String?
   companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
-}
 
+  @@index([createdAt])
+  @@index([companyId, createdAt])
+}

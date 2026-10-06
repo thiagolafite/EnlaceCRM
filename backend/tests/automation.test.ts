@@ -1,17 +1,15 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { isSameDayAndMonth, calculateAge, getDayAndMonth } from '../src/utils/dateUtils';
+import { isSameDayAndMonth, calculateAge } from '../src/utils/dateUtils';
 import { interpolateTemplate } from '../src/utils/interpolator';
-import { AutomationService } from '../src/services/AutomationService';
-import { AlertService } from '../src/services/AlertService';
-import { CallMeBotProvider } from '../src/providers/notification/CallMeBotProvider';
-
-const prisma = new PrismaClient();
+import { encrypt, decrypt } from '../src/utils/crypto';
+import { normalizePhoneBR } from '../src/utils/phone';
+import { scopeByCompany } from '../src/utils/tenant';
+import { loginSchema, registerSchema, createClientSchema, updateSettingsSchema } from '../src/validators';
 
 async function runTests() {
   console.log('🧪 ===============================================');
-  console.log('🧪 INICIANDO BATERIA DE TESTES — ENLACE V2');
+  console.log('🧪 INICIANDO BATERIA DE TESTES UNITÁRIOS — ENLACE V2');
   console.log('🧪 ===============================================\n');
 
   let passed = 0;
@@ -49,7 +47,7 @@ async function runTests() {
     );
 
     // -------------------------------------------------------------
-    // Teste 2: Utilitários de Data & Idade (Resiliente a Fuso Horário)
+    // Teste 2: Utilitários de Data & Idade
     // -------------------------------------------------------------
     console.log('\n--- Teste 2: Utilitários de Data & Idade ---');
     const today = new Date();
@@ -63,59 +61,67 @@ async function runTests() {
     assert(age === 36, 'calculateAge calcula idade exata');
 
     // -------------------------------------------------------------
-    // Teste 3: Autenticação JWT
+    // Teste 3: Criptografia em Repouso AES-256-GCM
     // -------------------------------------------------------------
-    console.log('\n--- Teste 3: Autenticação JWT ---');
-    const token = jwt.sign(
-      { id: 'test_admin_id', email: 'admin@enlace.com.br', role: 'ADMIN' },
-      process.env.JWT_SECRET || 'enlace_secret_key_123',
-      { expiresIn: '1d' }
+    console.log('\n--- Teste 3: Criptografia AES-256-GCM ---');
+    const secretApiKey = 'secret_callmebot_key_998877';
+    const encrypted = encrypt(secretApiKey);
+    assert(
+      Boolean(encrypted.encrypted && encrypted.iv && encrypted.tag),
+      'Gera payload criptografado com IV e auth tag'
     );
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'enlace_secret_key_123');
-    assert(decoded.email === 'admin@enlace.com.br', 'Geração e validação de token JWT');
+
+    const decrypted = decrypt(encrypted.encrypted, encrypted.iv, encrypted.tag);
+    assert(decrypted === secretApiKey, 'Descriptografa com precisão o segredo protegido');
 
     // -------------------------------------------------------------
-    // Teste 4: Formatação CallMeBot e Sanitização de Telefone
+    // Teste 4: Normalização de Telefone E.164 BR
     // -------------------------------------------------------------
-    console.log('\n--- Teste 4: Provedor CallMeBot ---');
-    const cleanPhone = CallMeBotProvider.sanitizePhone('+55 (71) 98180-5744');
-    assert(cleanPhone === '5571981805744', 'Sanitização de número de telefone para formato internacional');
-
-    const cleanPhoneDddOnly = CallMeBotProvider.sanitizePhone('71981805744');
-    assert(cleanPhoneDddOnly === '5571981805744', 'Adiciona DDI 55 quando omitido');
+    console.log('\n--- Teste 4: Normalização de Telefone E.164 ---');
+    assert(normalizePhoneBR('(71) 98180-5744') === '+5571981805744', 'Normaliza telefone formatado BR com DDD');
+    assert(normalizePhoneBR('71981805744') === '+5571981805744', 'Adiciona DDI +55 quando ausente');
+    assert(normalizePhoneBR('+5571981805744') === '+5571981805744', 'Mantém formato E.164 válido inalterado');
 
     // -------------------------------------------------------------
-    // Teste 5: Varredura de Automação, Alertas e LGPD
+    // Teste 5: Isolamento Multi-tenant (scopeByCompany)
     // -------------------------------------------------------------
-    console.log('\n--- Teste 5: Varredura de Automação & Geração de Alertas ---');
-    const report = await AutomationService.scanAndDispatch(today, false);
-    assert(report.clientsScanned > 0, 'Varredura lê clientes ativos');
-    assert(report.clientBirthdaysFound >= 1, 'Identifica aniversariantes do dia');
-    assert(report.details.length > 0, 'Gera lista detalhada de alertas');
+    console.log('\n--- Teste 5: Helper de Isolamento Multi-tenant ---');
+    const userContext = {
+      id: 'usr_123',
+      role: 'ADMIN',
+      companyId: 'comp_abc_789',
+    };
+    const scope = scopeByCompany(userContext);
+    assert(scope.companyId === 'comp_abc_789', 'scopeByCompany retorna o companyId exato do usuário');
 
-    // -------------------------------------------------------------
-    // Teste 6: Gestão de Alertas e Marcação de Envio Manual
-    // -------------------------------------------------------------
-    console.log('\n--- Teste 6: Gestão de Alertas & Envio Manual ---');
-    const alerts = await AlertService.listAlerts({ limit: 1 });
-    assert(alerts.data.length > 0, 'Alertas gravados e recuperados do banco de dados');
-
-    if (alerts.data.length > 0) {
-      const firstAlert = alerts.data[0];
-      const updated = await AlertService.toggleSentManual(firstAlert.id, true);
-      assert(updated.sentToClientManual === true && updated.sentToClientManualAt !== null, 'Marcação manual de "Enviado ao cliente" atualiza flag e timestamp');
-
-      const toggledBack = await AlertService.toggleSentManual(firstAlert.id, false);
-      assert(toggledBack.sentToClientManual === false, 'Desmarcação de envio manual funciona perfeitamente');
+    let errorThrown = false;
+    try {
+      scopeByCompany(null);
+    } catch {
+      errorThrown = true;
     }
+    assert(errorThrown, 'scopeByCompany bloqueia e lança erro quando contexto é nulo');
 
     // -------------------------------------------------------------
-    // Teste 7: Estatísticas do Dashboard
+    // Teste 6: Validação de Esquemas com Zod
     // -------------------------------------------------------------
-    console.log('\n--- Teste 7: Estatísticas do Dashboard ---');
-    const stats = await AlertService.getDashboardStats();
-    assert(typeof stats.totalClients === 'number' && stats.totalClients > 0, 'Estatísticas de total de clientes carregadas');
-    assert(typeof stats.todayAlerts === 'number', 'Estatísticas de alertas de hoje carregadas');
+    console.log('\n--- Teste 6: Validação Zod ---');
+    const validLogin = loginSchema.safeParse({ email: 'Test@Domain.COM ', password: '123' });
+    assert(validLogin.success && validLogin.data.email === 'test@domain.com', 'loginSchema normaliza e valida email');
+
+    const invalidRegister = registerSchema.safeParse({ name: 'A', email: 'invalid', password: 'short' });
+    assert(!invalidRegister.success, 'registerSchema rejeita senha menor que 10 caracteres');
+
+    const validRegister = registerSchema.safeParse({ name: 'Admin', email: 'admin@domain.com', password: 'secure_password_10' });
+    assert(validRegister.success, 'registerSchema aceita cadastro válido');
+
+    const validClient = createClientSchema.safeParse({
+      name: 'Cliente Teste',
+      phone: '(11) 98765-4321',
+      gender: 'FEMALE',
+      isMother: true,
+    });
+    assert(validClient.success && validClient.data.phone === '+5511987654321', 'createClientSchema normaliza telefone E.164');
 
     console.log('\n===============================================');
     console.log(`🏁 RESULTADO FINAL: ${passed} PASSOU | ${failed} FALHOU`);
@@ -127,8 +133,6 @@ async function runTests() {
   } catch (err: any) {
     console.error('❌ Erro durante a execução dos testes:', err);
     process.exit(1);
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

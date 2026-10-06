@@ -1,69 +1,84 @@
-import { Request, Response } from 'express';
+import { Response, NextFunction } from 'express';
 import { UserService } from '../services/UserService';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
+import { createUserSchema, updateUserSchema } from '../validators';
+import { AppError } from '../utils/AppError';
 
 export class UserController {
-  static async list(req: Request, res: Response) {
+  static async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const currentUser = (req as any).user;
-      const users = await UserService.list(currentUser);
+      const users = await UserService.list(req.user);
       return res.json(users);
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message || 'Erro ao listar usuários' });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async getById(req: Request, res: Response) {
+  static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const currentUser = (req as any).user;
-      const user = await UserService.getById(id, currentUser);
+      if (!id) throw new AppError('ID do usuário é obrigatório', 400);
+
+      const user = await UserService.getById(id, req.user);
       return res.json(user);
-    } catch (err: any) {
-      return res.status(404).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async create(req: Request, res: Response) {
+  static async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const currentUser = (req as any).user;
-      const user = await UserService.create(req.body, currentUser);
+      const parsed = createUserSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AppError(parsed.error.errors[0]?.message || 'Dados de usuário inválidos', 400);
+      }
+
+      const user = await UserService.create(parsed.data as any, req.user);
       return res.status(201).json(user);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async update(req: Request, res: Response) {
+  static async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const currentUser = (req as any).user;
-      const user = await UserService.update(id, req.body, currentUser);
+      if (!id) throw new AppError('ID do usuário é obrigatório', 400);
+
+      const parsed = updateUserSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AppError(parsed.error.errors[0]?.message || 'Dados de atualização inválidos', 400);
+      }
+
+      const user = await UserService.update(id, parsed.data as any, req.user);
       return res.json(user);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async toggleApproval(req: Request, res: Response) {
+  static async toggleApproval(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const { approve } = req.body;
-      const currentUser = (req as any).user;
-      const result = await UserService.toggleApproval(id, Boolean(approve), currentUser);
-      return res.json(result);
-    } catch (err: any) {
-      return res.status(403).json({ error: err.message });
+      if (!id) throw new AppError('ID do usuário é obrigatório', 400);
+
+      const user = await UserService.toggleApproval(id, Boolean(approve), req.user);
+      return res.json(user);
+    } catch (err) {
+      next(err);
     }
   }
 
-  static async delete(req: Request, res: Response) {
+  static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const currentUser = (req as any).user;
-      const result = await UserService.delete(id, currentUser);
+      if (!id) throw new AppError('ID do usuário é obrigatório', 400);
+
+      const result = await UserService.delete(id, req.user);
       return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+    } catch (err) {
+      next(err);
     }
   }
 }

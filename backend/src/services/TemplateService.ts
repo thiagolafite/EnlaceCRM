@@ -1,21 +1,35 @@
 import { prisma } from '../utils/prisma';
 import { interpolateTemplate, AVAILABLE_VARIABLES } from '../utils/interpolator';
+import { AuthenticatedUserContext } from '../utils/tenant';
+import { AppError } from '../utils/AppError';
 
 export interface CreateTemplateDTO {
   name: string;
   eventType: 'CLIENT_BIRTHDAY' | 'FAMILY_BIRTHDAY' | 'FIXED_DATE';
-  channel: 'WHATSAPP' | 'EMAIL';
+  channel?: 'WHATSAPP' | 'EMAIL';
   commemorativeDateId?: string | null;
   subject?: string | null;
   content: string;
   active?: boolean;
+  isGlobal?: boolean;
 }
 
 export class TemplateService {
-  static async list(params?: { eventType?: string; channel?: string }) {
+  static async list(params?: { eventType?: string; channel?: string }, currentUser?: AuthenticatedUserContext | null) {
     const where: any = {};
     if (params?.eventType) where.eventType = params.eventType;
     if (params?.channel) where.channel = params.channel;
+
+    if (currentUser?.role === 'MASTER') {
+      // MASTER vê templates globais e de todas as empresas
+    } else if (currentUser?.companyId) {
+      where.OR = [
+        { companyId: null },
+        { companyId: currentUser.companyId },
+      ];
+    } else {
+      where.companyId = null;
+    }
 
     return prisma.messageTemplate.findMany({
       where,
@@ -26,44 +40,71 @@ export class TemplateService {
     });
   }
 
-  static async getById(id: string) {
+  static async getById(id: string, currentUser?: AuthenticatedUserContext | null) {
     const template = await prisma.messageTemplate.findUnique({
       where: { id },
       include: { commemorativeDate: true },
     });
 
     if (!template) {
-      throw new Error('Template não encontrado');
+      throw new AppError('Template não encontrado', 404);
+    }
+
+    if (
+      template.companyId !== null &&
+      currentUser?.role !== 'MASTER' &&
+      template.companyId !== currentUser?.companyId
+    ) {
+      throw new AppError('Template não encontrado', 404);
     }
 
     return template;
   }
 
-  static async create(data: CreateTemplateDTO) {
+  static async create(data: CreateTemplateDTO, currentUser?: AuthenticatedUserContext | null) {
     if (!data.name || !data.name.trim()) {
-      throw new Error('Nome do template é obrigatório');
+      throw new AppError('Nome do template é obrigatório', 400);
     }
     if (!data.content || !data.content.trim()) {
-      throw new Error('Conteúdo da mensagem é obrigatório');
+      throw new AppError('Conteúdo da mensagem é obrigatório', 400);
+    }
+
+    let targetCompanyId: string | null = currentUser?.companyId || null;
+    if (currentUser?.role === 'MASTER' && data.isGlobal) {
+      targetCompanyId = null;
     }
 
     return prisma.messageTemplate.create({
       data: {
         name: data.name.trim(),
         eventType: data.eventType,
-        channel: data.channel,
+        channel: data.channel || 'WHATSAPP',
         commemorativeDateId: data.commemorativeDateId || null,
         subject: data.subject?.trim() || null,
         content: data.content,
         active: typeof data.active === 'boolean' ? data.active : true,
+        companyId: targetCompanyId,
       },
     });
   }
 
-  static async update(id: string, data: Partial<CreateTemplateDTO>) {
+  static async update(id: string, data: Partial<CreateTemplateDTO>, currentUser?: AuthenticatedUserContext | null) {
     const existing = await prisma.messageTemplate.findUnique({ where: { id } });
     if (!existing) {
-      throw new Error('Template não encontrado');
+      throw new AppError('Template não encontrado', 404);
+    }
+
+    // Regra: templates globais só podem ser modificados pelo MASTER
+    if (existing.companyId === null && currentUser?.role !== 'MASTER') {
+      throw new AppError('Templates globais do sistema só podem ser alterados pelo Master', 403);
+    }
+
+    if (
+      existing.companyId !== null &&
+      currentUser?.role !== 'MASTER' &&
+      existing.companyId !== currentUser?.companyId
+    ) {
+      throw new AppError('Template não encontrado', 404);
     }
 
     const updateData: any = {};
@@ -81,10 +122,22 @@ export class TemplateService {
     });
   }
 
-  static async delete(id: string) {
+  static async delete(id: string, currentUser?: AuthenticatedUserContext | null) {
     const existing = await prisma.messageTemplate.findUnique({ where: { id } });
     if (!existing) {
-      throw new Error('Template não encontrado');
+      throw new AppError('Template não encontrado', 404);
+    }
+
+    if (existing.companyId === null && currentUser?.role !== 'MASTER') {
+      throw new AppError('Templates globais do sistema só podem ser excluídos pelo Master', 403);
+    }
+
+    if (
+      existing.companyId !== null &&
+      currentUser?.role !== 'MASTER' &&
+      existing.companyId !== currentUser?.companyId
+    ) {
+      throw new AppError('Template não encontrado', 404);
     }
 
     await prisma.messageTemplate.delete({ where: { id } });
@@ -101,7 +154,7 @@ export class TemplateService {
 
     if (isId) {
       const template = await prisma.messageTemplate.findUnique({ where: { id: templateIdOrContent } });
-      if (!template) throw new Error('Template não encontrado');
+      if (!template) throw new AppError('Template não encontrado', 404);
       content = template.content;
       subject = template.subject || '';
     }

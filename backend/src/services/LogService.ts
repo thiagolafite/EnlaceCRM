@@ -14,26 +14,57 @@ export interface CreateLogDTO {
   companyId?: string;
 }
 
+/**
+ * Função utilitária para sanitizar e mascarar campos sensíveis de logs
+ */
+function sanitizeLogDetails(details: any): string | null {
+  if (!details) return null;
+
+  try {
+    const sensitiveKeys = ['password', 'passwordHash', 'token', 'jwt', 'callmebotApiKey', 'secret', 'authorization', 'apiKey'];
+    
+    const maskObject = (obj: any): any => {
+      if (typeof obj !== 'object' || obj === null) return obj;
+      if (Array.isArray(obj)) return obj.map(maskObject);
+
+      const copy: any = {};
+      for (const [key, val] of Object.entries(obj)) {
+        if (sensitiveKeys.some((s) => key.toLowerCase().includes(s.toLowerCase()))) {
+          copy[key] = '********';
+        } else if (typeof val === 'object' && val !== null) {
+          copy[key] = maskObject(val);
+        } else {
+          copy[key] = val;
+        }
+      }
+      return copy;
+    };
+
+    if (typeof details === 'string') {
+      return details.slice(0, 4000);
+    }
+
+    if (details instanceof Error) {
+      return JSON.stringify({
+        name: details.name,
+        message: details.message,
+      });
+    }
+
+    const sanitized = maskObject(details);
+    return JSON.stringify(sanitized).slice(0, 4000);
+  } catch {
+    return String(details).slice(0, 1000);
+  }
+}
+
 export class LogService {
   /**
    * Registra um novo log de sistema ou evento de segurança
    */
   static async createLog(data: CreateLogDTO) {
     try {
-      let detailsString: string | null = null;
-      if (data.details) {
-        if (typeof data.details === 'string') {
-          detailsString = data.details;
-        } else if (data.details instanceof Error) {
-          detailsString = JSON.stringify({
-            name: data.details.name,
-            message: data.details.message,
-            stack: data.details.stack,
-          });
-        } else {
-          detailsString = JSON.stringify(data.details);
-        }
-      }
+      const detailsString = sanitizeLogDetails(data.details);
 
       return await prisma.systemLog.create({
         data: {
@@ -43,7 +74,7 @@ export class LogService {
           message: data.message,
           details: detailsString,
           ipAddress: data.ipAddress || null,
-          userAgent: data.userAgent || null,
+          userAgent: data.userAgent ? data.userAgent.slice(0, 255) : null,
           userId: data.userId || null,
           userEmail: data.userEmail || null,
           companyId: data.companyId || null,
@@ -69,7 +100,7 @@ export class LogService {
     endDate?: string;
   }) {
     const page = params.page && params.page > 0 ? Number(params.page) : 1;
-    const limit = params.limit && params.limit > 0 ? Number(params.limit) : 50;
+    const limit = params.limit && params.limit > 0 ? Math.min(Number(params.limit), 100) : 50;
     const skip = (page - 1) * limit;
 
     const where: any = {};
@@ -131,7 +162,6 @@ export class LogService {
     const now = new Date();
     const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    // Testar latência de consulta ao banco Supabase
     const dbStartTime = Date.now();
     let dbStatus = 'ONLINE';
     let dbLatencyMs = 0;
@@ -166,12 +196,11 @@ export class LogService {
       }),
       prisma.user.count(),
       prisma.client.count(),
-      prisma.user.groupBy({
-        by: ['companyId'],
+      prisma.company.count({
+        where: { status: { in: ['ACTIVE', 'TRIAL'] } },
       }),
     ]);
 
-    // Uso de memória do servidor
     const memoryUsage = process.memoryUsage();
     const totalMemoryMB = Math.round(os.totalmem() / 1024 / 1024);
     const freeMemoryMB = Math.round(os.freemem() / 1024 / 1024);
@@ -202,15 +231,15 @@ export class LogService {
         securityIncidents24h,
         totalUsers,
         totalClients,
-        activeTenantsCount: activeTenants.length,
+        activeTenantsCount: activeTenants,
       },
     };
   }
 
   /**
-   * Limpar logs antigos
+   * Limpar logs antigos (retenção padrão: 90 dias)
    */
-  static async clearLogs(olderThanDays = 30) {
+  static async clearLogs(olderThanDays = 90) {
     const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
     const res = await prisma.systemLog.deleteMany({
       where: { createdAt: { lt: cutoffDate } },

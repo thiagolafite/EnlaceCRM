@@ -1,58 +1,150 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
 import routes from './routes';
 import { LogService } from './services/LogService';
+import { config } from './config';
+import { AppError } from './utils/AppError';
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// 1. Trust proxy para ambientes atrás de reverse proxy / load balancers (Vercel, Railway, Nginx)
+app.set('trust proxy', 1);
 
-// Rota de Healthcheck
+// 2. Proteção de Headers HTTP com Helmet
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Desabilitado para APIs RESTful
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// 3. CORS com Allowlist estrita configurada
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permitir requisições sem origem (como apps mobile, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = config.corsOrigins.map((o) => o.trim());
+      const isAllowed =
+        allowedOrigins.includes('*') ||
+        allowedOrigins.some((allowed) => allowed === origin || allowed.replace(/\/$/, '') === origin.replace(/\/$/, ''));
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origem não permitida pela política de CORS: ${origin}`));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-Id'],
+  })
+);
+
+// 4. Limite de Payload JSON restrito a 100kb para mitigar DoS
+app.use(express.json({ limit: '100kb' }));
+
+// 5. Rate Limiters Granulares
+const globalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 600, // Máximo de 600 requisições por IP a cada 15 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisições. Por favor, tente novamente em alguns minutos.' },
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 10, // Máximo de 10 tentativas por janela
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas tentativas de login. Por favor, aguarde 15 minutos antes de tentar novamente.' },
+  keyGenerator: (req) => {
+    const email = req.body?.email ? String(req.body.email).toLowerCase().trim() : '';
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    return `${ip}_${email}`;
+  },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 10, // Máximo de 10 cadastros por IP a cada hora
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Limite de cadastros atingido para este endereço IP. Tente novamente mais tarde.' },
+});
+
+// Atribuir rate limiters específicos antes das rotas
+app.use('/api/auth/login', loginLimiter);
+app.use('/auth/login', loginLimiter);
+app.use('/api/auth/register', registerLimiter);
+app.use('/auth/register', registerLimiter);
+app.use('/api', globalApiLimiter);
+app.use('/', globalApiLimiter);
+
+// 6. Rota de Healthcheck
 app.get(['/api/health', '/health'], (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     system: 'Enlace CRM API',
+    environment: config.nodeEnv,
     timestamp: new Date().toISOString(),
   });
 });
 
-// Rotas Principais (atende com ou sem prefixo /api para compatibilidade total com Vercel Serverless)
+// 7. Rotas Principais da Aplicação
 app.use('/api', routes);
 app.use('/', routes);
 
-// Middleware de Tratamento de Erros Global com Auditoria Automática
+// 8. Middleware de Tratamento de Erros Global com Auditoria e Sanitização
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('Unhandled Application Error:', err);
-
-  const status = err.status || 500;
+  const requestId = crypto.randomUUID();
+  const isAppError = err instanceof AppError;
+  const status = isAppError ? err.statusCode : err.status || 500;
   const currentUser = (req as any).user;
 
-  // Registrar no banco de dados para visualização no Painel Master
-  LogService.createLog({
-    level: status >= 500 ? 'ERROR' : 'WARN',
-    category: 'API',
-    action: `API_ERROR_${status}`,
-    message: err.message || 'Erro interno no servidor',
-    details: {
-      path: req.originalUrl || req.url,
-      method: req.method,
-      status,
-      stack: err.stack,
-      body: req.body,
-      query: req.query,
-    },
-    ipAddress: req.ip || req.socket.remoteAddress,
-    userAgent: req.headers['user-agent'],
-    userId: currentUser?.id,
-    userEmail: currentUser?.email,
-    companyId: currentUser?.companyId,
-  }).catch(() => {});
+  // Registrar erro no banco de dados com dados mascarados (sem senhas ou tokens)
+  if (status >= 400) {
+    LogService.createLog({
+      level: status >= 500 ? 'ERROR' : 'WARN',
+      category: 'API',
+      action: isAppError ? `CLIENT_ERROR_${status}` : `SERVER_ERROR_${status}`,
+      message: err.message || 'Erro durante processamento da requisição',
+      details: {
+        requestId,
+        path: req.originalUrl || req.url,
+        method: req.method,
+        status,
+        errorName: err.name,
+        details: isAppError ? err.details : undefined,
+      },
+      ipAddress: req.ip || req.socket.remoteAddress,
+      userAgent: req.headers['user-agent'],
+      userId: currentUser?.id,
+      userEmail: currentUser?.email,
+      companyId: currentUser?.companyId,
+    }).catch(() => {});
+  }
 
-  res.status(status).json({
+  // Em produção, para erros 500 não operacionais, devolve mensagem genérica protegida
+  if (config.nodeEnv === 'production' && status >= 500) {
+    return res.status(status).json({
+      error: 'Ocorreu um erro interno no servidor. Por favor, contate o suporte com o código do erro.',
+      requestId,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  return res.status(status).json({
     error: err.message || 'Erro interno no servidor',
+    requestId,
     timestamp: new Date().toISOString(),
     path: req.originalUrl || req.url,
+    details: isAppError ? err.details : undefined,
   });
 });
 

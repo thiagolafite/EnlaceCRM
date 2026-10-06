@@ -1,39 +1,48 @@
 import { prisma } from '../utils/prisma';
+import { scopeByCompany, AuthenticatedUserContext } from '../utils/tenant';
+import { AppError } from '../utils/AppError';
 
 export interface CreateFamilyMemberDTO {
   clientId: string;
   name: string;
   gender?: 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_SPECIFIED';
   relationship: string;
-  birthDate: string | Date;
-  phone?: string;
-  email?: string;
+  birthDate: Date;
+  phone?: string | null;
+  email?: string | null;
   sameAddressAsClient?: boolean;
-  zipCode?: string;
-  address?: string;
-  addressNumber?: string;
-  addressComplement?: string;
-  neighborhood?: string;
-  city?: string;
-  state?: string;
-  notes?: string;
+  zipCode?: string | null;
+  address?: string | null;
+  addressNumber?: string | null;
+  addressComplement?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  notes?: string | null;
 }
 
 export class FamilyMemberService {
-  static async create(data: CreateFamilyMemberDTO) {
+  static async create(data: CreateFamilyMemberDTO, currentUser?: AuthenticatedUserContext | null) {
     if (!data.clientId) {
-      throw new Error('ID do cliente é obrigatório');
+      throw new AppError('ID do cliente é obrigatório', 400);
     }
     if (!data.name || !data.name.trim()) {
-      throw new Error('Nome do familiar é obrigatório');
+      throw new AppError('Nome do familiar é obrigatório', 400);
     }
     if (!data.birthDate) {
-      throw new Error('Data de nascimento é obrigatória');
+      throw new AppError('Data de nascimento é obrigatória', 400);
     }
 
-    const client = await prisma.client.findUnique({ where: { id: data.clientId } });
+    const companyScope = scopeByCompany(currentUser);
+    const client = await prisma.client.findFirst({
+      where: {
+        id: data.clientId,
+        ...companyScope,
+      },
+    });
+
     if (!client) {
-      throw new Error('Cliente associado não encontrado');
+      throw new AppError('Cliente associado não encontrado', 404);
     }
 
     // Se marcado como "mesmo endereço do cliente", copia dados do cliente se os campos estiverem vazios
@@ -61,7 +70,7 @@ export class FamilyMemberService {
         name: data.name.trim(),
         gender: data.gender || 'NOT_SPECIFIED',
         relationship: data.relationship || 'OTHER',
-        birthDate: new Date(data.birthDate),
+        birthDate: data.birthDate,
         phone: data.phone?.trim() || null,
         email: data.email?.toLowerCase().trim() || null,
         sameAddressAsClient: data.sameAddressAsClient || false,
@@ -79,17 +88,24 @@ export class FamilyMemberService {
     return member;
   }
 
-  static async update(id: string, data: Partial<CreateFamilyMemberDTO>) {
-    const existing = await prisma.familyMember.findUnique({ where: { id } });
+  static async update(id: string, data: Partial<CreateFamilyMemberDTO>, currentUser?: AuthenticatedUserContext | null) {
+    const companyScope = scopeByCompany(currentUser);
+    const existing = await prisma.familyMember.findFirst({
+      where: {
+        id,
+        client: companyScope,
+      },
+    });
+
     if (!existing) {
-      throw new Error('Familiar não encontrado');
+      throw new AppError('Familiar não encontrado', 404);
     }
 
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name.trim();
     if (data.gender !== undefined) updateData.gender = data.gender;
     if (data.relationship !== undefined) updateData.relationship = data.relationship;
-    if (data.birthDate !== undefined) updateData.birthDate = new Date(data.birthDate);
+    if (data.birthDate !== undefined) updateData.birthDate = data.birthDate;
     if (data.phone !== undefined) updateData.phone = data.phone?.trim() || null;
     if (data.email !== undefined) updateData.email = data.email?.toLowerCase().trim() || null;
 
@@ -105,26 +121,45 @@ export class FamilyMemberService {
     if (data.notes !== undefined) updateData.notes = data.notes?.trim() || null;
 
     const updated = await prisma.familyMember.update({
-      where: { id },
+      where: { id: existing.id },
       data: updateData,
     });
 
     return updated;
   }
 
-  static async delete(id: string) {
-    const existing = await prisma.familyMember.findUnique({ where: { id } });
+  static async delete(id: string, currentUser?: AuthenticatedUserContext | null) {
+    const companyScope = scopeByCompany(currentUser);
+    const existing = await prisma.familyMember.findFirst({
+      where: {
+        id,
+        client: companyScope,
+      },
+    });
+
     if (!existing) {
-      throw new Error('Familiar não encontrado');
+      throw new AppError('Familiar não encontrado', 404);
     }
 
-    await prisma.familyMember.delete({ where: { id } });
+    await prisma.familyMember.delete({ where: { id: existing.id } });
     return { success: true };
   }
 
-  static async listByClient(clientId: string) {
+  static async listByClient(clientId: string, currentUser?: AuthenticatedUserContext | null) {
+    const companyScope = scopeByCompany(currentUser);
+    const client = await prisma.client.findFirst({
+      where: {
+        id: clientId,
+        ...companyScope,
+      },
+    });
+
+    if (!client) {
+      throw new AppError('Cliente associado não encontrado', 404);
+    }
+
     return prisma.familyMember.findMany({
-      where: { clientId },
+      where: { clientId: client.id },
       orderBy: { name: 'asc' },
     });
   }
