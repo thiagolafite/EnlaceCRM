@@ -169,8 +169,15 @@ export class AutomationService {
     const candidates: CandidateEvent[] = [];
 
     for (const client of clients) {
-      // Ignora clientes inativos ou sem consentimento LGPD
-      if (client.status !== 'ACTIVE' || !client.lgpdConsent) {
+      // 1. Governança LGPD: Ignora clientes inativos, sem consentimento ou com opt-out registrado
+      if (client.status !== 'ACTIVE' || !client.lgpdConsent || client.optOutAt) {
+        report.lgpdSkipped++;
+        continue;
+      }
+
+      // 2. Proteção a Menores: Por padrão, não gera mensagens para clientes menores de 18 anos
+      const clientAge = client.birthDate ? calculateAgeSP(client.birthDate, targetSP) : null;
+      if (clientAge !== null && clientAge < 18) {
         report.lgpdSkipped++;
         continue;
       }
@@ -180,7 +187,7 @@ export class AutomationService {
       // -------------------------------------------------------------
       if (client.birthDate && matchesBirthdaySP(client.birthDate, targetSP)) {
         report.clientBirthdaysFound++;
-        const age = calculateAgeSP(client.birthDate, targetSP);
+        const age = clientAge ?? calculateAgeSP(client.birthDate, targetSP);
         const contextDescription = `Aniversário do Cliente${age > 0 ? ` (${age} anos)` : ''}`;
         const dedupeKey = `${targetCompanyId}|${client.id}|||CLIENT_BIRTHDAY|${targetSP.dateKey}`;
 
@@ -208,11 +215,22 @@ export class AutomationService {
       // CENÁRIO B: Aniversário de Familiares do Cliente
       // -------------------------------------------------------------
       for (const fm of client.familyMembers) {
+        // Governança LGPD Familiar: ignora familiar com opt-out ou sem confirmação do titular
+        if (fm.optOutAt || !fm.consentHolderConfirmed) {
+          continue;
+        }
+
+        const fmAge = fm.birthDate ? calculateAgeSP(fm.birthDate, targetSP) : null;
+        // Proteção a menores: ignora menores de 18 anos exceto se allowMinorNotifications for explicitamente verdadeiro
+        if (fmAge !== null && fmAge < 18 && !fm.allowMinorNotifications) {
+          continue;
+        }
+
         if (fm.birthDate && matchesBirthdaySP(fm.birthDate, targetSP)) {
           report.familyBirthdaysFound++;
           const relLabel = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
           const relPossessive = RELATIONSHIP_POSSESSIVE[fm.relationship] || 'seu familiar';
-          const age = calculateAgeSP(fm.birthDate, targetSP);
+          const age = fmAge ?? calculateAgeSP(fm.birthDate, targetSP);
           const contextDescription = `Aniversário de ${relLabel}: ${fm.name}${age > 0 ? ` (${age} anos)` : ''}`;
           const dedupeKey = `${targetCompanyId}|${client.id}|${fm.id}||FAMILY_BIRTHDAY|${targetSP.dateKey}`;
 

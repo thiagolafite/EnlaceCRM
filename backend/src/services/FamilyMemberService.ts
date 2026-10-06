@@ -10,6 +10,8 @@ export interface CreateFamilyMemberDTO {
   birthDate: Date;
   phone?: string | null;
   email?: string | null;
+  consentHolderConfirmed?: boolean;
+  allowMinorNotifications?: boolean;
   sameAddressAsClient?: boolean;
   zipCode?: string | null;
   address?: string | null;
@@ -73,6 +75,8 @@ export class FamilyMemberService {
         birthDate: data.birthDate,
         phone: data.phone?.trim() || null,
         email: data.email?.toLowerCase().trim() || null,
+        consentHolderConfirmed: Boolean(data.consentHolderConfirmed),
+        allowMinorNotifications: Boolean(data.allowMinorNotifications),
         sameAddressAsClient: data.sameAddressAsClient || false,
         zipCode,
         address,
@@ -108,6 +112,8 @@ export class FamilyMemberService {
     if (data.birthDate !== undefined) updateData.birthDate = data.birthDate;
     if (data.phone !== undefined) updateData.phone = data.phone?.trim() || null;
     if (data.email !== undefined) updateData.email = data.email?.toLowerCase().trim() || null;
+    if (data.consentHolderConfirmed !== undefined) updateData.consentHolderConfirmed = Boolean(data.consentHolderConfirmed);
+    if (data.allowMinorNotifications !== undefined) updateData.allowMinorNotifications = Boolean(data.allowMinorNotifications);
 
     if (data.sameAddressAsClient !== undefined) updateData.sameAddressAsClient = data.sameAddressAsClient;
     if (data.zipCode !== undefined) updateData.zipCode = data.zipCode?.trim() || null;
@@ -126,6 +132,56 @@ export class FamilyMemberService {
     });
 
     return updated;
+  }
+
+  static async optOut(id: string, currentUser?: AuthenticatedUserContext | null) {
+    const companyScope = scopeByCompany(currentUser);
+    const existing = await prisma.familyMember.findFirst({
+      where: {
+        id,
+        client: companyScope,
+      },
+    });
+
+    if (!existing) {
+      throw new AppError('Familiar não encontrado', 404);
+    }
+
+    const updated = await prisma.familyMember.update({
+      where: { id: existing.id },
+      data: { optOutAt: new Date() },
+    });
+
+    return {
+      success: true,
+      message: 'Opt-out do familiar registrado com sucesso.',
+      familyMember: updated,
+    };
+  }
+
+  static async optIn(id: string, currentUser?: AuthenticatedUserContext | null) {
+    const companyScope = scopeByCompany(currentUser);
+    const existing = await prisma.familyMember.findFirst({
+      where: {
+        id,
+        client: companyScope,
+      },
+    });
+
+    if (!existing) {
+      throw new AppError('Familiar não encontrado', 404);
+    }
+
+    const updated = await prisma.familyMember.update({
+      where: { id: existing.id },
+      data: { optOutAt: null, consentHolderConfirmed: true },
+    });
+
+    return {
+      success: true,
+      message: 'Consentimento do familiar confirmado e opt-in reativado.',
+      familyMember: updated,
+    };
   }
 
   static async delete(id: string, currentUser?: AuthenticatedUserContext | null) {

@@ -12,6 +12,8 @@ import { Automation } from './pages/Automation';
 import { Settings } from './pages/Settings';
 import { Users } from './pages/Users';
 import { Monitoring } from './pages/Monitoring';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { TermsOfUse } from './pages/TermsOfUse';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { HeartHandshake, RefreshCw } from 'lucide-react';
@@ -133,6 +135,14 @@ export function AppContent() {
         </div>
       </div>
     );
+  }
+
+  const currentPath = window.location.pathname;
+  if (currentPath === '/privacy-policy' || currentPath === '/politica-de-privacidade') {
+    return <PrivacyPolicy />;
+  }
+  if (currentPath === '/terms-of-use' || currentPath === '/termos-de-uso') {
+    return <TermsOfUse />;
   }
 
   if (!user) {

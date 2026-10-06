@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { normalizePhoneBR } from '../utils/phone';
+import { validateDocument } from '../utils/maskDocument';
 
 const emailSchema = z
   .string()
@@ -19,6 +20,8 @@ export const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').trim(),
   email: emailSchema,
   password: z.string().min(10, 'A senha deve ter no mínimo 10 caracteres para conformidade de segurança'),
+  termsAccepted: z.boolean().optional().default(true),
+  termsVersion: z.string().optional().default('1.0'),
 });
 
 // ==========================================
@@ -26,7 +29,14 @@ export const registerSchema = z.object({
 // ==========================================
 export const createClientSchema = z.object({
   name: z.string().min(2, 'Nome do cliente é obrigatório').trim(),
-  document: z.string().optional().nullable().transform((v) => (v ? v.trim() : null)),
+  document: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((v) => !v || validateDocument(v), {
+      message: 'CPF ou CNPJ inválido. Verifique os dígitos informados.',
+    })
+    .transform((v) => (v ? v.trim() : null)),
   email: z
     .string()
     .trim()
@@ -53,7 +63,10 @@ export const createClientSchema = z.object({
   isFather: z.boolean().default(false),
   profession: z.string().optional().nullable().transform((v) => (v ? v.trim() : null)),
 
-  lgpdConsent: z.boolean().default(true),
+  // Governança LGPD
+  lgpdConsent: z.boolean().default(false),
+  consentSource: z.enum(['CONTRATO', 'WHATSAPP', 'FORMULARIO', 'VERBAL', 'MANUAL', 'LEGADO_MIGRACAO']).default('MANUAL'),
+  consentNote: z.string().optional().nullable().transform((v) => (v ? v.trim() : null)),
   notes: z.string().optional().nullable().transform((v) => (v ? v.trim() : null)),
 });
 
@@ -63,6 +76,7 @@ export const listClientQuerySchema = z.object({
   search: z.string().optional(),
   status: z.string().optional(),
   lgpdConsent: z.enum(['true', 'false']).optional().transform((v) => (v === undefined ? undefined : v === 'true')),
+  optOut: z.enum(['true', 'false']).optional().transform((v) => (v === undefined ? undefined : v === 'true')),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -86,6 +100,10 @@ export const createFamilyMemberSchema = z.object({
     .or(z.literal(''))
     .transform((v) => (v ? v.trim().toLowerCase() : null)),
   
+  // Governança LGPD Familiar & Proteção a Menores
+  consentHolderConfirmed: z.boolean().default(false),
+  allowMinorNotifications: z.boolean().default(false),
+
   sameAddressAsClient: z.boolean().default(false),
   zipCode: z.string().optional().nullable(),
   address: z.string().optional().nullable(),

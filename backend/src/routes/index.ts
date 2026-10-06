@@ -55,15 +55,19 @@ routes.patch('/alerts/:id/toggle-sent', AlertController.toggleSent as any);
 routes.post('/alerts/resend-notification', requireRole('ADMIN', 'MASTER'), AlertController.resendNotification as any);
 
 // ==========================================
-// 6. Gestão de Clientes (OPERATOR, ADMIN, MASTER)
+// 6. Gestão de Clientes & LGPD (OPERATOR, ADMIN, MASTER)
 // ==========================================
 routes.get('/clients/stats', ClientController.getStats as any);
 routes.get('/clients', ClientController.list as any);
 routes.get('/clients/:id', ClientController.getById as any);
+routes.get('/clients/:id/export', ClientController.exportData as any);
 routes.post('/clients', ClientController.create as any);
 routes.put('/clients/:id', ClientController.update as any);
 routes.delete('/clients/:id', ClientController.delete as any);
+routes.post('/clients/:id/anonymize', requireRole('ADMIN', 'MASTER'), ClientController.anonymize as any);
 routes.patch('/clients/:id/lgpd', ClientController.toggleLgpd as any);
+routes.patch('/clients/:id/opt-out', ClientController.optOut as any);
+routes.patch('/clients/:id/opt-in', ClientController.optIn as any);
 
 // ==========================================
 // 7. Familiares do Cliente (OPERATOR, ADMIN, MASTER)
@@ -71,6 +75,8 @@ routes.patch('/clients/:id/lgpd', ClientController.toggleLgpd as any);
 routes.post('/family-members', FamilyMemberController.create as any);
 routes.put('/family-members/:id', FamilyMemberController.update as any);
 routes.delete('/family-members/:id', FamilyMemberController.delete as any);
+routes.patch('/family-members/:id/opt-out', FamilyMemberController.optOut as any);
+routes.patch('/family-members/:id/opt-in', FamilyMemberController.optIn as any);
 routes.get('/family-members/client/:clientId', FamilyMemberController.listByClient as any);
 
 // ==========================================

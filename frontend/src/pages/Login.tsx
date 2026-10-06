@@ -22,6 +22,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [regTermsAccepted, setRegTermsAccepted] = useState(true);
 
   const [loading, setLoading] = useState(false);
   const [errorState, setErrorState] = useState<{ message: string; solution?: string } | null>(null);
@@ -51,6 +52,15 @@ export function Login({ onLoginSuccess }: LoginProps) {
     e.preventDefault();
     setLoading(true);
     setErrorState(null);
+
+    if (!regTermsAccepted) {
+      setErrorState({
+        message: 'Você precisa aceitar os Termos de Uso e a Política de Privacidade.',
+        solution: 'Marque a caixa de seleção confirmando a concordância com os termos de serviço e proteção de dados.',
+      });
+      setLoading(false);
+      return;
+    }
 
     if (regPassword.length < 10) {
       setErrorState({
@@ -303,6 +313,27 @@ export function Login({ onLoginSuccess }: LoginProps) {
                 </div>
               </div>
 
+              {/* Termos de Uso e LGPD */}
+              <div className="flex items-start gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="regTerms"
+                  checked={regTermsAccepted}
+                  onChange={(e) => setRegTermsAccepted(e.target.checked)}
+                  className="mt-0.5 rounded border-[#E7E7E4] dark:border-[#26262B] text-stone-900 focus:ring-0 cursor-pointer"
+                />
+                <label htmlFor="regTerms" className="text-[11px] text-stone-600 dark:text-stone-400 leading-tight select-none">
+                  Li e concordo com os{' '}
+                  <a href="/terms-of-use" target="_blank" rel="noopener noreferrer" className="text-stone-900 dark:text-stone-100 font-medium underline hover:text-emerald-600">
+                    Termos de Uso
+                  </a>{' '}
+                  e a{' '}
+                  <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-stone-900 dark:text-stone-100 font-medium underline hover:text-emerald-600">
+                    Política de Privacidade (LGPD)
+                  </a>.
+                </label>
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}
@@ -313,6 +344,17 @@ export function Login({ onLoginSuccess }: LoginProps) {
               </button>
             </form>
           )}
+        </div>
+
+        {/* Footer Legal Links */}
+        <div className="mt-6 text-center text-[11px] text-stone-500 dark:text-stone-400 space-x-3">
+          <a href="/privacy-policy" className="hover:text-stone-900 dark:hover:text-stone-100 underline">
+            Privacidade & LGPD
+          </a>
+          <span>•</span>
+          <a href="/terms-of-use" className="hover:text-stone-900 dark:hover:text-stone-100 underline">
+            Termos de Uso
+          </a>
         </div>
       </div>
     </div>

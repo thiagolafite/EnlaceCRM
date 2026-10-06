@@ -77,11 +77,65 @@ export class ClientController {
   static async toggleLgpd(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { consent } = req.body;
+      const { consent, consentSource, consentNote } = req.body;
       if (!id) throw new AppError('ID do cliente é obrigatório', 400);
 
-      const updated = await ClientService.toggleLgpdConsent(id, Boolean(consent), req.user);
-      return res.json(updated);
+      if (consent) {
+        const result = await ClientService.optIn(id, consentSource || 'MANUAL', consentNote, req.user);
+        return res.json(result);
+      } else {
+        const result = await ClientService.optOut(id, req.user);
+        return res.json(result);
+      }
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async optOut(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const result = await ClientService.optOut(id, req.user);
+      return res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async optIn(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { consentSource, consentNote } = req.body;
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const result = await ClientService.optIn(id, consentSource, consentNote, req.user);
+      return res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async exportData(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const report = await ClientService.exportData(id, req.user);
+      return res.json(report);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async anonymize(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      if (!id) throw new AppError('ID do cliente é obrigatório', 400);
+
+      const result = await ClientService.anonymize(id, req.user);
+      return res.json(result);
     } catch (err) {
       next(err);
     }

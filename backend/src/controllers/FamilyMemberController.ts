@@ -48,6 +48,30 @@ export class FamilyMemberController {
     }
   }
 
+  static async optOut(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      if (!id) throw new AppError('ID do familiar é obrigatório', 400);
+
+      const result = await FamilyMemberService.optOut(id, req.user);
+      return res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async optIn(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      if (!id) throw new AppError('ID do familiar é obrigatório', 400);
+
+      const result = await FamilyMemberService.optIn(id, req.user);
+      return res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async listByClient(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { clientId } = req.params;

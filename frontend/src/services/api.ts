@@ -140,10 +140,24 @@ export const api = {
     request<{ success: boolean }>(`/clients/${id}`, {
       method: 'DELETE',
     }),
-  toggleLgpd: (id: string, consent: boolean) =>
-    request<Client>(`/clients/${id}/lgpd`, {
+  toggleLgpd: (id: string, consent: boolean, consentSource?: string, consentNote?: string) =>
+    request<{ success: boolean; client: Client }>(`/clients/${id}/lgpd`, {
       method: 'PATCH',
-      body: JSON.stringify({ consent }),
+      body: JSON.stringify({ consent, consentSource, consentNote }),
+    }),
+  optOutClient: (id: string) =>
+    request<{ success: boolean; message: string; client: Client }>(`/clients/${id}/opt-out`, {
+      method: 'PATCH',
+    }),
+  optInClient: (id: string, consentSource?: string, consentNote?: string) =>
+    request<{ success: boolean; message: string; client: Client }>(`/clients/${id}/opt-in`, {
+      method: 'PATCH',
+      body: JSON.stringify({ consentSource, consentNote }),
+    }),
+  exportClientData: (id: string) => request<any>(`/clients/${id}/export`),
+  anonymizeClient: (id: string) =>
+    request<{ success: boolean; message: string }>(`/clients/${id}/anonymize`, {
+      method: 'POST',
     }),
 
   // Family Members
@@ -160,6 +174,14 @@ export const api = {
   deleteFamilyMember: (id: string) =>
     request<{ success: boolean }>(`/family-members/${id}`, {
       method: 'DELETE',
+    }),
+  optOutFamilyMember: (id: string) =>
+    request<{ success: boolean; message: string; familyMember: FamilyMember }>(`/family-members/${id}/opt-out`, {
+      method: 'PATCH',
+    }),
+  optInFamilyMember: (id: string) =>
+    request<{ success: boolean; message: string; familyMember: FamilyMember }>(`/family-members/${id}/opt-in`, {
+      method: 'PATCH',
     }),
 
   // Commemorative Dates

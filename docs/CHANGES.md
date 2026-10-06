@@ -190,16 +190,71 @@ Documento de rastreamento das alterações efetuadas em cada fase da transição
 
 ### 6. Testes Automatizados
 - **`backend/tests/automation.test.ts`**:
-  - Suíte completa de 31 testes unitários cobrindo:
-    1. Interpolação dinâmica de variáveis
-    2. Fuso SP, datas UTC e 29 de Fevereiro
-    3. Audience Matcher e regras de gênero/paternidade
-    4. Criptografia AES-256-GCM
-    5. Normalização telefônica E.164
-    6. Chunking de mensagens longas
-    7. Escopo e isolamento multi-tenant
-    8. Validações de payload Zod
-  - **31/31 testes aprovados com sucesso**.
+  - Suíte completa de testes unitários cobrindo todos os módulos vitais.
+
+---
+
+## 📌 Fase 4 — Governança LGPD, Consentimento, Proteção a Menores & Direitos do Titular (Concluída)
+
+### 1. Modificações no Schema de Dados & Migração
+- **`backend/prisma/schema.prisma`**:
+  - **`Client`**:
+    - `lgpdConsent Boolean @default(false)`: Flag de consentimento ativo do titular.
+    - `consentSource String? @default("MANUAL")`: Origem do consentimento ('CONTRATO', 'WHATSAPP', 'FORMULARIO', 'VERBAL', 'MANUAL').
+    - `consentNote String?`: Observações e referências contratuais.
+    - `consentUpdatedAt DateTime?` & `consentUpdatedBy String?`: Rastreabilidade de auditoria.
+    - `optOutAt DateTime?`: Timestamp de revogação de consentimento (opt-out).
+  - **`FamilyMember`**:
+    - `consentHolderConfirmed Boolean @default(false)`: Confirmação de que o titular autorizou a inclusão do familiar.
+    - `allowMinorNotifications Boolean @default(false)`: Exceção expressa para envio a menores de 18 anos.
+    - `optOutAt DateTime?`: Timestamp de revogação de consentimento do familiar.
+  - **`User`**:
+    - `termsAcceptedAt DateTime?`: Registro temporal do aceite dos Termos de Uso e Política de Privacidade.
+    - `termsVersion String? @default("1.0")`: Versão aceita dos termos.
+- **`backend/scripts/migrate_lgpd_fields.ts`**:
+  - Script idempotente de migração com suporte a `--dry-run` para inicialização dos novos campos LGPD.
+
+### 2. Validação e Mascaramento de Documentos (CPF/CNPJ)
+- **`backend/src/utils/maskDocument.ts`**:
+  - `validateCpf()`: Validação estrita por módulo 11, rejeitando sequências de dígitos iguais e verificadores incorretos.
+  - `validateCnpj()`: Validação estrita dos dois dígitos verificadores de CNPJ.
+  - `validateDocument()`: Validador genérico opcional.
+  - `maskDocument()`: Mascaramento público seguro (`123.***.***-01` e `12.***.***/0001-90`).
+- **`backend/src/validators/index.ts`**:
+  - Integrada a validação algorítmica de CPF/CNPJ nos schemas de criação e atualização de clientes.
+
+### 3. Automação e Proteção Especial a Menores (<18 Anos)
+- **`backend/src/services/AutomationService.ts`**:
+  - **Filtro de Titulares**: O motor ignora clientes com `!lgpdConsent` ou `optOutAt != null`.
+  - **Filtro de Menores**: Calcula a idade no fuso de São Paulo (`calculateAgeSP`); se for menor de 18 anos, não gera alerta nem mensagem automatizada.
+  - **Filtro de Familiares**: Exclui familiares com `optOutAt != null`, sem `consentHolderConfirmed`, ou menores de 18 anos a menos que `allowMinorNotifications === true`.
+
+### 4. Direitos dos Titulares (LGPD Art. 18)
+- **Portabilidade de Dados (Art. 18, V)**:
+  - `GET /clients/:id/export`: Retorna relatório JSON completo estruturado com dados do titular, familiares, histórico de alertas e metadados de consentimento.
+- **Direito ao Esquecimento / Anonimização (Art. 18, VI)**:
+  - `POST /clients/:id/anonymize`: Substitui permanentemente dados identificáveis (nome, telefone, e-mail, documento, endereço, nascimento) por texto irreversível (`TITULAR_ANONIMIZADO_XXXX`), inativa o cadastro, registra opt-out e grava auditoria no `SystemLog` sem PII.
+- **Opt-Out e Opt-In Imediatos**:
+  - `POST /clients/:id/opt-out` & `POST /clients/:id/opt-in`.
+  - `POST /family-members/:id/opt-out` & `POST /family-members/:id/opt-in`.
+
+### 5. Frontend & Interfaces de Privacidade
+- **`frontend/src/pages/PrivacyPolicy.tsx` & `frontend/src/pages/TermsOfUse.tsx`**:
+  - Páginas públicas dedicadas com texto-base institucional marcado como pendente de revisão jurídica.
+- **`frontend/src/pages/Login.tsx`**:
+  - Checkbox obrigatório de aceite dos Termos de Uso e Política de Privacidade no formulário de criação de conta.
+  - Links de rodapé para as páginas legais.
+- **`frontend/src/pages/Clients.tsx`**:
+  - Badge visual de status LGPD (Consentimento Ativo vs. Opt-out) com ação rápida de alternância.
+  - Campos de origem (`consentSource`) e notas de consentimento no modal de cliente.
+  - Controles de consentimento do titular e permissão de menor no modal de familiares.
+  - Botão de exportação com modal interativo de visualização, cópia para clipboard e download de arquivo JSON (`portabilidade-lgpd-*.json`).
+  - Botão de anonimização com confirmação explícita de segurança contra deleção acidental.
+
+### 6. Documentação & Testes
+- **`docs/LGPD.md`**: Manual detalhado com papéis jurídicos (Controlador vs. Operador), mapeamento de dados tratados, bases legais aplicáveis, sub-processadores e ciclo de retenção.
+- **`backend/tests/automation.test.ts`**:
+  - 43 testes unitários automatizados passando com 100% de sucesso.
 
 
 

@@ -112,29 +112,63 @@ export function ManualSentBadge({ sent, sentAt }: { sent: boolean; sentAt?: stri
   );
 }
 
-export function LgpdBadge({ consent, date, onToggle }: { consent: boolean; date?: string | null; onToggle?: () => void }) {
-  if (consent) {
+export function LgpdBadge({
+  consent,
+  optOutAt,
+  source,
+  date,
+  onToggle,
+}: {
+  consent: boolean;
+  optOutAt?: string | null;
+  source?: string | null;
+  date?: string | null;
+  onToggle?: () => void;
+}) {
+  if (optOutAt) {
     return (
       <button
         type="button"
         onClick={onToggle}
-        title={date ? `Consentimento LGPD concedido em ${new Date(date).toLocaleDateString('pt-BR')}` : 'LGPD Ativo'}
-        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/30 dark:text-teal-300 dark:border-teal-800/40 transition-colors ${onToggle ? 'hover:bg-teal-100 dark:hover:bg-teal-900/40' : ''}`}
+        title={`Opt-out registrado em ${new Date(optOutAt).toLocaleDateString('pt-BR')}. Clique para gerenciar consentimento.`}
+        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/40 transition-colors ${
+          onToggle ? 'hover:bg-rose-100 dark:hover:bg-rose-900/40 cursor-pointer' : ''
+        }`}
       >
-        <ShieldCheck className="w-3 h-3 text-teal-600 dark:text-teal-400" />
-        <span>LGPD Ativo</span>
+        <ShieldAlert className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+        <span>Opt-out (Revogado)</span>
       </button>
     );
   }
+
+  if (consent) {
+    const sourceLabel = source === 'CONTRATO' ? 'Contrato' : source === 'WHATSAPP' ? 'WhatsApp' : source === 'FORMULARIO' ? 'Formulário' : source === 'VERBAL' ? 'Verbal' : 'Ativo';
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        title={date ? `Consentimento LGPD (${source || 'Manual'}) concedido em ${new Date(date).toLocaleDateString('pt-BR')}` : 'Consentimento LGPD Ativo'}
+        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/30 dark:text-teal-300 dark:border-teal-800/40 transition-colors ${
+          onToggle ? 'hover:bg-teal-100 dark:hover:bg-teal-900/40 cursor-pointer' : ''
+        }`}
+      >
+        <ShieldCheck className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+        <span>LGPD ({sourceLabel})</span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={onToggle}
-      title={date ? `Opt-out LGPD registrado em ${new Date(date).toLocaleDateString('pt-BR')}` : 'Opt-out LGPD'}
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/40 transition-colors ${onToggle ? 'hover:bg-rose-100 dark:hover:bg-rose-900/40' : ''}`}
+      title="Cliente sem registro formal de consentimento. Ficará de fora das automações."
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-stone-100 text-stone-600 border border-stone-200 dark:bg-stone-800/50 dark:text-stone-400 dark:border-stone-700/60 transition-colors ${
+        onToggle ? 'hover:bg-stone-200 dark:hover:bg-stone-700/60 cursor-pointer' : ''
+      }`}
     >
-      <ShieldAlert className="w-3 h-3 text-rose-600 dark:text-rose-400" />
-      <span>Opt-out</span>
+      <AlertCircle className="w-3 h-3 text-stone-500" />
+      <span>Sem Consentimento</span>
     </button>
   );
 }

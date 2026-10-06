@@ -52,16 +52,21 @@ model CompanySettings {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         String   @default("ADMIN") // MASTER, ADMIN, OPERATOR
-  status       String   @default("PENDING_APPROVAL") // ACTIVE, PENDING_APPROVAL, BLOCKED
-  companyId    String
-  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default(uuid())
+  name            String
+  email           String    @unique
+  passwordHash    String
+  role            String    @default("ADMIN") // MASTER, ADMIN, OPERATOR
+  status          String    @default("PENDING_APPROVAL") // ACTIVE, PENDING_APPROVAL, BLOCKED
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Termos de Uso e Política de Privacidade
+  termsAcceptedAt DateTime?
+  termsVersion    String?   @default("1.0")
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([companyId, status])
 }
@@ -94,7 +99,14 @@ model Client {
   isFather          Boolean        @default(false)           // É Pai
   profession        String?                                  // Profissão ou Cargo (ex: Médico, Advogado, Professor)
 
-  lgpdConsent       Boolean        @default(true) // Opt-in de comunicação
+  // Governança LGPD (Consentimento & Opt-Out)
+  lgpdConsent       Boolean        @default(false)           // Default false: exige registro de consentimento
+  consentSource     String?        @default("MANUAL")        // CONTRATO, WHATSAPP, FORMULARIO, VERBAL, MANUAL
+  consentNote       String?                                  // Observações de auditoria do consentimento
+  consentUpdatedAt  DateTime?                                // Data da última atualização de consentimento
+  consentUpdatedBy  String?                                  // Usuário/Operador responsável pelo registro
+  optOutAt          DateTime?                                // Registro de revogação/opt-out
+
   lgpdConsentDate   DateTime       @default(now())
   notes             String?
   createdAt         DateTime       @default(now())
@@ -104,34 +116,43 @@ model Client {
   alerts            Alert[]
 
   @@index([companyId, status])
+  @@index([companyId, lgpdConsent])
+  @@index([companyId, optOutAt])
 }
 
 model FamilyMember {
-  id                  String        @id @default(uuid())
-  clientId            String
-  client              Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  name                String
-  gender              String?       @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
-  relationship        String        // MOTHER, FATHER, SON, DAUGHTER, SPOUSE, BROTHER, SISTER, GRANDFATHER, GRANDMOTHER, OTHER
-  birthDate           DateTime      // Data de nascimento para cálculo do aniversário
-  phone               String?       // Opcional conforme princípio da minimização LGPD
-  email               String?       // Opcional conforme princípio da minimização LGPD
+  id                      String        @id @default(uuid())
+  clientId                String
+  client                  Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name                    String
+  gender                  String?       @default("NOT_SPECIFIED") // FEMALE, MALE, OTHER, NOT_SPECIFIED
+  relationship            String        // MOTHER, FATHER, SON, DAUGHTER, SPOUSE, BROTHER, SISTER, GRANDFATHER, GRANDMOTHER, OTHER
+  birthDate               DateTime      // Data de nascimento para cálculo do aniversário
+  phone                   String?       // Opcional conforme princípio da minimização LGPD
+  email                   String?       // Opcional conforme princípio da minimização LGPD
   
+  // Governança LGPD Familiar & Proteção a Menores
+  consentHolderConfirmed  Boolean       @default(false)           // Titular confirmou autorização do familiar
+  allowMinorNotifications Boolean       @default(false)           // Exceção expressa registrada para menores de 18 anos
+  optOutAt                DateTime?                               // Registro de revogação/opt-out específico do familiar
+
   // Endereço do Familiar
-  sameAddressAsClient Boolean       @default(false)
-  zipCode             String?
-  address             String?
-  addressNumber       String?
-  addressComplement   String?
-  neighborhood        String?
-  city                String?
-  state               String?
+  sameAddressAsClient     Boolean       @default(false)
+  zipCode                 String?
+  address                 String?
+  addressNumber           String?
+  addressComplement       String?
+  neighborhood            String?
+  city                    String?
+  state                   String?
 
-  notes               String?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  notes                   String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
-  alerts              Alert[]
+  alerts                  Alert[]
+
+  @@index([clientId, optOutAt])
 }
 
 model CommemorativeDate {

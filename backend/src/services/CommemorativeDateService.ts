@@ -142,9 +142,15 @@ export class CommemorativeDateService {
         ...companyScope,
         status: 'ACTIVE',
         lgpdConsent: true,
+        optOutAt: null,
       },
       include: {
-        familyMembers: true,
+        familyMembers: {
+          where: {
+            optOutAt: null,
+            consentHolderConfirmed: true,
+          },
+        },
       },
     });
 
@@ -208,6 +214,9 @@ export class CommemorativeDateService {
       for (const client of activeClients) {
         if (client.birthDate && matchesBirthdaySP(client.birthDate, targetSP)) {
           const age = calculateAgeSP(client.birthDate, targetSP);
+          // Proteção LGPD a menores
+          if (age < 18) continue;
+
           events.push({
             date: targetSP.dateKey,
             day: targetSP.day,
@@ -230,8 +239,11 @@ export class CommemorativeDateService {
         // 3. Aniversários de Familiares
         for (const fm of client.familyMembers) {
           if (fm.birthDate && matchesBirthdaySP(fm.birthDate, targetSP)) {
-            const relName = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
             const age = calculateAgeSP(fm.birthDate, targetSP);
+            // Proteção LGPD a menores em familiares
+            if (age < 18 && !fm.allowMinorNotifications) continue;
+
+            const relName = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
             events.push({
               date: targetSP.dateKey,
               day: targetSP.day,

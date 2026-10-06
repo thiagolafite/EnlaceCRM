@@ -112,4 +112,36 @@ Este documento registra todas as decisões técnicas, arquiteturais e de seguran
      - Endpoint `/api/health` retorna latência do banco de dados, `lastCronRunAt` e `lastCronStatus`.
 - **Consequências**: Automação multi-tenant 100% isolada, imune a duplicações acidentais de alertas, resiliente a falhas de canal de comunicação e pontual no fuso horário do Brasil.
 
+---
+
+## [ADR-006] Fase 4 — Governança LGPD, Consentimento, Proteção a Menores, Direitos do Titular e Mascaramento de Dados
+
+- **Data**: 2026-10-06
+- **Status**: Aprovado e Implementado
+- **Contexto**: A plataforma trata dados pessoais (nomes, telefones, aniversários, graus de parentesco, CPF/CNPJ) e precisa garantir plena conformidade com a Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 — LGPD), com salvaguardas para direitos dos titulares, proteção especial a menores de idade, controle de consentimento, opt-out ágil e anonimização auditável.
+- **Decisão**:
+  1. **Consentimento e Rastreabilidade (`Client`)**:
+     - Campo `lgpdConsent Boolean @default(false)` obrigatório para participação nas rotinas de automação.
+     - Registro de origem do consentimento (`consentSource`: 'CONTRATO', 'WHATSAPP', 'FORMULARIO', 'VERBAL', 'MANUAL'), notas de evidência (`consentNote`), data de alteração (`consentUpdatedAt`) e usuário responsável (`consentUpdatedBy`).
+     - Script idempotente de migração com suporte a `--dry-run` em `backend/scripts/migrate_lgpd_fields.ts`.
+  2. **Proteção Especial a Menores e Familiares (`FamilyMember`)**:
+     - Campo `consentHolderConfirmed Boolean @default(false)` para comprovação de que o titular autorizou o cadastro do familiar.
+     - Campo `allowMinorNotifications Boolean @default(false)`. O motor de automação calcula dinamicamente a idade no fuso de São Paulo (`calculateAgeSP`) e bloqueia preventivamente qualquer notificação para menores de 18 anos sem exceção expressa.
+  3. **Mecanismo Rápido de Opt-Out / Opt-In**:
+     - Coluna `optOutAt DateTime?` no titular e familiar.
+     - Ações rápidas na interface do painel e no backend (`/clients/:id/opt-out`, `/clients/:id/opt-in`, `/family-members/:id/opt-out`, `/family-members/:id/opt-in`).
+     - Titulares ou familiares com opt-out registrado são ignorados em todas as varreduras automáticas.
+  4. **Direitos do Titular (Art. 18 da LGPD)**:
+     - **Portabilidade de Dados (Art. 18, V)**: Endpoint `GET /clients/:id/export` gera relatório JSON estruturado com todos os dados pessoais, familiares vinculados, histórico de alertas e metadados de consentimento, permitindo visualização, cópia para área de transferência e download de arquivo `.json` no frontend.
+     - **Direito ao Esquecimento / Anonimização (Art. 18, VI)**: Endpoint `POST /clients/:id/anonymize` higieniza e substitui permanentemente campos de identificação (nome, telefone, e-mail, documento, endereço e nascimento) por identificadores irreversíveis (`TITULAR_ANONIMIZADO_XXXX`), inativa o cadastro, registra opt-out e grava auditoria no `SystemLog` sem dados pessoais.
+  5. **Validação e Mascaramento de CPF/CNPJ**:
+     - Utilitário `backend/src/utils/maskDocument.ts` com validação algorítmica de dígitos verificadores módulo 11 (rejeitando sequências homogêneas e dígitos inválidos).
+     - Mascaramento em consultas e listagens públicas: `123.***.***-01` e `12.***.***/0001-90`.
+  6. **Termos de Uso e Política de Privacidade**:
+     - Páginas públicas dedicadas (`/privacy-policy` e `/terms-of-use`) com textos-base editáveis sinalizados como pendentes de revisão jurídica.
+     - Checkbox de aceite obrigatório de termos na tela de criação de conta (`User.termsAcceptedAt`, `User.termsVersion`).
+  7. **Manual de Governança LGPD**:
+     - Documentação jurídica e técnica completa em `docs/LGPD.md`, detalhando a divisão de papéis (Controlador vs. Operador), bases legais aplicáveis (Consentimento Art. 7º, I; Legítimo Interesse Art. 7º, IX; Execução de Contrato Art. 7º, V), sub-processadores autorizados e ciclo de vida de retenção de dados.
+- **Consequências**: Conformidade integral com a legislação brasileira de proteção de dados, mitigação de riscos jurídicos para as empresas contratantes e respeito irrestrito à privacidade dos titulares.
+
 

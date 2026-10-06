@@ -5,6 +5,8 @@ export interface User {
   role: 'MASTER' | 'ADMIN' | 'OPERATOR';
   status?: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
   companyId?: string | null;
+  termsAcceptedAt?: string | null;
+  termsVersion?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -13,6 +15,7 @@ export interface Client {
   id: string;
   name: string;
   document?: string | null;
+  maskedDocument?: string | null;
   email?: string | null;
   phone?: string | null;
   companyName?: string | null;
@@ -32,8 +35,16 @@ export interface Client {
   isMother?: boolean;
   isFather?: boolean;
   profession?: string | null;
+
+  // Governança LGPD
   lgpdConsent: boolean;
+  consentSource?: 'CONTRATO' | 'WHATSAPP' | 'FORMULARIO' | 'VERBAL' | 'MANUAL' | 'LEGADO_MIGRACAO' | string | null;
+  consentNote?: string | null;
+  consentUpdatedAt?: string | null;
+  consentUpdatedBy?: string | null;
+  optOutAt?: string | null;
   lgpdConsentDate?: string;
+
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -50,6 +61,11 @@ export interface FamilyMember {
   phone?: string | null;
   email?: string | null;
   
+  // Governança LGPD Familiar & Proteção a Menores
+  consentHolderConfirmed?: boolean;
+  allowMinorNotifications?: boolean;
+  optOutAt?: string | null;
+
   // Endereço
   sameAddressAsClient?: boolean;
   zipCode?: string | null;

@@ -13,6 +13,11 @@ import {
   Sparkles,
   MapPin,
   Home,
+  Download,
+  UserX,
+  ShieldCheck,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Client, FamilyMember } from '../types';
@@ -30,6 +35,12 @@ export function Clients() {
   const [pageError, setPageError] = useState<{ message: string; solution?: string } | null>(null);
   const [clientModalError, setClientModalError] = useState<{ message: string; solution?: string } | null>(null);
   const [familyModalError, setFamilyModalError] = useState<{ message: string; solution?: string } | null>(null);
+
+  // Modal LGPD Exportação de Dados
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportDataContent, setExportDataContent] = useState<any | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [copiedExport, setCopiedExport] = useState(false);
 
   // Modal Cliente (Criar / Editar)
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -58,6 +69,8 @@ export function Clients() {
 
     status: 'ACTIVE' | 'INACTIVE';
     lgpdConsent: boolean;
+    consentSource: string;
+    consentNote: string;
     notes: string;
   }>({
     name: '',
@@ -79,6 +92,8 @@ export function Clients() {
     state: '',
     status: 'ACTIVE',
     lgpdConsent: true,
+    consentSource: 'MANUAL',
+    consentNote: '',
     notes: '',
   });
 
@@ -95,6 +110,10 @@ export function Clients() {
     phone: string;
     email: string;
     
+    // Governança LGPD Familiar & Proteção a Menores
+    consentHolderConfirmed: boolean;
+    allowMinorNotifications: boolean;
+
     // Endereço
     sameAddressAsClient: boolean;
     zipCode: string;
@@ -113,6 +132,8 @@ export function Clients() {
     birthDate: '',
     phone: '',
     email: '',
+    consentHolderConfirmed: true,
+    allowMinorNotifications: false,
     sameAddressAsClient: false,
     zipCode: '',
     address: '',
@@ -206,6 +227,8 @@ export function Clients() {
         state: client.state || '',
         status: client.status,
         lgpdConsent: client.lgpdConsent,
+        consentSource: client.consentSource || 'MANUAL',
+        consentNote: client.consentNote || '',
         notes: client.notes || '',
       });
     } else {
@@ -230,6 +253,8 @@ export function Clients() {
         state: '',
         status: 'ACTIVE',
         lgpdConsent: true,
+        consentSource: 'MANUAL',
+        consentNote: '',
         notes: '',
       });
     }
@@ -260,6 +285,8 @@ export function Clients() {
         state: clientForm.state || null,
         status: clientForm.status,
         lgpdConsent: clientForm.lgpdConsent,
+        consentSource: clientForm.consentSource,
+        consentNote: clientForm.consentNote || null,
         notes: clientForm.notes || null,
       };
 
@@ -294,23 +321,94 @@ export function Clients() {
     }
   };
 
-  const handleToggleLgpd = async (client: Client) => {
-    const nextConsent = !client.lgpdConsent;
-    const msg = nextConsent
-      ? `Ativar consentimento LGPD para ${client.name}? O motor voltará a gerar alertas para ele e seus familiares.`
-      : `Revogar consentimento LGPD para ${client.name}? Nenhum alerta será gerado para ele enquanto o opt-out estiver ativo.`;
+  /**
+   * LGPD Art. 18, V — Exportação de Dados do Titular (Portabilidade)
+   */
+  const handleExportClient = async (client: Client) => {
+    try {
+      setPageError(null);
+      setExportLoading(true);
+      setIsExportModalOpen(true);
+      setCopiedExport(false);
+      const data = await api.exportClientData(client.id);
+      setExportDataContent(data);
+    } catch (err: any) {
+      setIsExportModalOpen(false);
+      setPageError({
+        message: err.message || 'Erro ao exportar dados do cliente',
+        solution: err.solution || 'Tente novamente em instantes.',
+      });
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
-    if (!confirm(msg)) return;
+  /**
+   * LGPD Art. 18, VI — Anonimização de Dados do Titular (Direito ao Esquecimento)
+   */
+  const handleAnonymizeClient = async (client: Client) => {
+    const confirmation = prompt(
+      `ATENÇÃO — DIREITO AO ESQUECIMENTO (LGPD Art. 18, VI):\n\nEsta ação anonimizará permanentemente todos os dados pessoais do cliente "${client.name}" e de seus familiares vinculados.\n\nNome, telefone, e-mail, CPF/CNPJ, endereço e data de nascimento serão IRREVERSIVELMENTE excluídos.\n\nPara confirmar esta operação, digite "ANONIMIZAR":`
+    );
+
+    if (confirmation !== 'ANONIMIZAR') {
+      if (confirmation !== null) {
+        alert('Confirmação incorreta. Operação de anonimização cancelada.');
+      }
+      return;
+    }
 
     try {
       setPageError(null);
-      await api.toggleLgpd(client.id, nextConsent);
+      await api.anonymizeClient(client.id);
       await loadClients();
+      alert('Dados pessoais do cliente e de seus familiares foram anonimizados com sucesso!');
     } catch (err: any) {
       setPageError({
-        message: err.message || 'Erro ao atualizar consentimento LGPD',
-        solution: err.solution || 'Verifique a conexão e tente novamente.',
+        message: err.message || 'Erro ao anonimizar dados do cliente',
+        solution: err.solution || 'Verifique suas permissões de administrador.',
       });
+    }
+  };
+
+  /**
+   * LGPD Art. 18, IX — Toggle Opt-Out / Opt-In
+   */
+  const handleToggleLgpd = async (client: Client) => {
+    const isOptedOut = Boolean(client.optOutAt) || !client.lgpdConsent;
+
+    if (isOptedOut) {
+      const source = prompt(
+        `Reativar consentimento e opt-in para "${client.name}"?\n\nInforme a fonte do consentimento:\n1. CONTRATO\n2. WHATSAPP\n3. FORMULARIO\n4. VERBAL\n5. MANUAL`,
+        'MANUAL'
+      );
+      if (!source) return;
+
+      try {
+        setPageError(null);
+        await api.optInClient(client.id, source.toUpperCase().trim());
+        await loadClients();
+      } catch (err: any) {
+        setPageError({
+          message: err.message || 'Erro ao reativar consentimento',
+          solution: err.solution || 'Tente novamente em instantes.',
+        });
+      }
+    } else {
+      if (!confirm(`Registrar Opt-out (revogação de consentimento) para "${client.name}"?\n\nNenhuma mensagem automática será gerada para ele ou seus familiares.`)) {
+        return;
+      }
+
+      try {
+        setPageError(null);
+        await api.optOutClient(client.id);
+        await loadClients();
+      } catch (err: any) {
+        setPageError({
+          message: err.message || 'Erro ao registrar opt-out',
+          solution: err.solution || 'Tente novamente em instantes.',
+        });
+      }
     }
   };
 
@@ -321,27 +419,51 @@ export function Clients() {
   };
 
   // Gerenciamento de Familiares
-  const handleOpenFamilyModal = async (client: Client) => {
+  const handleOpenFamilyModal = async (client: Client, memberToEdit?: FamilyMember) => {
     setSelectedClientForFamily(client);
-    setEditingFamilyMember(null);
+    setEditingFamilyMember(memberToEdit || null);
     setFamilyModalError(null);
-    setFamilyForm({
-      name: '',
-      gender: 'FEMALE',
-      relationship: 'MOTHER',
-      birthDate: '',
-      phone: '',
-      email: '',
-      sameAddressAsClient: false,
-      zipCode: '',
-      address: '',
-      addressNumber: '',
-      addressComplement: '',
-      neighborhood: '',
-      city: '',
-      state: '',
-      notes: '',
-    });
+    if (memberToEdit) {
+      setFamilyForm({
+        name: memberToEdit.name,
+        gender: (memberToEdit.gender as any) || 'NOT_SPECIFIED',
+        relationship: memberToEdit.relationship,
+        birthDate: memberToEdit.birthDate ? memberToEdit.birthDate.split('T')[0] : '',
+        phone: memberToEdit.phone || '',
+        email: memberToEdit.email || '',
+        consentHolderConfirmed: memberToEdit.consentHolderConfirmed ?? true,
+        allowMinorNotifications: Boolean(memberToEdit.allowMinorNotifications),
+        sameAddressAsClient: Boolean(memberToEdit.sameAddressAsClient),
+        zipCode: memberToEdit.zipCode || '',
+        address: memberToEdit.address || '',
+        addressNumber: memberToEdit.addressNumber || '',
+        addressComplement: memberToEdit.addressComplement || '',
+        neighborhood: memberToEdit.neighborhood || '',
+        city: memberToEdit.city || '',
+        state: memberToEdit.state || '',
+        notes: memberToEdit.notes || '',
+      });
+    } else {
+      setFamilyForm({
+        name: '',
+        gender: 'FEMALE',
+        relationship: 'MOTHER',
+        birthDate: '',
+        phone: '',
+        email: '',
+        consentHolderConfirmed: true,
+        allowMinorNotifications: false,
+        sameAddressAsClient: false,
+        zipCode: '',
+        address: '',
+        addressNumber: '',
+        addressComplement: '',
+        neighborhood: '',
+        city: '',
+        state: '',
+        notes: '',
+      });
+    }
     setIsFamilyModalOpen(true);
   };
 
@@ -373,6 +495,8 @@ export function Clients() {
         birthDate: new Date(familyForm.birthDate).toISOString(),
         phone: familyForm.phone || null,
         email: familyForm.email || null,
+        consentHolderConfirmed: familyForm.consentHolderConfirmed,
+        allowMinorNotifications: familyForm.allowMinorNotifications,
         sameAddressAsClient: familyForm.sameAddressAsClient,
         zipCode: familyForm.zipCode || null,
         address: familyForm.address || null,
@@ -403,6 +527,8 @@ export function Clients() {
         birthDate: '',
         phone: '',
         email: '',
+        consentHolderConfirmed: true,
+        allowMinorNotifications: false,
         sameAddressAsClient: false,
         zipCode: '',
         address: '',
@@ -579,7 +705,7 @@ export function Clients() {
                             </div>
                           )}
                           {client.document && (
-                            <div className="text-[10px] text-stone-400 font-mono mt-0.5">{client.document}</div>
+                            <div className="text-[10px] text-stone-400 font-mono mt-0.5">{client.maskedDocument || client.document}</div>
                           )}
                         </td>
 
@@ -644,17 +770,33 @@ export function Clients() {
                         <td className="py-3 px-4">
                           <LgpdBadge
                             consent={client.lgpdConsent}
+                            optOutAt={client.optOutAt}
+                            source={client.consentSource}
                             onToggle={() => handleToggleLgpd(client)}
                           />
                         </td>
 
-                        <td className="py-3 px-4 text-right space-x-1">
+                        <td className="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                          <button
+                            onClick={() => handleExportClient(client)}
+                            title="Exportar Dados (LGPD Art. 18)"
+                            className="p-1 rounded-md text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => handleOpenClientModal(client)}
                             title="Editar cliente"
                             className="p-1 rounded-md text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-[#F4F4F2] dark:hover:bg-[#202024] transition-colors"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleAnonymizeClient(client)}
+                            title="Anonimizar Dados (LGPD Art. 18, VI — Direito ao Esquecimento)"
+                            className="p-1 rounded-md text-stone-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
+                          >
+                            <UserX className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteClient(client.id, client.name)}
@@ -704,7 +846,7 @@ export function Clients() {
                           </div>
                         )}
                         {client.document && (
-                          <div className="text-[10px] text-stone-400 font-mono mt-0.5">{client.document}</div>
+                          <div className="text-[10px] text-stone-400 font-mono mt-0.5">{client.maskedDocument || client.document}</div>
                         )}
                       </div>
 
@@ -746,16 +888,32 @@ export function Clients() {
                         )}
                         <LgpdBadge
                           consent={client.lgpdConsent}
+                          optOutAt={client.optOutAt}
+                          source={client.consentSource}
                           onToggle={() => handleToggleLgpd(client)}
                         />
                       </div>
 
                       <div className="flex items-center gap-1">
                         <button
+                          onClick={() => handleExportClient(client)}
+                          title="Exportar Dados (LGPD)"
+                          className="p-1.5 rounded-md text-stone-500 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/40"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={() => handleOpenClientModal(client)}
                           className="p-1.5 rounded-md text-stone-500 hover:bg-[#F4F4F2] dark:hover:bg-[#202024]"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleAnonymizeClient(client)}
+                          title="Anonimizar Dados"
+                          className="p-1.5 rounded-md text-stone-500 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/40"
+                        >
+                          <UserX className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteClient(client.id, client.name)}
@@ -1042,17 +1200,65 @@ export function Clients() {
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-2">
-            <input
-              type="checkbox"
-              id="lgpdConsent"
-              checked={clientForm.lgpdConsent}
-              onChange={(e) => setClientForm({ ...clientForm, lgpdConsent: e.target.checked })}
-              className="w-4 h-4 rounded text-indigo-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-            />
-            <label htmlFor="lgpdConsent" className="text-xs text-slate-700 dark:text-slate-300 cursor-pointer font-medium">
-              Consentimento LGPD Ativo (Permite gerar alertas de datas comemorativas)
-            </label>
+          {/* Seção 4: Governança LGPD */}
+          <div className="space-y-3 pt-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2">
+              <ShieldCheck className="w-4 h-4" /> Governança de Privacidade & LGPD (Art. 7º e 18)
+            </h4>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="lgpdConsent"
+                  checked={clientForm.lgpdConsent}
+                  onChange={(e) => setClientForm({ ...clientForm, lgpdConsent: e.target.checked })}
+                  className="w-4 h-4 mt-0.5 rounded text-emerald-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                />
+                <div>
+                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                    Consentimento LGPD Ativo
+                  </span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    O titular concedeu consentimento para armazenamento de dados e envio de mensagens comemorativas.
+                  </span>
+                </div>
+              </label>
+
+              {clientForm.lgpdConsent && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Origem / Fonte do Consentimento *
+                    </label>
+                    <select
+                      value={clientForm.consentSource}
+                      onChange={(e) => setClientForm({ ...clientForm, consentSource: e.target.value })}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-lg py-1.5 px-2.5 text-xs text-slate-900 dark:text-slate-100 outline-none"
+                    >
+                      <option value="MANUAL">Cadastro Manual / Presencial</option>
+                      <option value="WHATSAPP">Conversa de WhatsApp</option>
+                      <option value="CONTRATO">Cláusula Contratual</option>
+                      <option value="FORMULARIO">Formulário Digital / Site</option>
+                      <option value="VERBAL">Acordo Verbal</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Observação / Evidência (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={clientForm.consentNote}
+                      onChange={(e) => setClientForm({ ...clientForm, consentNote: e.target.value })}
+                      placeholder="Ex: Assinado na proposta 1024"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-lg py-1.5 px-2.5 text-xs text-slate-900 dark:text-slate-100 outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
@@ -1181,6 +1387,49 @@ export function Clients() {
               </div>
             </div>
 
+            {/* Governança LGPD do Familiar & Menores */}
+            <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800/80 space-y-2.5">
+              <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> Governança LGPD & Proteção a Menores
+              </div>
+
+              <div className="space-y-2 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <label className="flex items-start gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={familyForm.consentHolderConfirmed}
+                    onChange={(e) => setFamilyForm({ ...familyForm, consentHolderConfirmed: e.target.checked })}
+                    className="w-4 h-4 mt-0.5 rounded text-emerald-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                  />
+                  <div>
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                      Consentimento do Titular Confirmado
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      O titular principal autorizou expressamente o cadastro deste familiar.
+                    </span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-2 cursor-pointer select-none pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <input
+                    type="checkbox"
+                    checked={familyForm.allowMinorNotifications}
+                    onChange={(e) => setFamilyForm({ ...familyForm, allowMinorNotifications: e.target.checked })}
+                    className="w-4 h-4 mt-0.5 rounded text-indigo-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                  />
+                  <div>
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                      Permitir Notificações se Menor de 18 Anos (Exceção Registrada)
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Por padrão, o sistema protege menores e não gera mensagens diretas sem autorização prévia.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Endereço do Familiar */}
             <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800/80 space-y-2.5">
               <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
@@ -1289,6 +1538,8 @@ export function Clients() {
                       birthDate: '',
                       phone: '',
                       email: '',
+                      consentHolderConfirmed: true,
+                      allowMinorNotifications: false,
                       sameAddressAsClient: false,
                       zipCode: '',
                       address: '',
@@ -1376,6 +1627,8 @@ export function Clients() {
                               birthDate: fm.birthDate ? fm.birthDate.split('T')[0] : '',
                               phone: fm.phone || '',
                               email: fm.email || '',
+                              consentHolderConfirmed: fm.consentHolderConfirmed ?? true,
+                              allowMinorNotifications: Boolean(fm.allowMinorNotifications),
                               sameAddressAsClient: fm.sameAddressAsClient || false,
                               zipCode: fm.zipCode || '',
                               address: fm.address || '',
@@ -1411,6 +1664,87 @@ export function Clients() {
               type="button"
               onClick={() => setIsFamilyModalOpen(false)}
               className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal LGPD Exportação de Dados (Portabilidade - Art. 18, V) */}
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => {
+          setIsExportModalOpen(false);
+          setExportDataContent(null);
+        }}
+        title="Relatório de Portabilidade de Dados (LGPD Art. 18, V)"
+        subtitle="Visualização e extração de todos os dados pessoais e registros vinculados a este titular"
+        maxWidth="2xl"
+      >
+        <div className="space-y-4">
+          {exportLoading ? (
+            <div className="py-12 text-center text-stone-400 text-xs animate-pulse">
+              Gerando relatório de portabilidade de dados...
+            </div>
+          ) : exportDataContent ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Relatório emitido em conformidade com o Art. 18, V da Lei Geral de Proteção de Dados.</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(exportDataContent, null, 2));
+                      setCopiedExport(true);
+                      setTimeout(() => setCopiedExport(false), 2000);
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white dark:bg-[#18181B] border border-emerald-300 dark:border-emerald-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 text-[11px] font-semibold"
+                  >
+                    {copiedExport ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    {copiedExport ? 'Copiado!' : 'Copiar JSON'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const blob = new Blob([JSON.stringify(exportDataContent, null, 2)], {
+                        type: 'application/json;charset=utf-8;',
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `portabilidade-lgpd-${exportDataContent?.titular?.name?.replace(/\s+/g, '_') || 'cliente'}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold"
+                  >
+                    <Download className="w-3 h-3" />
+                    Baixar JSON
+                  </button>
+                </div>
+              </div>
+
+              {/* Prévia dos Dados */}
+              <div className="max-h-96 overflow-y-auto rounded-lg bg-[#FBFBFA] dark:bg-[#111113] border border-[#E7E7E4] dark:border-[#26262B] p-3 text-[11px] font-mono text-stone-800 dark:text-stone-200">
+                <pre className="whitespace-pre-wrap">{JSON.stringify(exportDataContent, null, 2)}</pre>
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-stone-400 text-xs">Nenhum dado retornado.</div>
+          )}
+
+          <div className="flex justify-end pt-2 border-t border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => {
+                setIsExportModalOpen(false);
+                setExportDataContent(null);
+              }}
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               Fechar
             </button>

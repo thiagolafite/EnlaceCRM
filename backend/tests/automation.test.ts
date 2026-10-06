@@ -240,6 +240,44 @@ async function runTests() {
     });
     assert(validClient.success && validClient.data.phone === '+5511987654321', 'createClientSchema normaliza telefone E.164');
 
+    // -------------------------------------------------------------
+    // Teste 9: LGPD — Validação e Mascaramento de CPF/CNPJ
+    // -------------------------------------------------------------
+    console.log('\n--- Teste 9: LGPD — Mascaramento e Validação de CPF/CNPJ ---');
+    const { validateCpf, validateCnpj, validateDocument, maskDocument } = await import('../src/utils/maskDocument');
+
+    // Validação de CPF
+    assert(validateCpf('111.444.777-35') === true || validateCpf('52998224725') === true, 'validateCpf valida dígitos verificadores mod 11');
+    assert(validateCpf('11111111111') === false, 'validateCpf rejeita CPFs com todos dígitos iguais');
+    assert(validateCpf('12345678900') === false, 'validateCpf rejeita CPF com dígito inválido');
+
+    // Validação de CNPJ & Document
+    assert(validateCnpj('11222333000181') === true || validateCnpj('00000000000191') === true, 'validateCnpj valida CNPJ');
+    assert(validateCnpj('00000000000000') === false, 'validateCnpj rejeita sequência de zeros');
+    assert(validateDocument('111.444.777-35') === true || validateDocument('52998224725') === true, 'validateDocument valida CPF genérico');
+    assert(validateDocument(null) === true, 'validateDocument aceita nulo como opcional');
+
+    // Mascaramento LGPD
+    assert(maskDocument('12345678901') === '123.***.***-01', 'maskDocument mascara CPF para formato 123.***.***-01');
+    assert(maskDocument('12345678000195') === '12.***.***/0001-95', 'maskDocument mascara CNPJ para formato 12.***.***/0001-95');
+    assert(maskDocument(null) === null, 'maskDocument retorna null para documento nulo');
+
+    // -------------------------------------------------------------
+    // Teste 10: LGPD — Proteção a Menores e Regras de Automação
+    // -------------------------------------------------------------
+    console.log('\n--- Teste 10: LGPD — Regras de Consentimento e Menores ---');
+    const minorAge = calculateAgeSP('2015-05-15T00:00:00.000Z', {
+      year: 2026,
+      month: 5,
+      day: 15,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      dateKey: '2026-05-15',
+    });
+    assert(minorAge === 11, 'calculateAgeSP identifica corretamente menor de idade (<18)');
+    assert(minorAge < 18, 'Menor de 18 anos detectado para bloqueio preventivo de automação sem autorização');
+
     console.log('\n===============================================');
     console.log(`🏁 RESULTADO FINAL: ${passed} PASSOU | ${failed} FALHOU`);
     console.log('===============================================\n');
