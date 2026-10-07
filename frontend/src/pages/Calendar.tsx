@@ -135,15 +135,20 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     try {
       setLoading(true);
       setPageError(null);
-      const [datesData, upcomingData, clientsData, templatesData] = await Promise.all([
+      const [datesData, upcomingData, clientsRes, templatesData] = await Promise.all([
         api.getDates(),
         api.getUpcomingEvents(60),
-        api.getClients({ status: 'ACTIVE' }),
+        api.getClients({ status: 'ACTIVE', limit: 500 }),
         api.getTemplates(),
       ]);
       setDates(Array.isArray(datesData) ? datesData : []);
       setUpcoming(Array.isArray(upcomingData) ? upcomingData : []);
-      setClients(Array.isArray(clientsData) ? clientsData : []);
+      const clientList = Array.isArray(clientsRes)
+        ? clientsRes
+        : Array.isArray((clientsRes as any)?.data)
+        ? (clientsRes as any).data
+        : [];
+      setClients(clientList);
       setTemplates(Array.isArray(templatesData) ? templatesData : []);
     } catch (err: any) {
       console.error('Erro ao carregar dados do calendário:', err);

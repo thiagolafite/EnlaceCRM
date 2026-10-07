@@ -144,11 +144,17 @@ export function Clients() {
     try {
       setLoading(true);
       setPageError(null);
-      const data = await api.getClients({
+      const res = await api.getClients({
         search: search || undefined,
         status: statusFilter || undefined,
+        limit: 100,
       });
-      setClients(Array.isArray(data) ? data : []);
+      const clientList = Array.isArray(res)
+        ? res
+        : Array.isArray((res as any)?.data)
+        ? (res as any).data
+        : [];
+      setClients(clientList);
     } catch (err: any) {
       console.error('Erro ao carregar clientes:', err);
       setPageError({

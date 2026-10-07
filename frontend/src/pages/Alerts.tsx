@@ -51,7 +51,12 @@ export function Alerts() {
         search: search || undefined,
         limit: 100,
       });
-      setAlerts(res.data);
+      const alertList = Array.isArray(res)
+        ? res
+        : Array.isArray((res as any)?.data)
+        ? (res as any).data
+        : [];
+      setAlerts(alertList);
     } catch (err: any) {
       console.error('Erro ao carregar alertas:', err);
       setPageError({
