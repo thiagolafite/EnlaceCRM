@@ -31,13 +31,13 @@ export function NotificationBellDropdown({ onNavigate: _onNavigate }: Notificati
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         title="Lembretes e Felicitações"
-        className="relative p-2 rounded-lg border border-[#E7E7E4] dark:border-[#26262B] bg-[#FFFFFF] dark:bg-[#18181B] text-stone-600 dark:text-stone-300 hover:bg-[#F4F4F2] dark:hover:bg-[#202024] transition-colors"
+        className="relative p-2 rounded-xl border border-[#C85A32]/35 bg-[#FFFFFF] dark:bg-[#14181D] text-[#495057] dark:text-[#ADB5BD] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] hover:border-[#C85A32] transition-colors shadow-subtle"
       >
         <Bell className="w-3.5 h-3.5" />
         {totalCount > 0 && (
           <span
             className={`absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-[9px] font-semibold flex items-center justify-center text-white ${
-              todayCount > 0 ? 'bg-[#ea580c]' : 'bg-[#18181B] dark:bg-stone-600'
+              todayCount > 0 ? 'bg-[#C85A32]' : 'bg-[#1A1E24] dark:bg-[#2A313A]'
             }`}
           >
             {totalCount}
@@ -47,23 +47,23 @@ export function NotificationBellDropdown({ onNavigate: _onNavigate }: Notificati
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] rounded-xl shadow-dropdown z-50 overflow-hidden animate-in fade-in duration-100">
+        <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-[#F8F9FA] dark:bg-[#181C21] border-2 border-[#C85A32]/40 rounded-2xl shadow-dropdown z-50 overflow-hidden animate-in fade-in duration-100">
           {/* Header */}
-          <div className="p-3 bg-[#FBFBFA] dark:bg-[#18181B] border-b border-[#E7E7E4] dark:border-[#26262B] flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-900 dark:text-stone-100">
+          <div className="p-3 bg-[#FFFFFF] dark:bg-[#14181D] border-b hairline-border flex items-center justify-between">
+            <span className="text-xs font-serif font-semibold text-[#1A1E24] dark:text-[#F1F3F5]">
               Lembretes & Felicitações
             </span>
             {todayCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-[#ea580c] text-white">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#C85A32] text-white">
                 {todayCount} hoje
               </span>
             )}
           </div>
 
           {/* List of items */}
-          <div className="max-h-64 overflow-y-auto divide-y divide-[#E7E7E4]/60 dark:divide-[#26262B]/60">
+          <div className="max-h-64 overflow-y-auto divide-y divide-[#C85A32]/15 dark:divide-[#C85A32]/20">
             {todayEvents.length === 0 && upcomingEvents.length === 0 ? (
-              <div className="p-6 text-center text-xs text-stone-400">
+              <div className="p-6 text-center text-xs text-[#6C757D]">
                 Nenhum lembrete pendente.
               </div>
             ) : (
@@ -75,17 +75,17 @@ export function NotificationBellDropdown({ onNavigate: _onNavigate }: Notificati
                       setIsOpen(false);
                       openDailyModal();
                     }}
-                    className="p-3 hover:bg-[#F4F4F2] dark:hover:bg-[#1C1C20] cursor-pointer transition-colors flex items-center justify-between gap-3"
+                    className="p-3 hover:bg-[#E9ECEF]/60 dark:hover:bg-[#1E252E]/60 cursor-pointer transition-colors flex items-center justify-between gap-3"
                   >
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
+                      <p className="text-xs font-semibold text-[#1A1E24] dark:text-[#F1F3F5] truncate">
                         {evt.targetName || evt.title}
                       </p>
-                      <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
+                      <p className="text-[11px] text-[#6C757D] dark:text-[#ADB5BD] truncate">
                         {evt.subtitle}
                       </p>
                     </div>
-                    <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FFFFFF] text-[#C85A32] dark:bg-[#181C21] dark:text-[#F39C74] border border-[#C85A32] shrink-0">
                       Hoje
                     </span>
                   </div>
@@ -98,17 +98,17 @@ export function NotificationBellDropdown({ onNavigate: _onNavigate }: Notificati
                       setIsOpen(false);
                       openDailyModal();
                     }}
-                    className="p-3 hover:bg-[#F4F4F2] dark:hover:bg-[#1C1C20] cursor-pointer transition-colors flex items-center justify-between gap-3"
+                    className="p-3 hover:bg-[#E9ECEF]/60 dark:hover:bg-[#1E252E]/60 cursor-pointer transition-colors flex items-center justify-between gap-3"
                   >
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
+                      <p className="text-xs font-semibold text-[#1A1E24] dark:text-[#F1F3F5] truncate">
                         {evt.targetName || evt.title}
                       </p>
-                      <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">
+                      <p className="text-[11px] text-[#6C757D] dark:text-[#ADB5BD] truncate">
                         {evt.subtitle}
                       </p>
                     </div>
-                    <span className="text-[10px] text-stone-400 font-mono shrink-0">
+                    <span className="text-[10px] text-[#6C757D] font-mono shrink-0">
                       Em {evt.daysRemaining}d
                     </span>
                   </div>
@@ -118,14 +118,14 @@ export function NotificationBellDropdown({ onNavigate: _onNavigate }: Notificati
           </div>
 
           {/* Footer */}
-          <div className="p-2.5 bg-[#FBFBFA] dark:bg-[#18181B] border-t border-[#E7E7E4] dark:border-[#26262B]">
+          <div className="p-2.5 bg-[#FFFFFF] dark:bg-[#14181D] border-t hairline-border">
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 openDailyModal();
               }}
-              className="w-full py-1.5 rounded-lg bg-[#18181B] text-white dark:bg-[#EDEDEA] dark:text-[#18181B] text-xs font-medium flex items-center justify-center gap-1 transition-colors"
+              className="w-full py-2 rounded-xl bg-[#C85A32] hover:bg-[#B34A24] border border-[#D97757] text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-xs"
             >
               <span>Abrir Central de Disparo</span>
             </button>

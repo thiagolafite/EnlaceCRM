@@ -4,49 +4,53 @@
 
 @layer base {
   body {
-    @apply bg-[#FAF6F0] text-[#1E1611] dark:bg-[#120F0D] dark:text-[#F5EFE8] transition-colors duration-150 antialiased font-sans;
+    @apply bg-[#F1F3F5] text-[#1A1E24] dark:bg-[#111418] dark:text-[#F1F3F5] transition-colors duration-150 antialiased font-sans;
     letter-spacing: -0.015em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight text-[#1E1611] dark:text-[#F5EFE8];
+    @apply tracking-tight text-[#1A1E24] dark:text-[#F1F3F5];
   }
 }
 
 @layer utilities {
-  /* Warm Editorial Studio Cards */
-  .studio-card, .card-warm {
-    @apply bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-3xl shadow-subtle transition-all duration-150;
+  /* Silver Interior & Terracotta Contour Cards */
+  .studio-card, .card-warm, .card-silver {
+    @apply bg-[#F8F9FA] dark:bg-[#181C21] border border-[#C85A32]/30 dark:border-[#C85A32]/40 rounded-3xl shadow-subtle transition-all duration-150;
   }
 
   .studio-card-interactive, .card-warm-interactive {
-    @apply studio-card hover:border-[#DFCFC0] dark:hover:border-[#3D3028] hover:shadow-panel;
+    @apply studio-card hover:border-[#C85A32] hover:shadow-[0_0_0_1px_#C85A32] dark:hover:border-[#E07A5F] hover:shadow-panel;
   }
 
-  .card-peach {
-    @apply bg-[#FBF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] rounded-3xl shadow-subtle transition-all duration-150;
+  .card-peach, .card-contour-terracotta {
+    @apply bg-gradient-to-br from-[#FFFFFF] via-[#F4F5F8] to-[#E9ECEF] dark:from-[#1E232A] dark:via-[#181C21] dark:to-[#14171B] border-2 border-[#C85A32] dark:border-[#E07A5F] rounded-3xl shadow-[0_4px_20px_rgba(200,90,50,0.08)] transition-all duration-150;
   }
 
-  /* Hairline Dividers */
+  /* Hairline Dividers & Contour Lines */
   .hairline-border {
-    @apply border-[#EDE5DC] dark:border-[#2A211D];
+    @apply border-[#C85A32]/25 dark:border-[#C85A32]/35;
   }
 
   .hairline-divider {
-    @apply border-t border-[#EDE5DC] dark:border-[#2A211D];
+    @apply border-t border-[#C85A32]/20 dark:border-[#C85A32]/30;
   }
 
   /* Button Presets */
   .btn-primary {
-    @apply bg-[#1E1611] text-[#FAF6F0] hover:bg-[#33261F] dark:bg-[#F5EFE8] dark:text-[#1E1611] dark:hover:bg-[#FFFFFF] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5;
+    @apply bg-[#181C21] text-[#F1F3F5] hover:bg-[#252B33] dark:bg-[#252B33] dark:text-[#F1F3F5] dark:hover:bg-[#313842] border border-[#C85A32]/40 hover:border-[#C85A32] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5;
   }
 
   .btn-secondary {
-    @apply bg-white dark:bg-[#221B17] text-[#1E1611] dark:text-[#F5EFE8] hover:bg-[#F8F2EA] dark:hover:bg-[#2B231E] border border-[#EDE5DC] dark:border-[#2A211D] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
+    @apply bg-[#F8F9FA] dark:bg-[#1A1F26] text-[#1A1E24] dark:text-[#F1F3F5] hover:bg-[#E9ECEF] dark:hover:bg-[#222831] border border-[#C85A32]/30 hover:border-[#C85A32] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
   }
 
   .btn-terracotta {
-    @apply bg-[#C85A32] text-white hover:bg-[#B34A24] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
+    @apply bg-[#C85A32] text-white hover:bg-[#B34A24] border border-[#D97757] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
+  }
+
+  .btn-contour {
+    @apply bg-[#F8F9FA] dark:bg-[#181C21] text-[#C85A32] dark:text-[#E07A5F] border-2 border-[#C85A32] hover:bg-[#C85A32] hover:text-white font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] inline-flex items-center justify-center gap-1.5;
   }
 }
 

@@ -618,13 +618,13 @@ export function Clients() {
       {/* Filter & Search Bar */}
       <div className="card-warm p-3.5 flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#C85A32]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome, CPF/CNPJ, email, telefone, cidade ou bairro..."
-            className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] placeholder:text-[#A09388] outline-none transition-colors"
+            className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] placeholder:text-[#8E99A4] outline-none transition-colors"
           />
         </div>
 
@@ -632,7 +632,7 @@ export function Clients() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs font-medium text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+            className="bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs font-medium text-[#1A1E24] dark:text-[#F1F3F5] outline-none"
           >
             <option value="">Todos os status</option>
             <option value="ACTIVE">Ativos</option>
@@ -644,19 +644,19 @@ export function Clients() {
       {/* Clients Table */}
       <div className="card-warm overflow-hidden transition-colors">
         {loading ? (
-          <div className="py-16 text-center text-[#A09388] text-xs">Carregando lista de clientes...</div>
+          <div className="py-16 text-center text-[#8E99A4] text-xs">Carregando lista de clientes...</div>
         ) : clients.length === 0 ? (
-          <div className="py-16 text-center text-[#A09388] space-y-2">
-            <Users className="w-8 h-8 mx-auto text-[#A09388]/60" />
-            <p className="font-serif text-[#1E1611] dark:text-[#F5EFE8] text-base">Nenhum cliente encontrado</p>
-            <p className="text-xs text-[#756557] dark:text-[#B5A599]">Cadastre seu primeiro cliente para iniciar os alertas e felicitações.</p>
+          <div className="py-16 text-center text-[#8E99A4] space-y-2">
+            <Users className="w-8 h-8 mx-auto text-[#C85A32]/60" />
+            <p className="font-serif text-[#1A1E24] dark:text-[#F1F3F5] text-base">Nenhum cliente encontrado</p>
+            <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD]">Cadastre seu primeiro cliente para iniciar os alertas e felicitações.</p>
           </div>
         ) : (
           <>
             {/* 1. VISÃO EM TABELA (DESKTOP / TABLET >= 768px) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] text-[11px] font-semibold border-b border-[#EDE5DC] dark:border-[#2A211D]">
+                <thead className="bg-[#F1F3F5] dark:bg-[#14181D] text-[#495057] dark:text-[#ADB5BD] text-[11px] font-semibold border-b border-[#C85A32]/25">
                   <tr>
                     <th className="py-3.5 px-4">Cliente / Empresa</th>
                     <th className="py-3.5 px-4">Contatos</th>
@@ -668,7 +668,7 @@ export function Clients() {
                     <th className="py-3.5 px-4 text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EDE5DC]/70 dark:divide-[#2A211D]/70 text-[#1E1611] dark:text-[#F5EFE8]">
+                <tbody className="divide-y divide-[#C85A32]/20 text-[#1A1E24] dark:text-[#F1F3F5]">
                   {clients.map((client) => {
                     const bDateFormatted = client.birthDate
                       ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
@@ -679,7 +679,7 @@ export function Clients() {
                       .join(', ');
 
                     return (
-                      <tr key={client.id} className="hover:bg-[#FAF6F0]/60 dark:hover:bg-[#201814]/60 transition-colors">
+                      <tr key={client.id} className="hover:bg-[#E9ECEF]/60 dark:hover:bg-[#1E232A]/60 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{client.name}</span>

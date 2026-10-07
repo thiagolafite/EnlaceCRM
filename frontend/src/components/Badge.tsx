@@ -16,20 +16,20 @@ import {
 export function ChannelBadge({ channel }: { channel: string }) {
   if (channel === 'WHATSAPP') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#EBF7EE] text-[#1E6B37] border border-[#CDECD4] dark:bg-[#163820]/40 dark:text-[#68D389] dark:border-[#20522E]">
-        <MessageCircle className="w-3 h-3 text-[#1E6B37] dark:text-[#68D389]" /> WhatsApp
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#1E6B37] border border-[#2EA043]/50 dark:bg-[#181C21] dark:text-[#56D364] dark:border-[#2EA043]/60">
+        <MessageCircle className="w-3 h-3 text-[#1E6B37] dark:text-[#56D364]" /> WhatsApp
       </span>
     );
   }
   if (channel === 'EMAIL') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#2A201C] dark:text-[#B5A599] dark:border-[#3D2E28]">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#495057] border border-[#C85A32]/40 dark:bg-[#181C21] dark:text-[#ADB5BD] dark:border-[#C85A32]/40">
         <Mail className="w-3 h-3" /> E-mail
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#2A201C] dark:text-[#B5A599]">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#495057] border border-[#C85A32]/35 dark:bg-[#181C21] dark:text-[#ADB5BD]">
       WhatsApp & E-mail
     </span>
   );
@@ -38,29 +38,29 @@ export function ChannelBadge({ channel }: { channel: string }) {
 export function StatusBadge({ status }: { status: string }) {
   if (status === 'ACTIVE' || status === 'SENT' || status === 'COMPLETED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#EBF7EE] text-[#1E6B37] border border-[#CDECD4] dark:bg-[#163820]/40 dark:text-[#68D389] dark:border-[#20522E]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#1E6B37] dark:bg-[#68D389]"></span>
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#1E6B37] border border-[#2EA043]/50 dark:bg-[#181C21] dark:text-[#56D364] dark:border-[#2EA043]/60">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#1E6B37] dark:bg-[#56D364]"></span>
         <span>{status === 'SENT' ? 'Enviado' : status === 'COMPLETED' ? 'Concluído' : 'Ativo'}</span>
       </span>
     );
   }
   if (status === 'FAILED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#FDF0EE] text-[#B83226] border border-[#F9D4CF] dark:bg-[#3D1A17]/40 dark:text-[#F37B70] dark:border-[#5C2320]">
-        <XCircle className="w-3 h-3 text-[#B83226] dark:text-[#F37B70]" /> Falha
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#D0352B] border border-[#D0352B]/50 dark:bg-[#181C21] dark:text-[#F85149] dark:border-[#F85149]/50">
+        <XCircle className="w-3 h-3 text-[#D0352B] dark:text-[#F85149]" /> Falha
       </span>
     );
   }
   if (status === 'QUEUED' || status === 'PROCESSING') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F0F5FD] text-[#2255A4] border border-[#D3E3FB] dark:bg-[#1A2A44]/40 dark:text-[#78A9F5] dark:border-[#253D66]">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#1F6FEB] border border-[#1F6FEB]/50 dark:bg-[#181C21] dark:text-[#58A6FF] dark:border-[#1F6FEB]/60">
         <Clock className="w-3 h-3 animate-spin" /> Na Fila
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#FDF6EC] text-[#B36B15] border border-[#FAE5C8] dark:bg-[#382613]/40 dark:text-[#F2B363] dark:border-[#54391C]">
-      <AlertCircle className="w-3 h-3 text-[#B36B15] dark:text-[#F2B363]" /> {status === 'PENDING' ? 'Pendente' : 'Inativo'}
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#D97706] border border-[#D97706]/50 dark:bg-[#181C21] dark:text-[#FBBF24] dark:border-[#D97706]/60">
+      <AlertCircle className="w-3 h-3 text-[#D97706] dark:text-[#FBBF24]" /> {status === 'PENDING' ? 'Pendente' : 'Inativo'}
     </span>
   );
 }
@@ -68,27 +68,27 @@ export function StatusBadge({ status }: { status: string }) {
 export function NotificationBadge({ status }: { status: string }) {
   if (status === 'SENT') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#EBF7EE] text-[#1E6B37] border border-[#CDECD4] dark:bg-[#163820]/40 dark:text-[#68D389]">
-        <Bell className="w-3 h-3 text-[#1E6B37] dark:text-[#68D389]" /> Notificado
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#1E6B37] border border-[#2EA043]/50 dark:bg-[#181C21] dark:text-[#56D364]">
+        <Bell className="w-3 h-3 text-[#1E6B37] dark:text-[#56D364]" /> Notificado
       </span>
     );
   }
   if (status === 'SIMULATED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#2A201C] dark:text-[#B5A599]">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#495057] border border-[#C85A32]/40 dark:bg-[#181C21] dark:text-[#ADB5BD]">
         Simulado
       </span>
     );
   }
   if (status === 'FAILED') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#FDF0EE] text-[#B83226] border border-[#F9D4CF] dark:bg-[#3D1A17]/40 dark:text-[#F37B70]">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#D0352B] border border-[#D0352B]/50 dark:bg-[#181C21] dark:text-[#F85149]">
         <XCircle className="w-3 h-3" /> Falha
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F3ECE4] text-[#8C7A6B] border border-[#EDE5DC] dark:bg-[#2A201C] dark:text-[#8C7A6B]">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#6C757D] border border-[#C85A32]/30 dark:bg-[#181C21] dark:text-[#8E99A4]">
       <Clock className="w-3 h-3" /> Não Notificado
     </span>
   );
@@ -97,16 +97,16 @@ export function NotificationBadge({ status }: { status: string }) {
 export function ManualSentBadge({ sent, sentAt }: { sent: boolean; sentAt?: string | null }) {
   if (sent) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#EBF7EE] text-[#1E6B37] border border-[#CDECD4] dark:bg-[#163820]/40 dark:text-[#68D389] dark:border-[#20522E]">
-        <Check className="w-3.5 h-3.5 text-[#1E6B37] dark:text-[#68D389]" />
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#F8F9FA] text-[#1E6B37] border border-[#2EA043]/50 dark:bg-[#181C21] dark:text-[#56D364] dark:border-[#2EA043]/60">
+        <Check className="w-3.5 h-3.5 text-[#1E6B37] dark:text-[#56D364]" />
         <span>Enviado ao Cliente</span>
         {sentAt && <span className="text-[10px] opacity-75 font-mono">({new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#FDF6EC] text-[#B36B15] border border-[#FAE5C8] dark:bg-[#382613]/40 dark:text-[#F2B363] dark:border-[#54391C]">
-      <Clock className="w-3.5 h-3.5 text-[#B36B15] dark:text-[#F2B363]" />
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#F8F9FA] text-[#D97706] border border-[#D97706]/50 dark:bg-[#181C21] dark:text-[#FBBF24] dark:border-[#D97706]/60">
+      <Clock className="w-3.5 h-3.5 text-[#D97706] dark:text-[#FBBF24]" />
       <span>Pendente de Envio</span>
     </span>
   );
@@ -131,11 +131,11 @@ export function LgpdBadge({
         type="button"
         onClick={onToggle}
         title={`Opt-out registrado em ${new Date(optOutAt).toLocaleDateString('pt-BR')}. Clique para gerenciar consentimento.`}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#FDF0EE] text-[#B83226] border border-[#F9D4CF] dark:bg-[#3D1A17]/40 dark:text-[#F37B70] dark:border-[#5C2320] transition-colors ${
-          onToggle ? 'hover:bg-[#F9D4CF] dark:hover:bg-[#5C2320] cursor-pointer' : ''
+        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#D0352B] border border-[#D0352B]/50 dark:bg-[#181C21] dark:text-[#F85149] dark:border-[#F85149]/50 transition-colors ${
+          onToggle ? 'hover:bg-[#E9ECEF] dark:hover:bg-[#22272E] cursor-pointer' : ''
         }`}
       >
-        <ShieldAlert className="w-3 h-3 text-[#B83226] dark:text-[#F37B70]" />
+        <ShieldAlert className="w-3 h-3 text-[#D0352B] dark:text-[#F85149]" />
         <span>Opt-out (Revogado)</span>
       </button>
     );
@@ -148,11 +148,11 @@ export function LgpdBadge({
         type="button"
         onClick={onToggle}
         title={date ? `Consentimento LGPD (${source || 'Manual'}) concedido em ${new Date(date).toLocaleDateString('pt-BR')}` : 'Consentimento LGPD Ativo'}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F4F9F6] text-[#23684B] border border-[#D5EADF] dark:bg-[#173426]/40 dark:text-[#74C9A3] dark:border-[#22523C] transition-colors ${
-          onToggle ? 'hover:bg-[#D5EADF] dark:hover:bg-[#22523C] cursor-pointer' : ''
+        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#1E6B37] border border-[#2EA043]/50 dark:bg-[#181C21] dark:text-[#56D364] dark:border-[#2EA043]/60 transition-colors ${
+          onToggle ? 'hover:bg-[#E9ECEF] dark:hover:bg-[#22272E] cursor-pointer' : ''
         }`}
       >
-        <ShieldCheck className="w-3 h-3 text-[#23684B] dark:text-[#74C9A3]" />
+        <ShieldCheck className="w-3 h-3 text-[#1E6B37] dark:text-[#56D364]" />
         <span>LGPD ({sourceLabel})</span>
       </button>
     );
@@ -163,11 +163,11 @@ export function LgpdBadge({
       type="button"
       onClick={onToggle}
       title="Cliente sem registro formal de consentimento. Ficará de fora das automações."
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F3ECE4] text-[#8C7A6B] border border-[#EDE5DC] dark:bg-[#2A201C] dark:text-[#A8988B] dark:border-[#3D2E28] transition-colors ${
-        onToggle ? 'hover:bg-[#E8DDD0] dark:hover:bg-[#3D2E28] cursor-pointer' : ''
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#6C757D] border border-[#C85A32]/40 dark:bg-[#181C21] dark:text-[#ADB5BD] dark:border-[#C85A32]/40 transition-colors ${
+        onToggle ? 'hover:bg-[#E9ECEF] dark:hover:bg-[#22272E] cursor-pointer' : ''
       }`}
     >
-      <AlertCircle className="w-3 h-3 text-[#8C7A6B]" />
+      <AlertCircle className="w-3 h-3 text-[#C85A32]" />
       <span>Sem Consentimento</span>
     </button>
   );
@@ -176,21 +176,21 @@ export function LgpdBadge({
 export function EventTypeBadge({ type }: { type: string }) {
   if (type === 'CLIENT_BIRTHDAY') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#FBF0E6] text-[#C85A32] border border-[#F5D2BF] dark:bg-[#2E1E17] dark:text-[#E07A5F] dark:border-[#4C2D20]">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#C85A32] border-2 border-[#C85A32] dark:bg-[#181C21] dark:text-[#E07A5F] dark:border-[#E07A5F]">
         <Calendar className="w-3 h-3 text-[#C85A32] dark:text-[#E07A5F]" /> Aniversário Cliente
       </span>
     );
   }
   if (type === 'FAMILY_BIRTHDAY') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#FDF0F2] text-[#B82B57] border border-[#F9D2DD] dark:bg-[#381622]/40 dark:text-[#F3769D] dark:border-[#592236]">
-        <User className="w-3 h-3 text-[#B82B57] dark:text-[#F3769D]" /> Aniversário Familiar
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#B85D3B] border border-[#B85D3B] dark:bg-[#181C21] dark:text-[#F39C74] dark:border-[#F39C74]">
+        <User className="w-3 h-3 text-[#B85D3B] dark:text-[#F39C74]" /> Aniversário Familiar
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#2A201C] dark:text-[#B5A599] dark:border-[#3D2E28]">
-      <Calendar className="w-3 h-3 text-[#756557]" /> Data Comemorativa
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F8F9FA] text-[#495057] border border-[#C85A32]/40 dark:bg-[#181C21] dark:text-[#ADB5BD] dark:border-[#C85A32]/40">
+      <Calendar className="w-3 h-3 text-[#C85A32]" /> Data Comemorativa
     </span>
   );
 }
@@ -198,20 +198,20 @@ export function EventTypeBadge({ type }: { type: string }) {
 export function UserRoleBadge({ role }: { role: string }) {
   if (role === 'MASTER') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#1A1412] text-[#FAF6F0] border border-[#3A2C24]">
-        <Crown className="w-3 h-3 text-[#E07A5F]" /> Master
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#13171C] text-[#F1F3F5] border-2 border-[#C85A32]">
+        <Crown className="w-3 h-3 text-[#C85A32]" /> Master
       </span>
     );
   }
   if (role === 'ADMIN') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FBF0E6] text-[#C85A32] border border-[#F5D2BF] dark:bg-[#2E1E17] dark:text-[#E07A5F] dark:border-[#4C2D20]">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#F8F9FA] text-[#C85A32] border-2 border-[#C85A32] dark:bg-[#181C21] dark:text-[#E07A5F]">
         Admin
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#2A201C] dark:text-[#B5A599] dark:border-[#3D2E28]">
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider bg-[#F8F9FA] text-[#495057] border border-[#C85A32]/40 dark:bg-[#181C21] dark:text-[#ADB5BD]">
       Operador
     </span>
   );

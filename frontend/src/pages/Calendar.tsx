@@ -570,13 +570,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] p-1 rounded-full flex items-center text-xs font-medium">
+          <div className="bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 p-1 rounded-full flex items-center text-xs font-medium">
             <button
               onClick={() => setSelectedTab('year')}
               className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
                 selectedTab === 'year'
-                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
-                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599] dark:hover:text-[#F5EFE8]'
+                  ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
+                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD] dark:hover:text-[#F1F3F5]'
               }`}
             >
               <CalendarIcon className="w-3.5 h-3.5" /> Calendário Anual
@@ -585,8 +585,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               onClick={() => setSelectedTab('agenda')}
               className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
                 selectedTab === 'agenda'
-                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
-                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599] dark:hover:text-[#F5EFE8]'
+                  ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
+                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD] dark:hover:text-[#F1F3F5]'
               }`}
             >
               <Clock className="w-3.5 h-3.5" /> Agenda 60 Dias
@@ -595,8 +595,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               onClick={() => setSelectedTab('fixed')}
               className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
                 selectedTab === 'fixed'
-                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
-                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599] dark:hover:text-[#F5EFE8]'
+                  ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
+                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD] dark:hover:text-[#F1F3F5]'
               }`}
             >
               <List className="w-3.5 h-3.5" /> Datas Fixas ({dates.length})
@@ -624,16 +624,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentYear((prev) => prev - 1)}
-                className="p-1.5 rounded-lg border border-[#EDE5DC] dark:border-[#2A211D] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] text-[#756557] dark:text-[#B5A599] transition-colors"
+                className="p-1.5 rounded-lg border border-[#C85A32]/30 bg-[#FFFFFF] dark:bg-[#14181D] hover:bg-[#E9ECEF] text-[#495057] dark:text-[#ADB5BD] transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-lg font-serif text-[#1E1611] dark:text-[#F5EFE8] px-2 font-normal">
+              <span className="text-lg font-serif text-[#1A1E24] dark:text-[#F1F3F5] px-2 font-normal">
                 {currentYear}
               </span>
               <button
                 onClick={() => setCurrentYear((prev) => prev + 1)}
-                className="p-1.5 rounded-lg border border-[#EDE5DC] dark:border-[#2A211D] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] text-[#756557] dark:text-[#B5A599] transition-colors"
+                className="p-1.5 rounded-lg border border-[#C85A32]/30 bg-[#FFFFFF] dark:bg-[#14181D] hover:bg-[#E9ECEF] text-[#495057] dark:text-[#ADB5BD] transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -641,21 +641,21 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 onClick={() => loadData()}
                 title="Atualizar dados do calendário"
-                className="p-1.5 rounded-lg text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] transition-colors ml-1"
+                className="p-1.5 rounded-lg text-[#6C757D] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] transition-colors ml-1"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
             {/* Event Category Filter Buttons */}
-            <div className="flex items-center gap-1.5 p-1 rounded-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs">
+            <div className="flex items-center gap-1.5 p-1 rounded-full bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 text-xs">
               <button
                 type="button"
                 onClick={() => setCategoryFilter('ALL')}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   categoryFilter === 'ALL'
-                    ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle'
-                    : 'text-[#756557] dark:text-[#B5A599]'
+                    ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#1A1E24] dark:text-[#F1F3F5] border border-[#C85A32]/35 shadow-xs'
+                    : 'text-[#6C757D] dark:text-[#ADB5BD]'
                 }`}
               >
                 Todas ({unifiedEvents.length})
@@ -665,8 +665,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 onClick={() => setCategoryFilter('BIRTHDAYS')}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                   categoryFilter === 'BIRTHDAYS'
-                    ? 'bg-[#C85A32] text-white shadow-subtle'
-                    : 'text-[#756557] dark:text-[#B5A599] hover:text-[#C85A32]'
+                    ? 'bg-[#C85A32] text-white shadow-xs'
+                    : 'text-[#6C757D] dark:text-[#ADB5BD] hover:text-[#C85A32]'
                 }`}
               >
                 🎂 Aniversários ({totalBirthdaysCount})
@@ -676,8 +676,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 onClick={() => setCategoryFilter('FIXED')}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   categoryFilter === 'FIXED'
-                    ? 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611] shadow-subtle'
-                    : 'text-[#756557] dark:text-[#B5A599]'
+                    ? 'bg-[#181C21] text-[#F1F3F5] dark:bg-[#252B33] dark:text-[#F1F3F5] border border-[#C85A32]/40 shadow-xs'
+                    : 'text-[#6C757D] dark:text-[#ADB5BD]'
                 }`}
               >
                 📅 Feriados & Fixas ({dates.length})
@@ -686,14 +686,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
             {/* Legenda de Categorias */}
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
-              <span className="flex items-center gap-1.5 text-[#B84E29] dark:text-[#F39C74] bg-[#FDF6F0] dark:bg-[#2D1A14] px-2.5 py-0.5 rounded-full border border-[#F6D5C2] dark:border-[#522F22]">
+              <span className="flex items-center gap-1.5 text-[#C85A32] dark:text-[#E07A5F] bg-[#FFFFFF] dark:bg-[#14181D] px-2.5 py-0.5 rounded-full border border-[#C85A32]">
                 <span className="w-2 h-2 rounded-full bg-[#C85A32]"></span> Clientes
               </span>
-              <span className="flex items-center gap-1.5 text-[#B84E29] dark:text-[#F39C74] bg-[#FDF2EC] dark:bg-[#2A1C16] px-2.5 py-0.5 rounded-full border border-[#F5D2BF] dark:border-[#4C2D20]">
-                <span className="w-2 h-2 rounded-full bg-[#E07A5F]"></span> Familiares
+              <span className="flex items-center gap-1.5 text-[#B85D3B] dark:text-[#F39C74] bg-[#FFFFFF] dark:bg-[#14181D] px-2.5 py-0.5 rounded-full border border-[#B85D3B]">
+                <span className="w-2 h-2 rounded-full bg-[#B85D3B]"></span> Familiares
               </span>
-              <span className="flex items-center gap-1.5 text-[#756557] dark:text-[#B5A599] bg-[#FAF6F0] dark:bg-[#1A1513] px-2.5 py-0.5 rounded-full border border-[#EDE5DC] dark:border-[#2A211D]">
-                <span className="w-2 h-2 rounded-full bg-[#1E1611] dark:bg-[#FAF6F0]"></span> Feriados
+              <span className="flex items-center gap-1.5 text-[#495057] dark:text-[#ADB5BD] bg-[#FFFFFF] dark:bg-[#14181D] px-2.5 py-0.5 rounded-full border border-[#C85A32]/35">
+                <span className="w-2 h-2 rounded-full bg-[#181C21] dark:bg-[#F1F3F5]"></span> Feriados
               </span>
             </div>
           </div>
@@ -722,25 +722,25 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               return (
                 <div
                   key={monthName}
-                  className="card-warm p-4 flex flex-col justify-between transition-all group hover:border-[#DFCFC0]"
+                  className="card-warm p-4 flex flex-col justify-between transition-all group hover:border-[#C85A32]"
                 >
                   <div>
                     {/* Month Header */}
                     <div className="flex items-center justify-between border-b hairline-border pb-2.5 mb-3">
-                      <h3 className="text-base font-serif text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2">
+                      <h3 className="text-base font-serif text-[#1A1E24] dark:text-[#F1F3F5] flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#C85A32]"></span>
                         {monthName}
                       </h3>
 
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] border border-[#EDE5DC] dark:border-[#2A211D]">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#FFFFFF] dark:bg-[#14181D] text-[#495057] dark:text-[#ADB5BD] border border-[#C85A32]/25">
                         {monthEvents.length} evento{monthEvents.length === 1 ? '' : 's'}
                       </span>
                     </div>
 
                     {/* Mini Calendar Grid Matrix */}
-                    <div className="mb-3 bg-[#FAF6F0] dark:bg-[#15100E] p-2.5 rounded-2xl border border-[#EDE5DC] dark:border-[#2A211D]">
+                    <div className="mb-3 bg-[#FFFFFF] dark:bg-[#14181D] p-2.5 rounded-2xl border border-[#C85A32]/25">
                       {/* Weekday headers */}
-                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-[#A09388] mb-1">
+                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-[#8E99A4] mb-1">
                         {WEEKDAYS_SHORT.map((wd, i) => (
                           <span key={i} className={i === 0 ? 'text-[#C85A32]' : ''}>
                             {wd}

@@ -170,14 +170,14 @@ export function Alerts() {
 
       {/* Top Filter & Tab Navigation */}
       <div className="card-warm p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] p-1 rounded-full text-xs font-medium">
+        <div className="flex bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 p-1 rounded-full text-xs font-medium">
           <button
             type="button"
             onClick={() => setActiveTab('today')}
             className={`px-3.5 py-1.5 rounded-full transition-all ${
               activeTab === 'today'
-                ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
-                : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
+                ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
+                : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
             }`}
           >
             Hoje ({totalToday})
@@ -187,8 +187,8 @@ export function Alerts() {
             onClick={() => setActiveTab('history')}
             className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
               activeTab === 'history'
-                ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
-                : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
+                ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
+                : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
@@ -197,9 +197,9 @@ export function Alerts() {
         </div>
 
         {/* Counter Readout */}
-        <div className="flex items-center gap-3 px-3 text-xs text-[#756557] dark:text-[#B5A599]">
-          <span>Total: <strong className="text-[#1E1611] dark:text-[#F5EFE8] font-mono font-bold">{totalToday}</strong></span>
-          <span>Pendentes: <strong className="text-[#C85A32] dark:text-[#F39C74] font-mono font-bold">{pendingCount}</strong></span>
+        <div className="flex items-center gap-3 px-3 text-xs text-[#6C757D] dark:text-[#ADB5BD]">
+          <span>Total: <strong className="text-[#1A1E24] dark:text-[#F1F3F5] font-mono font-bold">{totalToday}</strong></span>
+          <span>Pendentes: <strong className="text-[#C85A32] dark:text-[#E07A5F] font-mono font-bold">{pendingCount}</strong></span>
           <span>Enviados: <strong className="text-emerald-700 dark:text-emerald-400 font-mono font-bold">{sentCount}</strong></span>
         </div>
       </div>
@@ -207,13 +207,13 @@ export function Alerts() {
       {/* Filter Bar */}
       <div className="card-warm p-3.5 flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#C85A32]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome, telefone ou mensagem..."
-            className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] placeholder:text-[#A09388] outline-none transition-colors"
+            className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] placeholder:text-[#8E99A4] outline-none transition-colors"
           />
         </div>
 
@@ -223,14 +223,14 @@ export function Alerts() {
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+              className="bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 rounded-xl py-2 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none"
             />
           )}
 
           <select
             value={filterSent}
             onChange={(e) => setFilterSent(e.target.value)}
-            className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-2 px-3 text-xs font-medium text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+            className="bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 rounded-xl py-2 px-3 text-xs font-medium text-[#1A1E24] dark:text-[#F1F3F5] outline-none"
           >
             <option value="">Todos os status</option>
             <option value="pending">Apenas Pendentes</option>
@@ -240,7 +240,7 @@ export function Alerts() {
           <button
             onClick={loadAlerts}
             title="Atualizar lista"
-            className="p-2 rounded-xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] hover:bg-[#F3ECE4] text-[#756557] dark:text-[#B5A599] transition-colors shrink-0"
+            className="p-2 rounded-xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/30 hover:bg-[#E9ECEF] text-[#495057] dark:text-[#ADB5BD] transition-colors shrink-0"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -249,11 +249,11 @@ export function Alerts() {
 
       {/* Alerts Grid / Cards */}
       {loading ? (
-        <div className="py-20 text-center text-[#A09388] text-xs">Carregando alertas...</div>
+        <div className="py-20 text-center text-[#8E99A4] text-xs">Carregando alertas...</div>
       ) : alerts.length === 0 ? (
         <div className="card-warm p-12 text-center space-y-2">
-          <h3 className="text-base font-serif text-[#1E1611] dark:text-[#F5EFE8]">Nenhum alerta para esta data</h3>
-          <p className="text-xs text-[#756557] dark:text-[#B5A599] max-w-sm mx-auto">
+          <h3 className="text-base font-serif text-[#1A1E24] dark:text-[#F1F3F5]">Nenhum alerta para esta data</h3>
+          <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD] max-w-sm mx-auto">
             Não há aniversários ou datas comemorativas previstas para o filtro selecionado.
           </p>
           <button
@@ -277,7 +277,7 @@ export function Alerts() {
             return (
               <div
                 key={alertItem.id}
-                className={`card-warm p-5 transition-all flex flex-col md:flex-row gap-4 justify-between hover:border-[#DFCFC0] ${
+                className={`card-warm p-5 transition-all flex flex-col md:flex-row gap-4 justify-between hover:border-[#C85A32] ${
                   alertItem.sentToClientManual
                     ? 'opacity-85'
                     : ''
@@ -296,22 +296,22 @@ export function Alerts() {
 
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-serif text-[#1E1611] dark:text-[#F5EFE8]">
+                      <h3 className="text-base font-serif text-[#1A1E24] dark:text-[#F1F3F5]">
                         {alertItem.clientName}
                       </h3>
                       {alertItem.clientPhone && (
-                        <span className="text-xs font-mono text-[#756557] dark:text-[#B5A599] flex items-center gap-1">
+                        <span className="text-xs font-mono text-[#6C757D] dark:text-[#ADB5BD] flex items-center gap-1">
                           <Phone className="w-3 h-3 text-[#C85A32]" /> {alertItem.clientPhone}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-0.5">
+                    <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD] mt-0.5">
                       {alertItem.contextDescription}
                     </p>
                   </div>
 
                   {/* Ready WhatsApp Message Box */}
-                  <div className="p-3.5 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs text-[#1E1611] dark:text-[#F5EFE8] whitespace-pre-line font-mono leading-relaxed max-h-36 overflow-y-auto">
+                  <div className="p-3.5 rounded-2xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/25 dark:border-[#C85A32]/35 text-xs text-[#1A1E24] dark:text-[#F1F3F5] whitespace-pre-line font-mono leading-relaxed max-h-36 overflow-y-auto">
                     {alertItem.renderedMessage}
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export function Alerts() {
                         <span>Abrir no WhatsApp</span>
                       </a>
                     ) : (
-                      <div className="p-2 rounded-xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-center text-[11px] text-[#A09388]">
+                      <div className="p-2 rounded-xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/30 text-center text-[11px] text-[#8E99A4]">
                         Sem telefone cadastrado
                       </div>
                     )}
@@ -361,7 +361,7 @@ export function Alerts() {
                     disabled={togglingId === alertItem.id}
                     className={`w-full py-2 px-3 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
                       alertItem.sentToClientManual
-                        ? 'bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] hover:bg-[#F3ECE4]'
+                        ? 'bg-[#FFFFFF] dark:bg-[#14181D] text-[#6C757D] dark:text-[#ADB5BD] hover:bg-[#E9ECEF]'
                         : 'btn-secondary'
                     }`}
                   >
