@@ -358,49 +358,49 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     switch (category) {
       case 'CLIENT_BIRTHDAY':
         return {
-          badge: 'bg-[#C85A32] text-white',
-          card: 'bg-[#FDF6F0] text-[#B84E29] dark:bg-[#2D1A14] dark:text-[#F39C74] border-[#F6D5C2] dark:border-[#522F22]',
-          dot: 'bg-[#C85A32]',
+          badge: 'bg-[#E54833] text-white',
+          card: 'bg-white/80 dark:bg-[#202126] text-[#18191D] dark:text-[#F4F4F6] border border-[#E54833]/40',
+          dot: 'bg-[#E54833]',
           tag: '🎂 Aniversário Cliente',
           icon: Cake,
         };
       case 'FAMILY_BIRTHDAY':
         return {
-          badge: 'bg-[#E07A5F] text-white',
-          card: 'bg-[#FDF2EC] text-[#B84E29] dark:bg-[#2A1C16] dark:text-[#F39C74] border-[#F5D2BF] dark:border-[#4C2D20]',
-          dot: 'bg-[#E07A5F]',
+          badge: 'bg-[#EEEEF1] text-[#18191D] dark:bg-[#24252B] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]',
+          card: 'bg-white/70 dark:bg-[#202126] text-[#18191D] dark:text-[#F4F4F6] border border-[#E2E2E8] dark:border-[#292A30]',
+          dot: 'bg-[#686971]',
           tag: '💐 Aniversário Familiar',
           icon: Heart,
         };
       case 'FIXED':
         return {
-          badge: 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611]',
-          card: 'bg-[#FAF6F0] text-[#1E1611] dark:bg-[#1A1513] dark:text-[#F5EFE8] border-[#EDE5DC] dark:border-[#2A211D]',
-          dot: 'bg-[#1E1611] dark:bg-[#FAF6F0]',
+          badge: 'bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D]',
+          card: 'bg-white/70 dark:bg-[#202126] text-[#18191D] dark:text-[#F4F4F6] border border-[#E2E2E8] dark:border-[#292A30]',
+          dot: 'bg-[#18191D] dark:bg-[#F4F4F6]',
           tag: 'Feriado Nacional',
           icon: Star,
         };
       case 'CULTURAL':
         return {
-          badge: 'bg-[#756557] text-white',
-          card: 'bg-[#FAF6F0] text-[#756557] dark:bg-[#1A1513] dark:text-[#B5A599] border-[#EDE5DC] dark:border-[#2A211D]',
-          dot: 'bg-[#756557]',
+          badge: 'bg-[#EEEEF1] text-[#686971] dark:bg-[#24252B] dark:text-[#BFC0C7] border border-[#D7D7DD] dark:border-[#292A30]',
+          card: 'bg-white/70 dark:bg-[#202126] text-[#686971] dark:text-[#BFC0C7] border border-[#E2E2E8] dark:border-[#292A30]',
+          dot: 'bg-[#686971]',
           tag: 'Cultural / Celebrativa',
           icon: Sparkles,
         };
       case 'CORPORATE':
         return {
-          badge: 'bg-[#2C5282] text-white',
-          card: 'bg-[#EEF3F8] text-[#2C5282] dark:bg-[#172230] dark:text-[#7EB0D5] border-[#CFDDE8] dark:border-[#2B3E55]',
-          dot: 'bg-[#2C5282]',
+          badge: 'bg-[#1F6FEB] text-white',
+          card: 'bg-white/70 dark:bg-[#202126] text-[#1F6FEB] dark:text-[#58A6FF] border border-[#1F6FEB]/30',
+          dot: 'bg-[#1F6FEB]',
           tag: 'Corporativa',
           icon: Briefcase,
         };
       default:
         return {
-          badge: 'bg-[#756557] text-white',
-          card: 'bg-[#FAF6F0] text-[#756557] dark:bg-[#1A1513] dark:text-[#B5A599] border-[#EDE5DC] dark:border-[#2A211D]',
-          dot: 'bg-[#756557]',
+          badge: 'bg-[#EEEEF1] text-[#686971] dark:bg-[#24252B] dark:text-[#BFC0C7]',
+          card: 'bg-white/70 dark:bg-[#202126] text-[#686971] dark:text-[#BFC0C7] border border-[#E2E2E8] dark:border-[#292A30]',
+          dot: 'bg-[#686971]',
           tag: 'Geral',
           icon: CalendarIcon,
         };
@@ -549,7 +549,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <ErrorBanner
         error={pageError?.message || null}
         solution={pageError?.solution}
@@ -560,43 +560,46 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       {/* Header Editorial */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-wider text-[#A09388] mb-0.5">CALENDÁRIO & EVENTOS</p>
-          <h1 className="text-2xl lg:text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] font-normal tracking-tight">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E54833]"></span>
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[#686971] dark:text-[#BFC0C7]">CALENDÁRIO & EVENTOS</p>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-sans text-[#18191D] dark:text-[#F4F4F6] font-medium tracking-tight mt-0.5">
             Calendário & Datas Comemorativas
           </h1>
-          <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1">
+          <p className="text-xs text-[#686971] dark:text-[#BFC0C7] mt-1">
             Feriados nacionais, datas comemorativas e aniversários integrados
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 p-1 rounded-full flex items-center text-xs font-medium">
+          <div className="bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30] p-1 rounded-xl flex items-center text-xs font-medium">
             <button
               onClick={() => setSelectedTab('year')}
-              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                 selectedTab === 'year'
-                  ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD] dark:hover:text-[#F1F3F5]'
+                  ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle font-medium'
+                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
               }`}
             >
               <CalendarIcon className="w-3.5 h-3.5" /> Calendário Anual
             </button>
             <button
               onClick={() => setSelectedTab('agenda')}
-              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                 selectedTab === 'agenda'
-                  ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD] dark:hover:text-[#F1F3F5]'
+                  ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle font-medium'
+                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
               }`}
             >
               <Clock className="w-3.5 h-3.5" /> Agenda 60 Dias
             </button>
             <button
               onClick={() => setSelectedTab('fixed')}
-              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                 selectedTab === 'fixed'
-                  ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD] dark:hover:text-[#F1F3F5]'
+                  ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle font-medium'
+                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
               }`}
             >
               <List className="w-3.5 h-3.5" /> Datas Fixas ({dates.length})
@@ -605,7 +608,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
           <button
             onClick={() => handleOpenModal()}
-            className="btn-terracotta"
+            className="btn-primary"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Nova Data</span>
@@ -624,16 +627,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentYear((prev) => prev - 1)}
-                className="p-1.5 rounded-lg border border-[#C85A32]/30 bg-[#FFFFFF] dark:bg-[#14181D] hover:bg-[#E9ECEF] text-[#495057] dark:text-[#ADB5BD] transition-colors"
+                className="p-1.5 rounded-lg border border-[#E2E2E8] dark:border-[#292A30] bg-white dark:bg-[#18191D] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] text-[#686971] dark:text-[#BFC0C7] transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-lg font-serif text-[#1A1E24] dark:text-[#F1F3F5] px-2 font-normal">
+              <span className="text-lg font-mono text-[#18191D] dark:text-[#F4F4F6] px-2 font-medium">
                 {currentYear}
               </span>
               <button
                 onClick={() => setCurrentYear((prev) => prev + 1)}
-                className="p-1.5 rounded-lg border border-[#C85A32]/30 bg-[#FFFFFF] dark:bg-[#14181D] hover:bg-[#E9ECEF] text-[#495057] dark:text-[#ADB5BD] transition-colors"
+                className="p-1.5 rounded-lg border border-[#E2E2E8] dark:border-[#292A30] bg-white dark:bg-[#18191D] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] text-[#686971] dark:text-[#BFC0C7] transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -641,21 +644,21 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 onClick={() => loadData()}
                 title="Atualizar dados do calendário"
-                className="p-1.5 rounded-lg text-[#6C757D] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] transition-colors ml-1"
+                className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] transition-colors ml-1"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
             {/* Event Category Filter Buttons */}
-            <div className="flex items-center gap-1.5 p-1 rounded-full bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 text-xs">
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30] text-xs">
               <button
                 type="button"
                 onClick={() => setCategoryFilter('ALL')}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                   categoryFilter === 'ALL'
-                    ? 'bg-[#FFFFFF] dark:bg-[#181C21] text-[#1A1E24] dark:text-[#F1F3F5] border border-[#C85A32]/35 shadow-xs'
-                    : 'text-[#6C757D] dark:text-[#ADB5BD]'
+                    ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                    : 'text-[#686971] dark:text-[#BFC0C7]'
                 }`}
               >
                 Todas ({unifiedEvents.length})
@@ -663,10 +666,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 type="button"
                 onClick={() => setCategoryFilter('BIRTHDAYS')}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                   categoryFilter === 'BIRTHDAYS'
-                    ? 'bg-[#C85A32] text-white shadow-xs'
-                    : 'text-[#6C757D] dark:text-[#ADB5BD] hover:text-[#C85A32]'
+                    ? 'bg-[#E54833] text-white shadow-subtle'
+                    : 'text-[#686971] dark:text-[#BFC0C7] hover:text-[#18191D]'
                 }`}
               >
                 🎂 Aniversários ({totalBirthdaysCount})
@@ -674,10 +677,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 type="button"
                 onClick={() => setCategoryFilter('FIXED')}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                   categoryFilter === 'FIXED'
-                    ? 'bg-[#181C21] text-[#F1F3F5] dark:bg-[#252B33] dark:text-[#F1F3F5] border border-[#C85A32]/40 shadow-xs'
-                    : 'text-[#6C757D] dark:text-[#ADB5BD]'
+                    ? 'bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D] shadow-subtle'
+                    : 'text-[#686971] dark:text-[#BFC0C7]'
                 }`}
               >
                 📅 Feriados & Fixas ({dates.length})
@@ -686,20 +689,20 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
             {/* Legenda de Categorias */}
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
-              <span className="flex items-center gap-1.5 text-[#C85A32] dark:text-[#E07A5F] bg-[#FFFFFF] dark:bg-[#14181D] px-2.5 py-0.5 rounded-full border border-[#C85A32]">
-                <span className="w-2 h-2 rounded-full bg-[#C85A32]"></span> Clientes
+              <span className="flex items-center gap-1.5 text-[#18191D] dark:text-[#F4F4F6] bg-white dark:bg-[#202126] px-2.5 py-0.5 rounded-full border border-[#E2E2E8] dark:border-[#292A30]">
+                <span className="w-2 h-2 rounded-full bg-[#E54833]"></span> Clientes
               </span>
-              <span className="flex items-center gap-1.5 text-[#B85D3B] dark:text-[#F39C74] bg-[#FFFFFF] dark:bg-[#14181D] px-2.5 py-0.5 rounded-full border border-[#B85D3B]">
-                <span className="w-2 h-2 rounded-full bg-[#B85D3B]"></span> Familiares
+              <span className="flex items-center gap-1.5 text-[#686971] dark:text-[#BFC0C7] bg-white dark:bg-[#202126] px-2.5 py-0.5 rounded-full border border-[#E2E2E8] dark:border-[#292A30]">
+                <span className="w-2 h-2 rounded-full bg-[#686971]"></span> Familiares
               </span>
-              <span className="flex items-center gap-1.5 text-[#495057] dark:text-[#ADB5BD] bg-[#FFFFFF] dark:bg-[#14181D] px-2.5 py-0.5 rounded-full border border-[#C85A32]/35">
-                <span className="w-2 h-2 rounded-full bg-[#181C21] dark:bg-[#F1F3F5]"></span> Feriados
+              <span className="flex items-center gap-1.5 text-[#686971] dark:text-[#BFC0C7] bg-white dark:bg-[#202126] px-2.5 py-0.5 rounded-full border border-[#E2E2E8] dark:border-[#292A30]">
+                <span className="w-2 h-2 rounded-full bg-[#18191D] dark:bg-[#F4F4F6]"></span> Feriados
               </span>
             </div>
           </div>
 
           {/* Grade dos 12 Meses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {MONTHS_PT.map((monthName, monthIndex) => {
               const monthNum = monthIndex + 1;
 
@@ -722,27 +725,27 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               return (
                 <div
                   key={monthName}
-                  className="card-warm p-4 flex flex-col justify-between transition-all group hover:border-[#C85A32]"
+                  className="card-warm p-4 flex flex-col justify-between transition-all group hover:border-[#C6C7CD] dark:hover:border-[#44454B]"
                 >
                   <div>
                     {/* Month Header */}
                     <div className="flex items-center justify-between border-b hairline-border pb-2.5 mb-3">
-                      <h3 className="text-base font-serif text-[#1A1E24] dark:text-[#F1F3F5] flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#C85A32]"></span>
+                      <h3 className="text-sm font-medium text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#E54833]"></span>
                         {monthName}
                       </h3>
 
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#FFFFFF] dark:bg-[#14181D] text-[#495057] dark:text-[#ADB5BD] border border-[#C85A32]/25">
-                        {monthEvents.length} evento{monthEvents.length === 1 ? '' : 's'}
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#EEEEF1] dark:bg-[#24252B] text-[#686971] dark:text-[#BFC0C7] border border-[#D7D7DD] dark:border-[#292A30]">
+                        {monthEvents.length}
                       </span>
                     </div>
 
                     {/* Mini Calendar Grid Matrix */}
-                    <div className="mb-3 bg-[#FFFFFF] dark:bg-[#14181D] p-2.5 rounded-2xl border border-[#C85A32]/25">
+                    <div className="mb-3 bg-[#F4F4F6]/70 dark:bg-[#18191D]/70 p-2.5 rounded-xl border border-[#E2E2E8] dark:border-[#292A30]">
                       {/* Weekday headers */}
-                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-[#8E99A4] mb-1">
+                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-[#74757C] mb-1">
                         {WEEKDAYS_SHORT.map((wd, i) => (
-                          <span key={i} className={i === 0 ? 'text-[#C85A32]' : ''}>
+                          <span key={i} className={i === 0 ? 'text-[#E54833]' : ''}>
                             {wd}
                           </span>
                         ))}
@@ -783,12 +786,12 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                                   ? `${cell.day}/${monthNum} - ${hasEvent.name}`
                                   : `Criar data em ${cell.day}/${monthNum}`
                               }
-                              className={`h-6 w-full rounded-md text-[11px] font-medium flex items-center justify-center transition-all ${
+                              className={`h-6 w-full rounded-md text-[11px] font-mono font-medium flex items-center justify-center transition-all ${
                                 hasEvent && theme
-                                  ? `${theme.badge} shadow-xs font-semibold scale-105`
+                                  ? `${theme.badge} shadow-subtle font-medium`
                                   : isToday
-                                  ? 'bg-[#FDF0E6] dark:bg-[#2A1C16] text-[#C85A32] dark:text-[#F39C74] border border-[#F5D2BF] dark:border-[#4C2D20] font-bold'
-                                  : 'text-[#1E1611] dark:text-[#F5EFE8] hover:bg-white dark:hover:bg-[#201814]'
+                                  ? 'bg-[#E54833] text-white font-bold'
+                                  : 'text-[#18191D] dark:text-[#F4F4F6] hover:bg-white dark:hover:bg-[#24252B]'
                               }`}
                             >
                               {cell.day}
@@ -800,12 +803,12 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
                     {/* Preenchimento das Comemorações & Aniversários do Mês */}
                     <div className="space-y-2">
-                      <div className="text-[10px] font-mono uppercase tracking-wider text-[#A09388]">
-                        Comemorações de {monthName}:
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-[#686971] dark:text-[#BFC0C7]">
+                        Comemorações:
                       </div>
 
                       {monthEvents.length === 0 ? (
-                        <div className="text-xs text-[#A09388] italic py-2 text-center">
+                        <div className="text-xs text-[#74757C] italic py-2 text-center">
                           Nenhum evento neste mês.
                         </div>
                       ) : (
@@ -825,19 +828,19 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                                     handleOpenHolidayBroadcastModal(evt.rawDateObject);
                                   }
                                 }}
-                                className={`w-full p-2.5 rounded-2xl border text-left text-xs transition-all flex items-start gap-2 shadow-subtle ${theme.card} group/btn`}
+                                className={`w-full p-2.5 rounded-xl border text-left text-xs transition-all flex items-start gap-2 shadow-subtle ${theme.card} group/btn`}
                               >
-                                <span className="font-mono font-bold text-[11px] shrink-0 bg-white/90 dark:bg-[#1A1513]/90 px-1.5 py-0.5 rounded-lg border border-current">
+                                <span className="font-mono font-medium text-[11px] shrink-0 bg-white/90 dark:bg-[#18191D]/90 px-1.5 py-0.5 rounded-lg border border-current">
                                   {String(evt.day).padStart(2, '0')}
                                 </span>
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-semibold truncate text-[11px] flex items-center justify-between gap-1">
+                                  <div className="font-medium truncate text-[11px] flex items-center justify-between gap-1">
                                     <span className="truncate">{evt.name}</span>
-                                    <span className="shrink-0 text-[10px] opacity-0 group-hover/btn:opacity-100 transition-opacity text-[#C85A32] font-semibold">
+                                    <span className="shrink-0 text-[10px] opacity-0 group-hover/btn:opacity-100 transition-opacity text-[#E54833] font-medium">
                                       {isBirthday ? 'Enviar ➔' : 'Disparo ➔'}
                                     </span>
                                   </div>
-                                  <div className="text-[10px] opacity-75 truncate">{theme.tag}</div>
+                                  <div className="text-[10px] text-[#686971] dark:text-[#BFC0C7] truncate">{theme.tag}</div>
                                 </div>
                               </button>
                             );
@@ -852,7 +855,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     <button
                       type="button"
                       onClick={() => handleOpenModal(undefined, monthNum)}
-                      className="text-[11px] font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1"
+                      className="text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] hover:text-[#18191D] dark:hover:text-white flex items-center gap-1"
                     >
                       <Plus className="w-3 h-3" /> Adicionar em {monthName}
                     </button>
@@ -869,14 +872,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       {/* ==================================================================== */}
       {selectedTab === 'agenda' && (
         <div className="card-warm p-6 space-y-4">
-          <h3 className="text-xl font-serif text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2 font-normal">
-            <Clock className="w-5 h-5 text-[#C85A32]" /> Linha do Tempo de Felicitações (Próximos 60 Dias)
+          <h3 className="text-lg font-medium text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-2">
+            <Clock className="w-5 h-5 text-[#E54833]" /> Linha do Tempo de Felicitações (Próximos 60 Dias)
           </h3>
 
           {loading ? (
-            <div className="py-12 text-center text-[#A09388] text-xs">Calculando datas e aniversários...</div>
+            <div className="py-12 text-center text-[#686971] text-xs">Calculando datas e aniversários...</div>
           ) : upcoming.length === 0 ? (
-            <div className="py-12 text-center text-[#A09388] text-xs">Nenhum evento previsto para os próximos 60 dias.</div>
+            <div className="py-12 text-center text-[#686971] text-xs">Nenhum evento previsto para os próximos 60 dias.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {upcoming.map((evt, idx) => {
@@ -884,18 +887,18 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 return (
                   <div
                     key={idx}
-                    className={`p-4 rounded-3xl border transition-all ${
+                    className={`p-4 rounded-2xl border transition-all ${
                       evt.isToday
-                        ? 'bg-[#FBF0E6] dark:bg-[#2A1C16] border-[#F5D2BF] dark:border-[#4C2D20] shadow-panel'
-                        : 'bg-[#FAF6F0] dark:bg-[#15100E] border-[#EDE5DC] dark:border-[#2A211D] hover:border-[#DFCFC0]'
+                        ? 'bg-white dark:bg-[#202126] border-[#E54833] shadow-subtle'
+                        : 'bg-white/70 dark:bg-[#202126]/80 border-[#E2E2E8] dark:border-[#292A30] hover:border-[#C6C7CD]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="text-center w-14 py-2 rounded-2xl bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] shadow-subtle shrink-0">
-                        <span className="block text-[10px] font-mono text-[#C85A32] uppercase">
+                      <div className="text-center w-14 py-2 rounded-xl bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30] shadow-subtle shrink-0">
+                        <span className="block text-[10px] font-mono text-[#E54833] uppercase">
                           {MONTHS_PT[evt.month - 1].substring(0, 3)}
                         </span>
-                        <span className="block text-lg font-serif text-[#1E1611] dark:text-[#F5EFE8]">
+                        <span className="block text-lg font-mono font-medium text-[#18191D] dark:text-[#F4F4F6]">
                           {String(evt.day).padStart(2, '0')}
                         </span>
                       </div>
@@ -904,16 +907,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                         <div className="flex items-center gap-1.5 mb-1">
                           <EventTypeBadge type={evt.type} />
                         </div>
-                        <h4 className="text-sm font-semibold text-[#1E1611] dark:text-[#F5EFE8] truncate">{evt.title}</h4>
-                        <p className="text-xs text-[#756557] dark:text-[#B5A599] truncate mt-0.5">{evt.subtitle}</p>
+                        <h4 className="text-sm font-medium text-[#18191D] dark:text-[#F4F4F6] truncate">{evt.title}</h4>
+                        <p className="text-xs font-mono text-[#686971] dark:text-[#BFC0C7] truncate mt-0.5">{evt.subtitle}</p>
                       </div>
                     </div>
 
                     <div className="mt-3 pt-3 border-t hairline-border flex items-center justify-between text-xs">
-                      <span className="text-[#1E1611] dark:text-[#F5EFE8] font-medium">
-                        {evt.isToday ? '🔥 Acontece Hoje!' : `Em ${evt.daysRemaining} dias`}
+                      <span className={`font-mono text-[11px] font-medium ${evt.isToday ? 'text-[#E54833]' : 'text-[#686971] dark:text-[#BFC0C7]'}`}>
+                        {evt.isToday ? 'Hoje' : `Em ${evt.daysRemaining} dias`}
                       </span>
-                      <span className="text-[11px] text-[#C85A32] dark:text-[#F39C74] font-medium">
+                      <span className="text-[11px] font-mono text-[#686971] dark:text-[#BFC0C7]">
                         {isBirthday ? 'Aniversário' : 'Data Fixa'}
                       </span>
                     </div>
@@ -935,15 +938,15 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             return (
               <div
                 key={item.id}
-                className="card-warm p-5 hover:border-[#DFCFC0] transition-all flex flex-col justify-between"
+                className="card-warm p-5 hover:border-[#C6C7CD] dark:hover:border-[#44454B] transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between mb-3">
-                    <div className="text-center w-12 py-1.5 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D]">
-                      <span className="block text-[10px] font-mono text-[#A09388] uppercase">
+                    <div className="text-center w-12 py-1.5 rounded-xl bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30]">
+                      <span className="block text-[10px] font-mono text-[#686971] dark:text-[#BFC0C7] uppercase">
                         {MONTHS_PT[item.month - 1].substring(0, 3)}
                       </span>
-                      <span className="block text-base font-serif text-[#C85A32] dark:text-[#F39C74]">
+                      <span className="block text-base font-mono font-medium text-[#18191D] dark:text-[#F4F4F6]">
                         {String(item.day).padStart(2, '0')}
                       </span>
                     </div>
@@ -952,21 +955,21 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                       <button
                         onClick={() => handleOpenHolidayBroadcastModal(item)}
                         title="Disparar para Clientes"
-                        className="p-1.5 text-[#A09388] hover:text-[#C85A32] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] rounded-lg transition-colors"
+                        className="p-1.5 text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] rounded-lg transition-colors"
                       >
                         <Send className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleOpenModal(item)}
                         title="Editar data"
-                        className="p-1.5 text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] rounded-lg transition-colors"
+                        className="p-1.5 text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] rounded-lg transition-colors"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id, item.name)}
                         title="Excluir data"
-                        className="p-1.5 text-[#A09388] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                        className="p-1.5 text-[#686971] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -979,17 +982,17 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     </span>
                   </div>
 
-                  <h4 className="text-base font-serif text-[#1E1611] dark:text-[#F5EFE8]">{item.name}</h4>
-                  <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1 line-clamp-2">
+                  <h4 className="text-base font-medium text-[#18191D] dark:text-[#F4F4F6]">{item.name}</h4>
+                  <p className="text-xs text-[#686971] dark:text-[#BFC0C7] mt-1 line-clamp-2">
                     {item.description || 'Sem descrição informada.'}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t hairline-border flex items-center justify-between text-xs text-[#756557] dark:text-[#B5A599]">
+                <div className="mt-4 pt-3 border-t hairline-border flex items-center justify-between text-xs text-[#686971] dark:text-[#BFC0C7]">
                   <button
                     type="button"
                     onClick={() => handleOpenHolidayBroadcastModal(item)}
-                    className="font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1 text-xs"
+                    className="font-medium text-[#18191D] dark:text-[#F4F4F6] hover:underline flex items-center gap-1 text-xs"
                   >
                     <Send className="w-3.5 h-3.5" /> Disparar para Clientes
                   </button>
@@ -998,7 +1001,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium ${
                       item.active
                         ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                        : 'bg-[#FAF6F0] dark:bg-[#15100E] text-[#A09388] border border-[#EDE5DC] dark:border-[#2A211D]'
+                        : 'bg-[#EEEEF1] dark:bg-[#18191D] text-[#686971] border border-[#D7D7DD] dark:border-[#292A30]'
                     }`}
                   >
                     {item.active ? 'Ativa' : 'Inativa'}
@@ -1028,7 +1031,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           />
 
           <div>
-            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
               Nome da Data *
             </label>
             <input
@@ -1037,13 +1040,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Ex: Dia das Mães, Dia do Cliente, Natal"
-              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+              className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Dia *</label>
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Dia *</label>
               <input
                 type="number"
                 min="1"
@@ -1051,16 +1054,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 required
                 value={form.day}
                 onChange={(e) => setForm({ ...form, day: Number(e.target.value) })}
-                className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Mês *</label>
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Mês *</label>
               <select
                 value={form.month}
                 onChange={(e) => setForm({ ...form, month: Number(e.target.value) })}
-                className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
               >
                 {MONTHS_PT.map((m, i) => (
                   <option key={i} value={i + 1}>
@@ -1072,13 +1075,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
               Categoria
             </label>
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+              className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
             >
               <option value="FIXED">Feriado Nacional / Oficial</option>
               <option value="CULTURAL">Comemorativa / Familiar / Cultural</option>
@@ -1087,7 +1090,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
               Ano Específico (Opcional - deixe vazio para todos os anos)
             </label>
             <input
@@ -1095,18 +1098,18 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               value={form.year}
               onChange={(e) => setForm({ ...form, year: e.target.value })}
               placeholder="Ex: 2026"
-              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono transition-colors"
+              className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Descrição</label>
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Descrição</label>
             <textarea
               rows={2}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Votos e contexto da celebração..."
-              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+              className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
             />
           </div>
 
@@ -1116,14 +1119,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               id="activeDate"
               checked={form.active}
               onChange={(e) => setForm({ ...form, active: e.target.checked })}
-              className="w-4 h-4 rounded text-[#C85A32] bg-[#FAF6F0] dark:bg-[#15100E] border-[#EDE5DC] dark:border-[#2A211D]"
+              className="w-4 h-4 rounded text-[#E54833] bg-white dark:bg-[#18191D] border-[#D7D7DD] dark:border-[#292A30]"
             />
-            <label htmlFor="activeDate" className="text-xs text-[#1E1611] dark:text-[#F5EFE8] cursor-pointer font-medium">
+            <label htmlFor="activeDate" className="text-xs text-[#18191D] dark:text-[#F4F4F6] cursor-pointer font-medium">
               Data comemorativa ativa no motor de automação
             </label>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t hairline-border">
+          <div className="flex justify-end gap-2 pt-4 border-t hairline-border">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
@@ -1133,7 +1136,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             </button>
             <button
               type="submit"
-              className="btn-terracotta"
+              className="btn-primary"
             >
               {editingDate ? 'Atualizar Data' : 'Salvar Data'}
             </button>
@@ -1159,16 +1162,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           return (
             <div className="space-y-4">
               {/* Header do aniversariante */}
-              <div className="p-4 rounded-3xl bg-[#FBF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] flex items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#202126]/80 border border-[#E2E2E8] dark:border-[#292A30] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-[#C85A32] text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-subtle">
+                  <div className="w-10 h-10 rounded-xl bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#292A30] text-[#E54833] flex items-center justify-center font-bold text-base shrink-0 shadow-subtle">
                     🎂
                   </div>
                   <div>
-                    <h4 className="font-serif text-base text-[#1E1611] dark:text-[#F5EFE8]">
+                    <h4 className="text-sm font-medium text-[#18191D] dark:text-[#F4F4F6]">
                       {selectedBirthday.name}
                     </h4>
-                    <p className="text-xs text-[#B84E29] dark:text-[#F39C74] font-medium">
+                    <p className="text-xs font-mono text-[#686971] dark:text-[#BFC0C7]">
                       Dia {String(selectedBirthday.day).padStart(2, '0')} de {MONTHS_PT[selectedBirthday.month - 1]}
                       {selectedBirthday.clientName && ` • Cliente: ${selectedBirthday.clientName}`}
                     </p>
@@ -1176,14 +1179,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 </div>
 
                 {/* Channel Selector */}
-                <div className="flex items-center gap-1 p-1 rounded-full bg-white dark:bg-[#1A1513] border border-[#F5D2BF] dark:border-[#4C2D20]">
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30]">
                   <button
                     type="button"
                     onClick={() => setBirthdayChannel('WHATSAPP')}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                       birthdayChannel === 'WHATSAPP'
-                        ? 'bg-[#C85A32] text-white shadow-subtle'
-                        : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
+                        ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                        : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
                     }`}
                   >
                     <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
@@ -1191,10 +1194,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                   <button
                     type="button"
                     onClick={() => setBirthdayChannel('EMAIL')}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                       birthdayChannel === 'EMAIL'
-                        ? 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611] shadow-subtle'
-                        : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
+                        ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                        : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
                     }`}
                   >
                     <Mail className="w-3.5 h-3.5" /> E-mail
@@ -1204,33 +1207,33 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
               {/* Subject if email */}
               {birthdayChannel === 'EMAIL' && (
-                <div className="p-3 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs">
-                  <strong className="text-[#756557] dark:text-[#B5A599]">Assunto:</strong>{' '}
-                  <span className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{msg.subject}</span>
+                <div className="p-3 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border border-[#E2E2E8] dark:border-[#292A30] text-xs">
+                  <strong className="text-[#686971] dark:text-[#BFC0C7]">Assunto:</strong>{' '}
+                  <span className="font-medium text-[#18191D] dark:text-[#F4F4F6]">{msg.subject}</span>
                 </div>
               )}
 
               {/* Message Preview Box */}
               <div>
                 <div className="flex items-center justify-between mb-1 text-xs">
-                  <span className="font-medium text-[#756557] dark:text-[#B5A599]">Mensagem Pronta:</span>
+                  <span className="font-medium text-[#686971] dark:text-[#BFC0C7]">Mensagem Pronta:</span>
                   <button
                     type="button"
                     onClick={() => handleCopyText(msg.body, 'bday-copy')}
-                    className="text-[#C85A32] dark:text-[#F39C74] font-medium hover:underline flex items-center gap-1"
+                    className="text-[#18191D] dark:text-[#F4F4F6] font-medium hover:underline flex items-center gap-1"
                   >
                     {copiedId === 'bday-copy' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiedId === 'bday-copy' ? 'Copiado!' : 'Copiar Texto'}
                   </button>
                 </div>
 
-                <div className="p-4 rounded-3xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs text-[#1E1611] dark:text-[#F5EFE8] whitespace-pre-line font-mono leading-relaxed max-h-60 overflow-y-auto">
+                <div className="p-3.5 rounded-xl bg-[#F4F4F6]/70 dark:bg-[#18191D]/70 border border-[#E2E2E8] dark:border-[#292A30] text-xs text-[#18191D] dark:text-[#F4F4F6] whitespace-pre-line font-mono leading-relaxed max-h-60 overflow-y-auto">
                   {msg.body}
                 </div>
               </div>
 
               {/* Quick Action Buttons */}
-              <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t hairline-border">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t hairline-border">
                 <button
                   type="button"
                   onClick={() => setIsBirthdayModalOpen(false)}
@@ -1244,7 +1247,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     type="button"
                     disabled={!hasPhone}
                     onClick={() => handleOpenWhatsApp(selectedBirthday.phone!, msg.body)}
-                    className="btn-terracotta disabled:opacity-50"
+                    className="btn-primary disabled:opacity-50"
                   >
                     <MessageCircle className="w-4 h-4" />
                     {hasPhone ? `Enviar no WhatsApp (${selectedBirthday.phone})` : 'Telefone não informado'}
@@ -1279,25 +1282,25 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         {selectedHoliday && (
           <div className="space-y-4">
             {/* Header info & channel switcher */}
-            <div className="p-4 rounded-3xl bg-[#FBF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#202126]/80 border border-[#E2E2E8] dark:border-[#292A30] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74]">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#686971] dark:text-[#BFC0C7]">
                   Data Comemorativa / Feriado
                 </span>
-                <h4 className="font-serif text-base text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2">
-                  <Star className="w-4 h-4 text-[#C85A32]" /> {selectedHoliday.name} (Dia {String(selectedHoliday.day).padStart(2, '0')}/{String(selectedHoliday.month).padStart(2, '0')})
+                <h4 className="text-sm font-medium text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-2">
+                  <Star className="w-4 h-4 text-[#E54833]" /> {selectedHoliday.name} (Dia {String(selectedHoliday.day).padStart(2, '0')}/{String(selectedHoliday.month).padStart(2, '0')})
                 </h4>
               </div>
 
               {/* Channel Selector */}
-              <div className="flex items-center gap-1 p-1 rounded-full bg-white dark:bg-[#1A1513] border border-[#F5D2BF] dark:border-[#4C2D20]">
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30]">
                 <button
                   type="button"
                   onClick={() => setHolidayChannel('WHATSAPP')}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                     holidayChannel === 'WHATSAPP'
-                      ? 'bg-[#C85A32] text-white shadow-subtle'
-                      : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
+                      ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                      : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
                   }`}
                 >
                   <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
@@ -1305,10 +1308,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 <button
                   type="button"
                   onClick={() => setHolidayChannel('EMAIL')}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                     holidayChannel === 'EMAIL'
-                      ? 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611] shadow-subtle'
-                      : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
+                      ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                      : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
                   }`}
                 >
                   <Mail className="w-3.5 h-3.5" /> E-mail
@@ -1318,16 +1321,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
             {/* Smart Audience Filter Banner */}
             {detectedHolidayAudience && (
-              <div className="p-3.5 rounded-2xl border border-[#F5D2BF] dark:border-[#4C2D20] bg-[#FAF6F0] dark:bg-[#15100E] flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="p-3.5 rounded-xl border border-[#E2E2E8] dark:border-[#292A30] bg-[#EEEEF1]/60 dark:bg-[#202126]/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-xl shrink-0">{detectedHolidayAudience.iconText}</span>
                   <div>
-                    <div className="text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-1.5">
+                    <div className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-1.5">
                       <span>Filtro Automático de Público:</span>
-                      <span className="underline underline-offset-2 text-[#C85A32] dark:text-[#F39C74]">{detectedHolidayAudience.label}</span>
-                      <span className="text-[11px] font-normal opacity-80">({audienceEligibleRecipients.length} homenageados elegíveis)</span>
+                      <span className="underline underline-offset-2 text-[#E54833]">{detectedHolidayAudience.label}</span>
+                      <span className="text-[11px] font-mono opacity-80">({audienceEligibleRecipients.length} elegíveis)</span>
                     </div>
-                    <p className="text-[11px] text-[#756557] dark:text-[#B5A599] mt-0.5">
+                    <p className="text-[11px] text-[#686971] dark:text-[#BFC0C7] mt-0.5">
                       {detectedHolidayAudience.description}
                     </p>
                   </div>
@@ -1335,22 +1338,22 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
                 {/* Audience Switcher Dropdown */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <label className="text-[11px] font-medium text-[#756557] dark:text-[#B5A599] flex items-center gap-1">
+                  <label className="text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] flex items-center gap-1">
                     <Filter className="w-3 h-3" /> Filtrar:
                   </label>
                   <select
                     value={holidayAudienceFilter}
                     onChange={(e) => handleAudienceFilterChange(e.target.value as any)}
-                    className="bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1 px-2.5 text-xs font-medium text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                    className="bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1 px-2.5 text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] outline-none"
                   >
-                    <option value="AUTO">🤖 Automático ({detectedHolidayAudience.label})</option>
-                    <option value="MOTHERS_ONLY">🌸 Apenas Mães</option>
-                    <option value="FATHERS_ONLY">👔 Apenas Pais</option>
-                    <option value="WOMEN_ONLY">💐 Apenas Mulheres</option>
-                    <option value="MEN_ONLY">🎩 Apenas Homens</option>
-                    <option value="PARENTS_ONLY">👨‍👩‍👧 Pais com Filhos</option>
-                    <option value="CORPORATE_ONLY">🏢 Clientes Corporativos / PJ</option>
-                    <option value="ALL">🌐 Toda a Base</option>
+                    <option value="AUTO">Automático ({detectedHolidayAudience.label})</option>
+                    <option value="MOTHERS_ONLY">Apenas Mães</option>
+                    <option value="FATHERS_ONLY">Apenas Pais</option>
+                    <option value="WOMEN_ONLY">Apenas Mulheres</option>
+                    <option value="MEN_ONLY">Apenas Homens</option>
+                    <option value="PARENTS_ONLY">Pais com Filhos</option>
+                    <option value="CORPORATE_ONLY">Clientes Corporativos / PJ</option>
+                    <option value="ALL">Toda a Base</option>
                   </select>
                 </div>
               </div>
@@ -1362,40 +1365,40 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 <button
                   type="button"
                   onClick={handleToggleSelectAllRecipients}
-                  className="px-3 py-1.5 rounded-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8] transition-colors"
+                  className="btn-secondary py-1 px-2.5 text-xs"
                 >
                   {filteredBroadcastRecipients.length > 0 &&
                   filteredBroadcastRecipients.every((r) => selectedClientIds.includes(r.id))
                     ? 'Desmarcar Filtrados'
                     : 'Selecionar Filtrados'}
                 </button>
-                <span className="text-xs font-mono text-[#756557] dark:text-[#B5A599]">
-                  {selectedClientIds.length} selecionado(s) de {filteredBroadcastRecipients.length} homenageado(s)
+                <span className="text-xs font-mono text-[#686971] dark:text-[#BFC0C7]">
+                  {selectedClientIds.length} selecionado(s) de {filteredBroadcastRecipients.length}
                 </span>
               </div>
 
               {/* Search recipients */}
               <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#686971]" />
                 <input
                   type="text"
                   value={holidaySearch}
                   onChange={(e) => setHolidaySearch(e.target.value)}
                   placeholder="Buscar familiar ou cliente..."
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 pl-8 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 pl-8 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                 />
               </div>
             </div>
 
             {/* Recipients Table with Individual Sending Action */}
-            <div className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] rounded-3xl overflow-hidden max-h-80 overflow-y-auto">
+            <div className="bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-2xl overflow-hidden max-h-80 overflow-y-auto">
               {filteredBroadcastRecipients.length === 0 ? (
-                <div className="p-8 text-center text-xs text-[#A09388] space-y-1">
-                  <p className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">Nenhum homenageado atende aos critérios do filtro atual.</p>
+                <div className="p-8 text-center text-xs text-[#686971] space-y-1">
+                  <p className="font-medium text-[#18191D] dark:text-[#F4F4F6]">Nenhum homenageado atende aos critérios do filtro atual.</p>
                   <p className="text-[11px]">Você pode alterar a opção de público no seletor acima ou cadastrar novos contatos.</p>
                 </div>
               ) : (
-                <div className="divide-y divide-[#EDE5DC]/70 dark:divide-[#2A211D]/70">
+                <div className="divide-y divide-[#E2E2E8] dark:divide-[#292A30]">
                   {filteredBroadcastRecipients.map((recipient) => {
                     const isSelected = selectedClientIds.includes(recipient.id);
                     const msg = getHolidayRenderedMessage(selectedHoliday, recipient, holidayChannel);
@@ -1406,7 +1409,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                       <div
                         key={recipient.id}
                         className={`p-3.5 flex items-center justify-between gap-3 transition-colors ${
-                          isSelected ? 'bg-[#FBF0E6]/60 dark:bg-[#2A1C16]/60' : 'opacity-60'
+                          isSelected ? 'bg-[#EEEEF1]/50 dark:bg-[#202126]/50' : 'opacity-60'
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
@@ -1414,19 +1417,19 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleRecipient(recipient.id)}
-                            className="w-4 h-4 rounded text-[#C85A32] bg-white dark:bg-[#1A1513] border-[#EDE5DC] dark:border-[#2A211D] cursor-pointer shrink-0"
+                            className="w-4 h-4 rounded text-[#E54833] bg-white dark:bg-[#18191D] border-[#D7D7DD] dark:border-[#292A30] cursor-pointer shrink-0"
                           />
                           <div className="min-w-0">
-                            <div className="font-semibold text-xs text-[#1E1611] dark:text-[#F5EFE8] truncate flex items-center gap-1.5 flex-wrap">
+                            <div className="font-medium text-xs text-[#18191D] dark:text-[#F4F4F6] truncate flex items-center gap-1.5 flex-wrap">
                               <span>{recipient.targetName}</span>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FDF2EC] text-[#B84E29] border border-[#F6D5C2] dark:bg-[#2D1A14] dark:text-[#F39C74] dark:border-[#522F22]">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#EEEEF1] dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]">
                                 {recipient.matchReason}
                               </span>
                             </div>
-                            <div className="text-[11px] text-[#756557] dark:text-[#B5A599] truncate mt-0.5">
+                            <div className="text-[11px] text-[#686971] dark:text-[#BFC0C7] truncate mt-0.5">
                               {recipient.type === 'FAMILY_MEMBER' ? (
                                 <span>
-                                  Familiar de <strong className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{recipient.clientName}</strong>
+                                  Familiar de <strong className="font-medium text-[#18191D] dark:text-[#F4F4F6]">{recipient.clientName}</strong>
                                   {' • '}
                                   {recipient.isDirectContact ? (
                                     <span className="font-mono">WhatsApp Direto: {recipient.phone}</span>
@@ -1449,7 +1452,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             type="button"
                             onClick={() => handleCopyText(msg.body, `h-${recipient.id}`)}
                             title="Copiar mensagem"
-                            className="p-1.5 rounded-lg text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-white dark:hover:bg-[#1A1513] transition-colors"
+                            className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] transition-colors"
                           >
                             {copiedId === `h-${recipient.id}` ? (
                               <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -1463,7 +1466,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               type="button"
                               disabled={!hasPhone}
                               onClick={() => handleOpenWhatsApp(recipient.phone!, msg.body)}
-                              className="px-3 py-1.5 rounded-full bg-[#C85A32] hover:bg-[#B34A24] text-[11px] font-medium text-white shadow-subtle flex items-center gap-1 transition-all disabled:opacity-40"
+                              className="btn-primary py-1 px-2.5 text-[11px] disabled:opacity-40"
                             >
                               <MessageCircle className="w-3.5 h-3.5" /> Enviar WhatsApp
                             </button>
@@ -1472,7 +1475,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               type="button"
                               disabled={!hasEmail}
                               onClick={() => handleOpenEmail(recipient.email!, msg.subject, msg.body)}
-                              className="px-3 py-1.5 rounded-full bg-[#1E1611] hover:bg-[#2F241F] dark:bg-[#FAF6F0] dark:text-[#1E1611] text-[11px] font-medium text-[#FAF6F0] shadow-subtle flex items-center gap-1 transition-all disabled:opacity-40"
+                              className="btn-secondary py-1 px-2.5 text-[11px] disabled:opacity-40"
                             >
                               <Mail className="w-3.5 h-3.5" /> Enviar E-mail
                             </button>
@@ -1499,7 +1502,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     .join('\n');
                   handleCopyText(allMsgs, 'copy-all-broadcast');
                 }}
-                className="text-xs font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1"
+                className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] hover:underline flex items-center gap-1"
               >
                 {copiedId === 'copy-all-broadcast' ? (
                   <Check className="w-3.5 h-3.5 text-emerald-600" />

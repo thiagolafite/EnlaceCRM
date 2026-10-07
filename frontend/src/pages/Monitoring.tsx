@@ -139,27 +139,27 @@ export function Monitoring({ currentUser }: MonitoringProps) {
       case 'CRITICAL':
       case 'ERROR':
         return {
-          badge: 'bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+          badge: 'bg-[#E54833]/10 text-[#E54833] border-[#E54833]/30',
           icon: XCircle,
-          color: 'text-rose-600',
+          color: 'text-[#E54833]',
         };
       case 'SECURITY':
         return {
-          badge: 'bg-[#FDF0E6] dark:bg-[#2A1C16] text-[#C85A32] dark:text-[#F39C74] border-[#F5D2BF] dark:border-[#4C2D20]',
+          badge: 'bg-[#18191D] text-[#F4F4F6] dark:bg-white dark:text-[#18191D] border-[#33343A]',
           icon: ShieldAlert,
-          color: 'text-[#C85A32]',
+          color: 'text-[#18191D] dark:text-[#F4F4F6]',
         };
       case 'WARN':
         return {
-          badge: 'bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+          badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
           icon: AlertTriangle,
-          color: 'text-amber-600',
+          color: 'text-amber-600 dark:text-amber-400',
         };
       default:
         return {
-          badge: 'bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] border-[#EDE5DC] dark:border-[#2A211D]',
+          badge: 'bg-[#EEEEF1] dark:bg-[#24252B] text-[#686971] dark:text-[#9DA0AA] border-[#D7D7DD] dark:border-[#33343A]',
           icon: Activity,
-          color: 'text-[#756557]',
+          color: 'text-[#686971]',
         };
     }
   };
@@ -173,11 +173,11 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   if (!isMaster) {
     return (
       <div className="py-20 text-center space-y-4 max-w-md mx-auto">
-        <div className="w-16 h-16 rounded-3xl bg-[#FDF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] flex items-center justify-center mx-auto text-[#C85A32]">
+        <div className="w-16 h-16 rounded-2xl bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] flex items-center justify-center mx-auto text-[#18191D] dark:text-[#F4F4F6]">
           <Lock className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-serif text-[#1E1611] dark:text-[#F5EFE8]">Acesso Restrito ao Usuário Master</h2>
-        <p className="text-xs text-[#756557] dark:text-[#B5A599]">
+        <h2 className="text-xl font-bold text-[#18191D] dark:text-[#F4F4F6]">Acesso Restrito ao Usuário Master</h2>
+        <p className="text-xs text-[#686971] dark:text-[#9DA0AA]">
           O painel de monitoramento de infraestrutura e logs de segurança é restrito a administradores Master globais.
         </p>
       </div>
@@ -185,7 +185,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
       <ErrorBanner
         error={error?.message || null}
         solution={error?.solution}
@@ -195,25 +195,25 @@ export function Monitoring({ currentUser }: MonitoringProps) {
 
       {/* Toast de Confirmação */}
       {actionSuccessMessage && (
-        <div className="p-3.5 rounded-2xl bg-[#1E1611] dark:bg-[#FAF6F0] text-[#FAF6F0] dark:text-[#1E1611] font-medium text-xs flex items-center gap-2 shadow-dropdown animate-in fade-in">
+        <div className="p-3.5 rounded-2xl bg-[#18191D] dark:bg-[#F4F4F6] text-[#F4F4F6] dark:text-[#18191D] font-medium text-xs flex items-center gap-2 shadow-panel animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
           <span>{actionSuccessMessage}</span>
         </div>
       )}
 
-      {/* Header Editorial */}
+      {/* Header Neo-Suíço */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-[10px] font-mono uppercase tracking-wider text-[#6C757D] dark:text-[#ADB5BD]">INFRAESTRUTURA & AUDITORIA</p>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5] border border-[#C85A32]/40">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[#686971] dark:text-[#9DA0AA]">INFRAESTRUTURA & AUDITORIA</p>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#18191D] text-white dark:bg-[#292A30] dark:text-[#F4F4F6] border border-[#33343A]">
               Master
             </span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-serif text-[#1A1E24] dark:text-[#F1F3F5] font-normal tracking-tight mt-0.5">
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#18191D] dark:text-[#F4F4F6] mt-0.5">
             Auditoria de Segurança & Logs (SOC)
           </h1>
-          <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD] mt-1">
+          <p className="text-xs text-[#686971] dark:text-[#9DA0AA] mt-1">
             Monitoramento de erros de sistema, auditoria de acessos e integridade do banco de dados
           </p>
         </div>
@@ -224,7 +224,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             disabled={simulating}
             className="btn-secondary"
           >
-            <ShieldAlert className="w-3.5 h-3.5 text-[#C85A32]" />
+            <ShieldAlert className="w-3.5 h-3.5 text-[#18191D] dark:text-[#F4F4F6]" />
             <span>Simular Alerta</span>
           </button>
 
@@ -233,13 +233,13 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             disabled={simulating}
             className="btn-secondary"
           >
-            <Flame className="w-3.5 h-3.5 text-rose-600" />
+            <Flame className="w-3.5 h-3.5 text-[#E54833]" />
             <span>Simular Erro</span>
           </button>
 
           <button
             onClick={handleRefresh}
-            className="btn-terracotta"
+            className="btn-primary"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             <span>Atualizar</span>
@@ -253,37 +253,37 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           {/* Card 1: Erros 24h */}
           <div className="card-warm p-5 flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#6C757D] dark:text-[#ADB5BD]">Erros (Últimas 24h)</span>
-              <div className="text-3xl font-serif text-[#1A1E24] dark:text-[#F1F3F5] mt-1">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#686971] dark:text-[#9DA0AA]">Erros (Últimas 24h)</span>
+              <div className="text-3xl font-bold font-mono text-[#18191D] dark:text-[#F4F4F6] mt-1">
                 {metrics.counts.errors24h}
               </div>
-              <span className="text-[11px] text-[#6C757D] dark:text-[#ADB5BD] flex items-center gap-1 mt-0.5">
+              <span className="text-[11px] text-[#686971] dark:text-[#9DA0AA] flex items-center gap-1 mt-0.5">
                 {metrics.counts.errors24h === 0 ? (
                   <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Sistema estável sem erros
+                    <CheckCircle2 className="w-3 h-3" /> Sistema estável
                   </span>
                 ) : (
-                  <span className="text-rose-600 font-medium">Atenção a falhas recentes</span>
+                  <span className="text-[#E54833] font-medium">Atenção a falhas recentes</span>
                 )}
               </span>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-600 flex items-center justify-center font-bold">
+            <div className="w-11 h-11 rounded-xl bg-[#E54833]/10 border border-[#E54833]/30 text-[#E54833] flex items-center justify-center font-bold">
               <Flame className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 2: Segurança */}
-          <div className="card-warm p-5 flex items-center justify-between border-2 border-[#C85A32]">
+          <div className="card-warm p-5 flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74]">Auditoria & Segurança (24h)</span>
-              <div className="text-3xl font-serif text-[#C85A32] dark:text-[#F39C74] mt-1">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#686971] dark:text-[#9DA0AA]">Auditoria & Segurança (24h)</span>
+              <div className="text-3xl font-bold font-mono text-[#18191D] dark:text-[#F4F4F6] mt-1">
                 {metrics.counts.securityIncidents24h}
               </div>
-              <span className="text-[11px] text-[#6C757D] dark:text-[#ADB5BD] mt-0.5 block">
+              <span className="text-[11px] text-[#686971] dark:text-[#9DA0AA] mt-0.5 block">
                 Tentativas de login e acessos
               </span>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-[#FFFFFF] dark:bg-[#181C21] border border-[#C85A32] text-[#C85A32] flex items-center justify-center font-bold">
+            <div className="w-11 h-11 rounded-xl bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] text-[#18191D] dark:text-[#F4F4F6] flex items-center justify-center font-bold">
               <ShieldAlert className="w-5 h-5" />
             </div>
           </div>
@@ -291,16 +291,16 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           {/* Card 3: Supabase Latency */}
           <div className="card-warm p-5 flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#6C757D] dark:text-[#ADB5BD]">Banco de Dados (Supabase)</span>
-              <div className="text-3xl font-serif text-[#1A1E24] dark:text-[#F1F3F5] mt-1 flex items-center gap-2">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#686971] dark:text-[#9DA0AA]">Banco de Dados (Supabase)</span>
+              <div className="text-2xl font-bold font-mono text-[#18191D] dark:text-[#F4F4F6] mt-1 flex items-center gap-2">
                 <span>{metrics.database.status}</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               </div>
-              <span className="text-[11px] text-[#6C757D] dark:text-[#ADB5BD] font-mono mt-0.5 block">
+              <span className="text-[11px] text-[#686971] dark:text-[#9DA0AA] font-mono mt-0.5 block">
                 Latência: {metrics.database.latencyMs}ms • PostgreSQL
               </span>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-600 flex items-center justify-center font-bold">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
               <Database className="w-5 h-5" />
             </div>
           </div>
@@ -308,16 +308,16 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           {/* Card 4: Infra & Tenants */}
           <div className="card-warm p-5 flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#6C757D] dark:text-[#ADB5BD]">Empresas / Tenants</span>
-              <div className="text-3xl font-serif text-[#1A1E24] dark:text-[#F1F3F5] mt-1">
-                {metrics.counts.activeTenantsCount} empresa{metrics.counts.activeTenantsCount === 1 ? '' : 's'}
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#686971] dark:text-[#9DA0AA]">Empresas / Tenants</span>
+              <div className="text-3xl font-bold font-mono text-[#18191D] dark:text-[#F4F4F6] mt-1">
+                {metrics.counts.activeTenantsCount} <span className="text-sm font-sans font-normal text-[#686971]">empresa{metrics.counts.activeTenantsCount === 1 ? '' : 's'}</span>
               </div>
-              <span className="text-[11px] text-[#6C757D] dark:text-[#ADB5BD] mt-0.5 block font-mono">
+              <span className="text-[11px] text-[#686971] dark:text-[#9DA0AA] mt-0.5 block font-mono">
                 {metrics.counts.totalUsers} usuários • Uptime: {formatUptime(metrics.systemHealth.uptimeSeconds)}
               </span>
             </div>
-            <div className="w-11 h-11 rounded-2xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 text-[#1A1E24] dark:text-[#F1F3F5] flex items-center justify-center font-bold">
-              <Building2 className="w-5 h-5 text-[#C85A32]" />
+            <div className="w-11 h-11 rounded-xl bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] text-[#18191D] dark:text-[#F4F4F6] flex items-center justify-center font-bold">
+              <Building2 className="w-5 h-5 text-[#686971] dark:text-[#9DA0AA]" />
             </div>
           </div>
         </div>
@@ -327,14 +327,14 @@ export function Monitoring({ currentUser }: MonitoringProps) {
       <div className="card-warm p-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Level Filter */}
-          <div className="flex items-center gap-1 p-1 rounded-full bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 text-xs">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] text-xs">
             <button
               type="button"
               onClick={() => { setLevelFilter('ALL'); setPage(1); }}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all ${
                 levelFilter === 'ALL'
-                  ? 'bg-white dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
+                  ? 'bg-white dark:bg-[#18191D] text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#33343A] shadow-xs font-semibold'
+                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#9DA0AA] dark:hover:text-[#F4F4F6]'
               }`}
             >
               Todos
@@ -342,10 +342,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <button
               type="button"
               onClick={() => { setLevelFilter('ERROR'); setPage(1); }}
-              className={`px-3 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1 ${
                 levelFilter === 'ERROR'
-                  ? 'bg-rose-600 text-white shadow-xs font-semibold'
-                  : 'text-[#6C757D] hover:text-rose-600'
+                  ? 'bg-[#E54833] text-white shadow-xs font-semibold'
+                  : 'text-[#686971] hover:text-[#E54833] dark:text-[#9DA0AA]'
               }`}
             >
               <Flame className="w-3 h-3" /> Erros
@@ -353,10 +353,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <button
               type="button"
               onClick={() => { setLevelFilter('SECURITY'); setPage(1); }}
-              className={`px-3 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1 ${
                 levelFilter === 'SECURITY'
-                  ? 'bg-[#C85A32] text-white shadow-xs font-semibold'
-                  : 'text-[#6C757D] hover:text-[#C85A32]'
+                  ? 'bg-[#18191D] text-[#F4F4F6] dark:bg-white dark:text-[#18191D] shadow-xs font-semibold'
+                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#9DA0AA] dark:hover:text-[#F4F4F6]'
               }`}
             >
               <ShieldAlert className="w-3 h-3" /> Segurança
@@ -364,10 +364,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <button
               type="button"
               onClick={() => { setLevelFilter('WARN'); setPage(1); }}
-              className={`px-3 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1 ${
                 levelFilter === 'WARN'
                   ? 'bg-amber-600 text-white shadow-xs font-semibold'
-                  : 'text-[#6C757D] hover:text-amber-600'
+                  : 'text-[#686971] hover:text-amber-600 dark:text-[#9DA0AA]'
               }`}
             >
               <AlertTriangle className="w-3 h-3" /> Avisos
@@ -378,7 +378,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           <select
             value={categoryFilter}
             onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-            className="bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-1.5 px-3 text-xs font-medium text-[#1A1E24] dark:text-[#F1F3F5] outline-none"
+            className="bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] focus:border-[#18191D] dark:focus:border-[#F4F4F6] rounded-xl py-1.5 px-3 text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] outline-none"
           >
             <option value="ALL">Todas as Categorias</option>
             <option value="AUTH">🔑 Autenticação (AUTH)</option>
@@ -391,13 +391,13 @@ export function Monitoring({ currentUser }: MonitoringProps) {
 
         {/* Search */}
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-72">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#6C757D]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#686971] dark:text-[#9DA0AA]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por mensagem, IP, e-mail..."
-            className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-1.5 pl-9 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] placeholder:text-[#6C757D] outline-none transition-colors"
+            className="w-full bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] focus:border-[#18191D] dark:focus:border-[#F4F4F6] rounded-xl py-1.5 pl-9 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] placeholder:text-[#686971] dark:placeholder:text-[#9DA0AA] outline-none transition-colors"
           />
         </form>
       </div>
@@ -405,30 +405,30 @@ export function Monitoring({ currentUser }: MonitoringProps) {
       {/* Logs Table */}
       <div className="card-warm overflow-hidden shadow-subtle transition-colors">
         {loading ? (
-          <div className="py-16 text-center text-[#6C757D] text-xs">Consultando logs do sistema...</div>
+          <div className="py-16 text-center text-[#686971] text-xs font-mono">Consultando logs do sistema...</div>
         ) : logs.length === 0 ? (
-          <div className="py-16 text-center text-[#6C757D] space-y-2">
+          <div className="py-16 text-center text-[#686971] space-y-2">
             <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500" />
-            <p className="font-serif text-[#1A1E24] dark:text-[#F1F3F5] text-base">Nenhum registro de erro ou incidente</p>
-            <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD]">O sistema está operando perfeitamente com os filtros selecionados.</p>
+            <p className="font-bold text-[#18191D] dark:text-[#F4F4F6] text-base">Nenhum registro de erro ou incidente</p>
+            <p className="text-xs text-[#686971] dark:text-[#9DA0AA]">O sistema está operando perfeitamente com os filtros selecionados.</p>
           </div>
         ) : (
           <>
             {/* 1. VISÃO EM TABELA (DESKTOP >= 768px) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F1F3F5] dark:bg-[#14181D] text-[#495057] dark:text-[#ADB5BD] text-[11px] font-semibold border-b border-[#C85A32]/25">
+                <thead className="bg-[#EEEEF1] dark:bg-[#24252B] text-[#686971] dark:text-[#9DA0AA] text-[11px] font-semibold border-b hairline-border">
                   <tr>
-                    <th className="py-3.5 px-4">Data / Hora</th>
+                    <th className="py-3.5 px-4 font-mono">Data / Hora</th>
                     <th className="py-3.5 px-4">Nível</th>
                     <th className="py-3.5 px-4">Ação / Categoria</th>
                     <th className="py-3.5 px-4">Mensagem do Evento</th>
                     <th className="py-3.5 px-4">Usuário / Empresa</th>
-                    <th className="py-3.5 px-4">IP Origem</th>
+                    <th className="py-3.5 px-4 font-mono">IP Origem</th>
                     <th className="py-3.5 px-4 text-right">Detalhes</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#C85A32]/20 dark:divide-[#C85A32]/20 text-[#1A1E24] dark:text-[#F1F3F5]">
+                <tbody className="divide-y hairline-border text-[#18191D] dark:text-[#F4F4F6]">
                   {logs.map((log) => {
                     const theme = getLevelBadge(log.level);
                     const Icon = theme.icon;
@@ -445,41 +445,41 @@ export function Monitoring({ currentUser }: MonitoringProps) {
                     return (
                       <tr
                         key={log.id}
-                        className="hover:bg-[#E9ECEF]/60 dark:hover:bg-[#1E252E]/60 transition-colors cursor-pointer"
+                        className="hover:bg-[#EEEEF1]/60 dark:hover:bg-[#24252B]/60 transition-colors cursor-pointer"
                         onClick={() => {
                           setSelectedLog(log);
                           setIsDetailModalOpen(true);
                         }}
                       >
-                        <td className="py-3.5 px-4 font-mono text-[#6C757D] dark:text-[#ADB5BD] whitespace-nowrap">
+                        <td className="py-3.5 px-4 font-mono text-[#686971] dark:text-[#9DA0AA] whitespace-nowrap">
                           {formattedDate}
                         </td>
 
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${theme.badge}`}>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${theme.badge}`}>
                             <Icon className="w-3 h-3" /> {log.level}
                           </span>
                         </td>
 
                         <td className="py-3.5 px-4 whitespace-nowrap font-mono">
-                          <span className="font-semibold text-[#1A1E24] dark:text-[#F1F3F5]">{log.action}</span>
-                          <span className="text-[10px] text-[#6C757D] block font-sans">{log.category}</span>
+                          <span className="font-semibold text-[#18191D] dark:text-[#F4F4F6]">{log.action}</span>
+                          <span className="text-[10px] text-[#686971] dark:text-[#9DA0AA] block font-sans">{log.category}</span>
                         </td>
 
                         <td className="py-3.5 px-4 max-w-md">
-                          <div className="font-medium truncate text-[#1A1E24] dark:text-[#F1F3F5]" title={log.message}>
+                          <div className="font-medium truncate text-[#18191D] dark:text-[#F4F4F6]" title={log.message}>
                             {log.message}
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4 whitespace-nowrap text-[#6C757D] dark:text-[#ADB5BD]">
+                        <td className="py-3.5 px-4 whitespace-nowrap text-[#686971] dark:text-[#9DA0AA]">
                           <div>{log.userEmail || 'Anônimo / Sistema'}</div>
                           {log.companyId && (
-                            <div className="text-[10px] font-mono text-[#C85A32] dark:text-[#F39C74]">{log.companyId}</div>
+                            <div className="text-[10px] font-mono text-[#686971]">{log.companyId}</div>
                           )}
                         </td>
 
-                        <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px] text-[#6C757D]">
+                        <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px] text-[#686971] dark:text-[#9DA0AA]">
                           {log.ipAddress || '—'}
                         </td>
 
@@ -491,7 +491,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
                               setSelectedLog(log);
                               setIsDetailModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg text-[#6C757D] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] hover:bg-[#E9ECEF] dark:hover:bg-[#1E252E] transition-colors"
+                            className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -504,7 +504,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             </div>
 
             {/* 2. VISÃO EM CARDS TOUCH (MOBILE < 768px) */}
-            <div className="md:hidden divide-y divide-[#C85A32]/20 dark:divide-[#C85A32]/20">
+            <div className="md:hidden divide-y hairline-border">
               {logs.map((log) => {
                 const theme = getLevelBadge(log.level);
                 const Icon = theme.icon;
@@ -524,28 +524,28 @@ export function Monitoring({ currentUser }: MonitoringProps) {
                       setSelectedLog(log);
                       setIsDetailModalOpen(true);
                     }}
-                    className="p-4 space-y-2.5 hover:bg-[#E9ECEF]/60 dark:hover:bg-[#1E252E]/60 transition-colors cursor-pointer"
+                    className="p-4 space-y-2.5 hover:bg-[#EEEEF1]/60 dark:hover:bg-[#24252B]/60 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${theme.badge}`}>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${theme.badge}`}>
                         <Icon className="w-3 h-3" /> {log.level}
                       </span>
-                      <span className="text-[11px] font-mono text-[#6C757D]">{formattedDate}</span>
+                      <span className="text-[11px] font-mono text-[#686971] dark:text-[#9DA0AA]">{formattedDate}</span>
                     </div>
 
                     <div>
-                      <div className="font-semibold text-xs text-[#1A1E24] dark:text-[#F1F3F5] font-mono flex items-center justify-between">
+                      <div className="font-semibold text-xs text-[#18191D] dark:text-[#F4F4F6] font-mono flex items-center justify-between">
                         <span>{log.action}</span>
-                        <span className="text-[10px] text-[#6C757D] font-sans font-normal">{log.category}</span>
+                        <span className="text-[10px] text-[#686971] dark:text-[#9DA0AA] font-sans font-normal">{log.category}</span>
                       </div>
-                      <p className="text-xs text-[#495057] dark:text-[#ADB5BD] mt-1 line-clamp-2">
+                      <p className="text-xs text-[#686971] dark:text-[#9DA0AA] mt-1 line-clamp-2">
                         {log.message}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1 text-[11px] text-[#6C757D] dark:text-[#ADB5BD] border-t hairline-border">
+                    <div className="flex items-center justify-between pt-1 text-[11px] text-[#686971] dark:text-[#9DA0AA] border-t hairline-border">
                       <span className="truncate">{log.userEmail || 'Sistema'}</span>
-                      <span className="text-[#C85A32] dark:text-[#F39C74] font-medium flex items-center gap-1">
+                      <span className="text-[#18191D] dark:text-[#F4F4F6] font-medium flex items-center gap-1">
                         Ver detalhes ➔
                       </span>
                     </div>
@@ -561,7 +561,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={handleClearLogs}
-              className="text-[#6C757D] hover:text-rose-600 text-xs font-medium flex items-center gap-1 transition-colors"
+              className="text-[#686971] hover:text-[#E54833] dark:text-[#9DA0AA] dark:hover:text-[#E54833] text-xs font-medium flex items-center gap-1 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" /> Limpar logs antigos (+30 dias)
             </button>
@@ -575,7 +575,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             >
               Anterior
             </button>
-            <span className="font-mono text-xs text-[#6C757D] dark:text-[#ADB5BD]">
+            <span className="font-mono text-xs text-[#686971] dark:text-[#9DA0AA]">
               Página {page} de {totalPages}
             </span>
             <button
@@ -598,41 +598,41 @@ export function Monitoring({ currentUser }: MonitoringProps) {
         maxWidth="2xl"
       >
         {selectedLog && (
-          <div className="space-y-4 text-xs">
+          <div className="space-y-4 text-xs font-sans">
             {/* Log Meta Card */}
-            <div className="p-4 rounded-3xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/30 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="p-4 rounded-2xl bg-[#EEEEF1] dark:bg-[#24252B] border hairline-border grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div>
-                <span className="font-mono text-[#6C757D] block text-[10px] uppercase">Nível</span>
-                <span className="font-semibold text-[#1A1E24] dark:text-[#F1F3F5]">{selectedLog.level}</span>
+                <span className="font-mono text-[#686971] dark:text-[#9DA0AA] block text-[10px] uppercase">Nível</span>
+                <span className="font-semibold font-mono text-[#18191D] dark:text-[#F4F4F6]">{selectedLog.level}</span>
               </div>
               <div>
-                <span className="font-mono text-[#6C757D] block text-[10px] uppercase">Categoria</span>
-                <span className="font-semibold text-[#1A1E24] dark:text-[#F1F3F5]">{selectedLog.category}</span>
+                <span className="font-mono text-[#686971] dark:text-[#9DA0AA] block text-[10px] uppercase">Categoria</span>
+                <span className="font-semibold text-[#18191D] dark:text-[#F4F4F6]">{selectedLog.category}</span>
               </div>
               <div>
-                <span className="font-mono text-[#6C757D] block text-[10px] uppercase">Ação</span>
-                <span className="font-semibold text-[#C85A32] dark:text-[#F39C74] font-mono">{selectedLog.action}</span>
+                <span className="font-mono text-[#686971] dark:text-[#9DA0AA] block text-[10px] uppercase">Ação</span>
+                <span className="font-semibold text-[#18191D] dark:text-[#F4F4F6] font-mono">{selectedLog.action}</span>
               </div>
               <div>
-                <span className="font-mono text-[#6C757D] block text-[10px] uppercase">Data & Hora</span>
-                <span className="text-[#6C757D] dark:text-[#ADB5BD] font-mono">
+                <span className="font-mono text-[#686971] dark:text-[#9DA0AA] block text-[10px] uppercase">Data & Hora</span>
+                <span className="text-[#686971] dark:text-[#9DA0AA] font-mono">
                   {new Date(selectedLog.createdAt).toLocaleString('pt-BR')}
                 </span>
               </div>
               <div>
-                <span className="font-mono text-[#6C757D] block text-[10px] uppercase">Usuário</span>
-                <span className="text-[#6C757D] dark:text-[#ADB5BD]">{selectedLog.userEmail || 'Sistema'}</span>
+                <span className="font-mono text-[#686971] dark:text-[#9DA0AA] block text-[10px] uppercase">Usuário</span>
+                <span className="text-[#686971] dark:text-[#9DA0AA]">{selectedLog.userEmail || 'Sistema'}</span>
               </div>
               <div>
-                <span className="font-mono text-[#6C757D] block text-[10px] uppercase">IP de Origem</span>
-                <span className="text-[#6C757D] dark:text-[#ADB5BD] font-mono">{selectedLog.ipAddress || '—'}</span>
+                <span className="font-mono text-[#686971] dark:text-[#9DA0AA] block text-[10px] uppercase">IP de Origem</span>
+                <span className="text-[#686971] dark:text-[#9DA0AA] font-mono">{selectedLog.ipAddress || '—'}</span>
               </div>
             </div>
 
             {/* Mensagem */}
             <div>
-              <label className="font-medium text-[#495057] dark:text-[#ADB5BD] block mb-1">Mensagem do Evento:</label>
-              <div className="p-3.5 rounded-2xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/30 text-[#1A1E24] dark:text-[#F1F3F5] font-medium leading-relaxed">
+              <label className="font-medium text-[#686971] dark:text-[#9DA0AA] block mb-1">Mensagem do Evento:</label>
+              <div className="p-3.5 rounded-xl bg-[#EEEEF1] dark:bg-[#24252B] border hairline-border text-[#18191D] dark:text-[#F4F4F6] font-medium leading-relaxed">
                 {selectedLog.message}
               </div>
             </div>
@@ -640,10 +640,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             {/* Detalhes / Stack Trace */}
             {selectedLog.details && (
               <div>
-                <label className="font-medium text-[#495057] dark:text-[#ADB5BD] block mb-1 flex items-center gap-1.5">
-                  <FileCode className="w-3.5 h-3.5 text-[#C85A32]" /> Stack Trace / Carga do Evento (JSON):
+                <label className="font-medium text-[#686971] dark:text-[#9DA0AA] block mb-1 flex items-center gap-1.5">
+                  <FileCode className="w-3.5 h-3.5 text-[#686971]" /> Stack Trace / Carga do Evento (JSON):
                 </label>
-                <pre className="p-4 rounded-3xl bg-[#14181D] text-[#F39C74] font-mono text-[11px] overflow-x-auto max-h-60 leading-tight border border-[#C85A32]/35">
+                <pre className="p-4 rounded-xl bg-[#18191D] text-[#E2E2E8] font-mono text-[11px] overflow-x-auto max-h-60 leading-tight border border-[#292A30]">
                   {(() => {
                     try {
                       return JSON.stringify(JSON.parse(selectedLog.details), null, 2);
@@ -656,7 +656,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             )}
 
             {selectedLog.userAgent && (
-              <div className="text-[10px] text-[#6C757D] font-mono truncate">
+              <div className="text-[10px] text-[#686971] dark:text-[#9DA0AA] font-mono truncate">
                 <strong>User-Agent:</strong> {selectedLog.userAgent}
               </div>
             )}

@@ -158,31 +158,34 @@ export function Users({ currentUser }: UsersProps) {
           email: form.email,
           role: form.role as any,
           password: form.password,
+          status: form.status,
+          companyId: form.companyId || undefined,
         });
       }
-
       setIsModalOpen(false);
       await loadUsers();
     } catch (err: any) {
       setModalError({
-        message: err.message || 'Erro ao salvar dados do usuário.',
-        solution: err.solution || 'Verifique se o e-mail já não pertence a outro usuário ou se as permissões estão corretas.',
+        message: err.message || 'Erro ao salvar usuário.',
+        solution: err.solution || 'Verifique se o e-mail já está cadastrado no sistema.',
       });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleToggleApproval = async (userToApprove: UserType, approve: boolean) => {
+  const handleToggleApproval = async (userToToggle: UserType, approve: boolean) => {
     try {
-      setApprovingId(userToApprove.id);
+      setApprovingId(userToToggle.id);
       setPageError(null);
-      await api.toggleUserApproval(userToApprove.id, approve);
+      await api.updateUser(userToToggle.id, {
+        status: approve ? 'ACTIVE' : 'BLOCKED',
+      });
       await loadUsers();
     } catch (err: any) {
       setPageError({
-        message: err.message || 'Erro ao alterar status de aprovação do usuário.',
-        solution: err.solution || 'Verifique se você possui permissões de nível MASTER.',
+        message: err.message || 'Erro ao atualizar status do usuário.',
+        solution: err.solution || 'Tente novamente em instantes.',
       });
     } finally {
       setApprovingId(null);
@@ -190,10 +193,10 @@ export function Users({ currentUser }: UsersProps) {
   };
 
   const handleDelete = async (userToDelete: UserType) => {
-    if (currentUser && userToDelete.id === currentUser.id) {
+    if (currentUser && currentUser.id === userToDelete.id) {
       setPageError({
-        message: 'Você não pode excluir sua própria conta conectada.',
-        solution: 'Para remover este usuário, utilize outra conta de administrador.',
+        message: 'Você não pode excluir sua própria conta de usuário logada.',
+        solution: 'Solicite a outro administrador que execute esta alteração caso necessário.',
       });
       return;
     }
@@ -240,7 +243,7 @@ export function Users({ currentUser }: UsersProps) {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <ErrorBanner
         error={pageError?.message || null}
         solution={pageError?.solution}
@@ -250,21 +253,21 @@ export function Users({ currentUser }: UsersProps) {
 
       {/* Master Mode Banner */}
       {isMaster && (
-        <div className="card-warm p-5 border border-[#C85A32]/30 dark:border-[#C85A32]/40 flex items-center justify-between gap-4">
+        <div className="card-warm p-5 border border-[#E2E2E8] dark:border-[#292A30] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#1C222A] border-2 border-[#C85A32] text-[#C85A32] flex items-center justify-center font-bold shrink-0 shadow-subtle">
-              <Crown className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-[#18191D] border border-[#292A30] text-[#E54833] flex items-center justify-center font-bold shrink-0 shadow-subtle">
+              <Crown className="w-5 h-5 text-[#E54833]" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[#1A1E24] dark:text-[#F1F3F5] flex items-center gap-2">
+              <h3 className="text-sm font-medium text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-2">
                 Controle de Acesso & Trava de Segurança Master Ativa
               </h3>
-              <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD]">
+              <p className="text-xs text-[#686971] dark:text-[#BFC0C7]">
                 Novos cadastros no sistema iniciam bloqueados e só têm permissão para acessar o CRM após a sua aprovação explícita.
               </p>
             </div>
           </div>
-          <span className="shrink-0 px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5] border border-[#C85A32]/40">
+          <span className="shrink-0 px-3 py-1 rounded-full text-[10px] font-mono font-medium uppercase tracking-wider bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D]">
             SUPER_ADMIN
           </span>
         </div>
@@ -272,16 +275,16 @@ export function Users({ currentUser }: UsersProps) {
 
       {/* Pending Approvals Alert Banner */}
       {isMaster && pendingUsers.length > 0 && (
-        <div className="p-5 rounded-3xl bg-[#FFFFFF] dark:bg-[#14181D] border-2 border-[#C85A32] space-y-3.5 animate-in fade-in duration-300">
+        <div className="p-5 rounded-2xl bg-white/80 dark:bg-[#202126]/90 border border-[#E54833] space-y-3.5 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-[#C85A32] animate-ping"></span>
-              <h4 className="font-serif text-base text-[#1A1E24] dark:text-[#F1F3F5] flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-[#C85A32]" />
+              <span className="w-2 h-2 rounded-full bg-[#E54833] animate-ping"></span>
+              <h4 className="font-medium text-sm text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-[#E54833]" />
                 {pendingUsers.length} novo{pendingUsers.length === 1 ? '' : 's'} cadastro{pendingUsers.length === 1 ? '' : 's'} aguardando sua autorização:
               </h4>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[#C85A32] text-white">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium uppercase tracking-wider bg-[#E54833] text-white">
               Ação Requerida
             </span>
           </div>
@@ -290,14 +293,14 @@ export function Users({ currentUser }: UsersProps) {
             {pendingUsers.map((pu) => (
               <div
                 key={pu.id}
-                className="p-4 rounded-2xl bg-[#F8F9FA] dark:bg-[#181C21] border border-[#C85A32]/35 flex items-center justify-between gap-3 shadow-subtle"
+                className="p-3.5 rounded-xl bg-[#F4F4F6] dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] flex items-center justify-between gap-3 shadow-subtle"
               >
                 <div className="min-w-0">
-                  <div className="font-semibold text-xs text-[#1A1E24] dark:text-[#F1F3F5] truncate">
+                  <div className="font-medium text-xs text-[#18191D] dark:text-[#F4F4F6] truncate">
                     {pu.name}
                   </div>
-                  <div className="text-[11px] text-[#6C757D] dark:text-[#ADB5BD] truncate">
-                    {pu.email} • <span className="font-mono text-[#C85A32]">{pu.companyId}</span>
+                  <div className="text-[11px] text-[#686971] dark:text-[#BFC0C7] truncate">
+                    {pu.email} • <span className="font-mono text-[#18191D] dark:text-[#F4F4F6]">{pu.companyId}</span>
                   </div>
                 </div>
 
@@ -306,15 +309,15 @@ export function Users({ currentUser }: UsersProps) {
                     type="button"
                     disabled={approvingId === pu.id}
                     onClick={() => handleToggleApproval(pu, true)}
-                    className="btn-terracotta text-xs"
+                    className="btn-primary text-xs py-1 px-2.5"
                   >
-                    <Check className="w-3.5 h-3.5" /> Aprovar & Ativar
+                    <Check className="w-3.5 h-3.5" /> Aprovar
                   </button>
                   <button
                     type="button"
                     disabled={approvingId === pu.id}
                     onClick={() => handleToggleApproval(pu, false)}
-                    className="p-2 rounded-xl text-[#6C757D] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                    className="p-1.5 rounded-lg text-[#686971] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                     title="Rejeitar / Bloquear"
                   >
                     <Ban className="w-4 h-4" />
@@ -329,18 +332,21 @@ export function Users({ currentUser }: UsersProps) {
       {/* Header Editorial */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-wider text-[#6C757D] dark:text-[#ADB5BD] mb-0.5">SEGURANÇA & ACESSO</p>
-          <h1 className="text-2xl lg:text-3xl font-serif text-[#1A1E24] dark:text-[#F1F3F5] font-normal tracking-tight">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E54833]"></span>
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[#686971] dark:text-[#BFC0C7]">SEGURANÇA & ACESSO</p>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-sans text-[#18191D] dark:text-[#F4F4F6] font-medium tracking-tight mt-0.5">
             Usuários & Permissões do Sistema
           </h1>
-          <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD] mt-1">
+          <p className="text-xs text-[#686971] dark:text-[#BFC0C7] mt-1">
             Gerenciamento de operadores e administradores com controle de acesso Master
           </p>
         </div>
 
         <button
           onClick={() => handleOpenModal()}
-          className="btn-terracotta"
+          className="btn-primary"
         >
           <UserPlus className="w-3.5 h-3.5" />
           <span>Novo Usuário</span>
@@ -350,14 +356,14 @@ export function Users({ currentUser }: UsersProps) {
       {/* Filter Tabs & Search Bar */}
       <div className="card-warm p-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Status Filter */}
-        <div className="flex items-center gap-1 p-1 rounded-full bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 text-xs font-medium w-full sm:w-auto">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30] text-xs font-medium w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3.5 py-1.5 rounded-full transition-all ${
+            className={`px-3.5 py-1.5 rounded-lg transition-all ${
               statusFilter === 'ALL'
-                ? 'bg-white dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
+                ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
             }`}
           >
             Todos ({users.length})
@@ -366,10 +372,10 @@ export function Users({ currentUser }: UsersProps) {
             <button
               type="button"
               onClick={() => setStatusFilter('PENDING_APPROVAL')}
-              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1 ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
                 statusFilter === 'PENDING_APPROVAL'
-                  ? 'bg-[#C85A32] text-white font-semibold shadow-xs'
-                  : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
+                  ? 'bg-[#E54833] text-white shadow-subtle'
+                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
               }`}
             >
               <Clock className="w-3.5 h-3.5" /> Pendentes ({pendingUsers.length})
@@ -378,25 +384,25 @@ export function Users({ currentUser }: UsersProps) {
           <button
             type="button"
             onClick={() => setStatusFilter('ACTIVE')}
-            className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1 ${
+            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
               statusFilter === 'ACTIVE'
-                ? 'bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5] border border-[#C85A32]/40 font-semibold shadow-xs'
-                : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
+                ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5" /> Ativos
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Ativos
           </button>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#6C757D]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#686971]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome ou e-mail..."
-            className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] placeholder:text-[#6C757D] outline-none transition-colors"
+            className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 pl-9 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] placeholder:text-[#74757C] outline-none transition-colors"
           />
         </div>
       </div>
@@ -404,27 +410,27 @@ export function Users({ currentUser }: UsersProps) {
       {/* Users Table */}
       <div className="card-warm overflow-hidden shadow-subtle transition-colors">
         {loading ? (
-          <div className="py-16 text-center text-[#6C757D] text-xs">Carregando usuários do sistema...</div>
+          <div className="py-16 text-center text-[#686971] text-xs">Carregando usuários do sistema...</div>
         ) : filteredUsers.length === 0 ? (
-          <div className="py-16 text-center text-[#6C757D] space-y-2">
-            <UsersIcon className="w-8 h-8 mx-auto text-[#6C757D]/60" />
-            <p className="font-serif text-[#1A1E24] dark:text-[#F1F3F5] text-base">Nenhum usuário encontrado</p>
-            <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD]">Cadastre novos operadores ou administradores.</p>
+          <div className="py-16 text-center text-[#686971] space-y-2">
+            <UsersIcon className="w-8 h-8 mx-auto text-[#686971]/60" />
+            <p className="font-medium text-[#18191D] dark:text-[#F4F4F6] text-base">Nenhum usuário encontrado</p>
+            <p className="text-xs text-[#686971] dark:text-[#BFC0C7]">Cadastre novos operadores ou administradores.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#F1F3F5] dark:bg-[#14181D] text-[#495057] dark:text-[#ADB5BD] text-[11px] font-semibold border-b border-[#C85A32]/25">
+              <thead className="bg-[#EEEEF1] dark:bg-[#202126] text-[#686971] dark:text-[#BFC0C7] text-[11px] font-medium border-b border-[#E2E2E8] dark:border-[#292A30]">
                 <tr>
-                  <th className="py-3.5 px-4">Usuário</th>
-                  <th className="py-3.5 px-4">Perfil</th>
-                  <th className="py-3.5 px-4">Status de Acesso</th>
-                  {isMaster && <th className="py-3.5 px-4">Empresa / Tenant</th>}
-                  <th className="py-3.5 px-4">Data de Cadastro</th>
-                  <th className="py-3.5 px-4 text-right">Ações</th>
+                  <th className="py-3.5 px-4 font-mono">USUÁRIO</th>
+                  <th className="py-3.5 px-4 font-mono">PERFIL</th>
+                  <th className="py-3.5 px-4 font-mono">STATUS</th>
+                  {isMaster && <th className="py-3.5 px-4 font-mono">EMPRESA / TENANT</th>}
+                  <th className="py-3.5 px-4 font-mono">DATA DE CADASTRO</th>
+                  <th className="py-3.5 px-4 text-right font-mono">AÇÕES</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#C85A32]/20 dark:divide-[#C85A32]/20 text-[#1A1E24] dark:text-[#F1F3F5]">
+              <tbody className="divide-y divide-[#E2E2E8] dark:divide-[#292A30] text-[#18191D] dark:text-[#F4F4F6]">
                 {filteredUsers.map((u) => {
                   const isCurrent = currentUser && currentUser.id === u.id;
                   const isPending = u.status === 'PENDING_APPROVAL';
@@ -443,32 +449,32 @@ export function Users({ currentUser }: UsersProps) {
                   return (
                     <tr
                       key={u.id}
-                      className={`hover:bg-[#E9ECEF]/60 dark:hover:bg-[#1E252E]/60 transition-colors ${
-                        isPending ? 'bg-[#C85A32]/10 dark:bg-[#C85A32]/20' : ''
+                      className={`hover:bg-[#EEEEF1]/60 dark:hover:bg-[#202126]/60 transition-colors ${
+                        isPending ? 'bg-[#E54833]/5 dark:bg-[#E54833]/10' : ''
                       }`}
                     >
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 ${
+                            className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 ${
                               u.role === 'MASTER'
-                                ? 'bg-[#1C222A] text-[#C85A32] border-[#C85A32]'
-                                : 'bg-[#FFFFFF] text-[#1A1E24] border-[#C85A32]/35 dark:bg-[#14181D] dark:text-[#F1F3F5]'
+                                ? 'bg-[#18191D] text-[#E54833] border-[#292A30]'
+                                : 'bg-white text-[#18191D] border-[#D7D7DD] dark:bg-[#202126] dark:text-[#F4F4F6] dark:border-[#292A30]'
                             }`}
                           >
-                            {u.role === 'MASTER' ? <Crown className="w-3.5 h-3.5 text-[#C85A32]" /> : u.name.charAt(0).toUpperCase()}
+                            {u.role === 'MASTER' ? <Crown className="w-3.5 h-3.5 text-[#E54833]" /> : u.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold text-[#1A1E24] dark:text-[#F1F3F5] flex items-center gap-2">
+                            <div className="font-medium text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-2">
                               <span>{u.name}</span>
                               {isCurrent && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FFFFFF] text-[#C85A32] border border-[#C85A32] dark:bg-[#181C21]">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#EEEEF1] text-[#18191D] border border-[#D7D7DD] dark:bg-[#24252B] dark:text-[#F4F4F6] dark:border-[#292A30]">
                                   Você
                                 </span>
                               )}
                             </div>
-                            <div className="text-[#6C757D] dark:text-[#ADB5BD] flex items-center gap-1 mt-0.5 text-[11px]">
-                              <Mail className="w-3 h-3 text-[#C85A32]" /> {u.email}
+                            <div className="text-[#686971] dark:text-[#BFC0C7] flex items-center gap-1 mt-0.5 text-[11px] font-mono">
+                              <Mail className="w-3 h-3 text-[#74757C]" /> {u.email}
                             </div>
                           </div>
                         </div>
@@ -476,15 +482,15 @@ export function Users({ currentUser }: UsersProps) {
 
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         {u.role === 'MASTER' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFFFFF] text-[#C85A32] border border-[#C85A32] dark:bg-[#181C21] font-semibold text-[11px]">
-                            <Crown className="w-3 h-3 text-[#C85A32]" /> MASTER
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#18191D] text-[#F4F4F6] border border-[#292A30] dark:bg-[#F4F4F6] dark:text-[#18191D] font-mono font-medium text-[11px]">
+                            <Crown className="w-3 h-3 text-[#E54833]" /> MASTER
                           </span>
                         ) : u.role === 'ADMIN' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFFFFF] text-[#1A1E24] border border-[#C85A32]/35 dark:bg-[#181C21] dark:text-[#F1F3F5] font-medium text-[11px]">
-                            <ShieldCheck className="w-3 h-3 text-[#C85A32]" /> Administrador
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EEEEF1] text-[#18191D] border border-[#D7D7DD] dark:bg-[#24252B] dark:text-[#F4F4F6] dark:border-[#292A30] font-medium text-[11px]">
+                            <ShieldCheck className="w-3 h-3 text-[#18191D] dark:text-[#F4F4F6]" /> Administrador
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFFFFF] text-[#6C757D] border border-[#C85A32]/35 dark:bg-[#181C21] dark:text-[#ADB5BD] font-medium text-[11px]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EEEEF1] text-[#686971] border border-[#D7D7DD] dark:bg-[#24252B] dark:text-[#BFC0C7] dark:border-[#292A30] font-medium text-[11px]">
                             <UserCheck className="w-3 h-3" /> Operador
                           </span>
                         )}
@@ -493,29 +499,29 @@ export function Users({ currentUser }: UsersProps) {
                       {/* Status de Acesso */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         {isPending ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFFFFF] text-[#C85A32] dark:bg-[#181C21] border border-[#C85A32] font-medium text-[11px]">
-                            <Clock className="w-3 h-3 text-[#C85A32] animate-spin" /> Aguardando Liberação
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EEEEF1] text-[#E54833] border border-[#E54833]/30 font-medium text-[11px]">
+                            <Clock className="w-3 h-3 text-[#E54833] animate-spin" /> Aguardando Liberação
                           </span>
                         ) : isBlocked ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800 font-medium text-[11px]">
                             <Ban className="w-3 h-3 text-rose-600" /> Desativado
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-medium text-[11px]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EEEEF1] dark:bg-[#24252B] text-emerald-700 dark:text-emerald-400 border border-[#D7D7DD] dark:border-[#292A30] font-medium text-[11px]">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Ativo
                           </span>
                         )}
                       </td>
 
                       {isMaster && (
-                        <td className="py-3.5 px-4 text-[#6C757D] dark:text-[#ADB5BD] font-mono whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/30 text-[10px]">
+                        <td className="py-3.5 px-4 text-[#686971] dark:text-[#BFC0C7] font-mono whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-full bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#292A30] text-[10px]">
                             {u.companyId || 'default_company'}
                           </span>
                         </td>
                       )}
 
-                      <td className="py-3.5 px-4 text-[#6C757D] dark:text-[#ADB5BD] font-mono whitespace-nowrap text-[11px]">
+                      <td className="py-3.5 px-4 text-[#686971] dark:text-[#BFC0C7] font-mono whitespace-nowrap text-[11px]">
                         {formattedDate}
                       </td>
 
@@ -525,7 +531,7 @@ export function Users({ currentUser }: UsersProps) {
                             onClick={() => handleToggleApproval(u, true)}
                             disabled={approvingId === puId(u)}
                             title="Aprovar e Liberar Acesso"
-                            className="btn-terracotta text-[11px] py-1 px-2.5"
+                            className="btn-primary text-[11px] py-1 px-2.5"
                           >
                             <Check className="w-3 h-3" /> Aprovar
                           </button>
@@ -538,7 +544,7 @@ export function Users({ currentUser }: UsersProps) {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isBlocked
                                 ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950'
-                                : 'text-[#6C757D] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40'
+                                : 'text-[#686971] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40'
                             }`}
                           >
                             {isBlocked ? <Check className="w-3.5 h-3.5" /> : <Ban className="w-3.5 h-3.5" />}
@@ -548,7 +554,7 @@ export function Users({ currentUser }: UsersProps) {
                         <button
                           onClick={() => handleOpenModal(u)}
                           title="Editar usuário / Redefinir senha"
-                          className="p-1.5 rounded-lg text-[#6C757D] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] hover:bg-[#E9ECEF] dark:hover:bg-[#1E252E] transition-colors"
+                          className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -565,8 +571,8 @@ export function Users({ currentUser }: UsersProps) {
                           }
                           className={`p-1.5 rounded-lg transition-colors ${
                             isCurrent || u.role === 'MASTER'
-                              ? 'text-[#6C757D]/40 cursor-not-allowed'
-                              : 'text-[#6C757D] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                              ? 'text-[#686971]/40 cursor-not-allowed'
+                              : 'text-[#686971] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40'
                           }`}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -597,42 +603,42 @@ export function Users({ currentUser }: UsersProps) {
           />
 
           <div>
-            <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
               Nome Completo *
             </label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#C85A32]" />
+              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#74757C]" />
               <input
                 type="text"
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Ex: Carlos Silva"
-                className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-10 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 pl-10 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
               E-mail de Login *
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#C85A32]" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#74757C]" />
               <input
                 type="email"
                 required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="usuario@enlacecrm.com.br"
-                className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-10 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 pl-10 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
               />
             </div>
           </div>
 
           {/* Role selector */}
           <div>
-            <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
               Perfil de Acesso / Permissão *
             </label>
             <div className={`grid gap-3 ${isMaster ? 'grid-cols-3' : 'grid-cols-2'}`}>
@@ -640,18 +646,18 @@ export function Users({ currentUser }: UsersProps) {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, role: 'MASTER' })}
-                  className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                  className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                     form.role === 'MASTER'
-                      ? 'border-[#C85A32] bg-[#FFFFFF] text-[#C85A32] dark:border-[#C85A32] dark:bg-[#181C21] dark:text-[#F39C74]'
-                      : 'border-[#C85A32]/25 bg-[#FFFFFF] dark:bg-[#14181D] text-[#6C757D] dark:text-[#ADB5BD]'
+                      ? 'border-[#18191D] bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D]'
+                      : 'border-[#E2E2E8] dark:border-[#292A30] bg-white dark:bg-[#18191D] text-[#686971] dark:text-[#BFC0C7]'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <Crown className="w-5 h-5 text-[#C85A32]" />
-                    {form.role === 'MASTER' && <CheckCircle2 className="w-4 h-4 text-[#C85A32]" />}
+                    <Crown className="w-5 h-5 text-[#E54833]" />
+                    {form.role === 'MASTER' && <CheckCircle2 className="w-4 h-4 text-[#E54833]" />}
                   </div>
-                  <div className="font-semibold text-xs text-[#1A1E24] dark:text-[#F1F3F5]">MASTER</div>
-                  <div className="text-[10px] text-[#6C757D] dark:text-[#ADB5BD] mt-0.5 leading-tight">
+                  <div className="font-mono font-medium text-xs">MASTER</div>
+                  <div className="text-[10px] opacity-75 mt-0.5 leading-tight">
                     Acesso global a todas empresas.
                   </div>
                 </button>
@@ -660,18 +666,18 @@ export function Users({ currentUser }: UsersProps) {
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: 'ADMIN' })}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                   form.role === 'ADMIN'
-                    ? 'border-[#C85A32] bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5]'
-                    : 'border-[#C85A32]/25 bg-[#FFFFFF] dark:bg-[#14181D] text-[#6C757D] dark:text-[#ADB5BD]'
+                    ? 'border-[#18191D] bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D]'
+                    : 'border-[#E2E2E8] dark:border-[#292A30] bg-white dark:bg-[#18191D] text-[#686971] dark:text-[#BFC0C7]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <ShieldCheck className="w-5 h-5" />
                   {form.role === 'ADMIN' && <CheckCircle2 className="w-4 h-4" />}
                 </div>
-                <div className="font-semibold text-xs">Administrador</div>
-                <div className="text-[10px] opacity-80 mt-0.5 leading-tight">
+                <div className="font-medium text-xs">Administrador</div>
+                <div className="text-[10px] opacity-75 mt-0.5 leading-tight">
                   Acesso a cadastros e automações.
                 </div>
               </button>
@@ -679,18 +685,18 @@ export function Users({ currentUser }: UsersProps) {
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: 'OPERATOR' })}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                   form.role === 'OPERATOR'
-                    ? 'border-[#C85A32] bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5]'
-                    : 'border-[#C85A32]/25 bg-[#FFFFFF] dark:bg-[#14181D] text-[#6C757D] dark:text-[#ADB5BD]'
+                    ? 'border-[#18191D] bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D]'
+                    : 'border-[#E2E2E8] dark:border-[#292A30] bg-white dark:bg-[#18191D] text-[#686971] dark:text-[#BFC0C7]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <UserCheck className="w-5 h-5" />
                   {form.role === 'OPERATOR' && <CheckCircle2 className="w-4 h-4" />}
                 </div>
-                <div className="font-semibold text-xs">Operador</div>
-                <div className="text-[10px] opacity-80 mt-0.5 leading-tight">
+                <div className="font-medium text-xs">Operador</div>
+                <div className="text-[10px] opacity-75 mt-0.5 leading-tight">
                   Operação diária de alertas e agenda.
                 </div>
               </button>
@@ -700,17 +706,17 @@ export function Users({ currentUser }: UsersProps) {
           {/* Status selector (Master only) */}
           {isMaster && editingUser && (
             <div>
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                 Status da Conta / Liberação
               </label>
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as any })}
-                className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
               >
-                <option value="ACTIVE">🟢 Ativo (Acesso Liberado)</option>
-                <option value="PENDING_APPROVAL">⏳ Pendente de Aprovação</option>
-                <option value="BLOCKED">⛔ Bloqueado / Desativado</option>
+                <option value="ACTIVE">Ativo (Acesso Liberado)</option>
+                <option value="PENDING_APPROVAL">Pendente de Aprovação</option>
+                <option value="BLOCKED">Bloqueado / Desativado</option>
               </select>
             </div>
           )}
@@ -718,31 +724,31 @@ export function Users({ currentUser }: UsersProps) {
           {/* Master Company Tenant Edit */}
           {isMaster && editingUser && (
             <div>
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                 ID da Empresa / Tenant (Controle Master)
               </label>
               <div className="relative">
-                <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#C85A32]" />
+                <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#74757C]" />
                 <input
                   type="text"
                   value={form.companyId}
                   onChange={(e) => setForm({ ...form, companyId: e.target.value })}
                   placeholder="default_company ou ID da empresa"
-                  className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-10 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] font-mono outline-none"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 pl-10 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] font-mono outline-none"
                 />
               </div>
             </div>
           )}
 
-          <div className="p-4 rounded-2xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/30 space-y-3">
+          <div className="p-4 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border border-[#E2E2E8] dark:border-[#292A30] space-y-3">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD]">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7]">
                 {editingUser ? 'Redefinir Senha do Usuário' : 'Senha de Acesso *'}
               </label>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-[11px] text-[#C85A32] dark:text-[#F39C74] font-medium hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#18191D] dark:text-[#F4F4F6] font-medium hover:underline flex items-center gap-1"
               >
                 {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 {showPassword ? 'Ocultar' : 'Visualizar'}
@@ -751,32 +757,32 @@ export function Users({ currentUser }: UsersProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#C85A32]" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#74757C]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required={!editingUser}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder={editingUser ? 'Digitar nova senha' : 'Mínimo 6 dígitos'}
-                  className="w-full bg-[#F8F9FA] dark:bg-[#181C21] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none font-mono"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 pl-9 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#C85A32]" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#74757C]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required={Boolean(form.password)}
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                   placeholder="Confirme a nova senha"
-                  className="w-full bg-[#F8F9FA] dark:bg-[#181C21] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none font-mono"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 pl-9 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t hairline-border">
+          <div className="flex justify-end gap-2 pt-3 border-t hairline-border">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
@@ -787,7 +793,7 @@ export function Users({ currentUser }: UsersProps) {
             <button
               type="submit"
               disabled={saving}
-              className="btn-terracotta"
+              className="btn-primary"
             >
               {saving ? 'Salvando...' : editingUser ? 'Atualizar Usuário' : 'Cadastrar Usuário'}
             </button>

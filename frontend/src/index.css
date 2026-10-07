@@ -4,53 +4,53 @@
 
 @layer base {
   body {
-    @apply bg-[#F1F3F5] text-[#1A1E24] dark:bg-[#111418] dark:text-[#F1F3F5] transition-colors duration-150 antialiased font-sans;
+    @apply bg-[#F4F4F6] text-[#18191D] dark:bg-[#18191D] dark:text-[#F4F4F6] transition-colors duration-150 antialiased font-sans;
     letter-spacing: -0.015em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight text-[#1A1E24] dark:text-[#F1F3F5];
+    @apply tracking-tight font-sans text-[#18191D] dark:text-[#F4F4F6];
   }
 }
 
 @layer utilities {
-  /* Silver Interior & Terracotta Contour Cards */
-  .studio-card, .card-warm, .card-silver {
-    @apply bg-[#F8F9FA] dark:bg-[#181C21] border border-[#C85A32]/30 dark:border-[#C85A32]/40 rounded-3xl shadow-subtle transition-all duration-150;
+  /* Neo-Swiss 66% Translucent Panels & Cards */
+  .studio-card, .card-warm, .card-silver, .card-panel {
+    @apply bg-white/70 backdrop-blur-md dark:bg-[#202126]/85 border border-[#E2E2E8] dark:border-[#292A30] rounded-2xl shadow-subtle transition-all duration-150;
   }
 
   .studio-card-interactive, .card-warm-interactive {
-    @apply studio-card hover:border-[#C85A32] hover:shadow-[0_0_0_1px_#C85A32] dark:hover:border-[#E07A5F] hover:shadow-panel;
+    @apply studio-card hover:border-[#C6C7CD] dark:hover:border-[#44454B] hover:shadow-panel;
   }
 
-  .card-peach, .card-contour-terracotta {
-    @apply bg-gradient-to-br from-[#FFFFFF] via-[#F4F5F8] to-[#E9ECEF] dark:from-[#1E232A] dark:via-[#181C21] dark:to-[#14171B] border-2 border-[#C85A32] dark:border-[#E07A5F] rounded-3xl shadow-[0_4px_20px_rgba(200,90,50,0.08)] transition-all duration-150;
+  .card-peach, .card-signal {
+    @apply bg-white/90 dark:bg-[#202126] border border-[#E54833]/30 dark:border-[#E54833]/40 rounded-2xl shadow-subtle transition-all duration-150;
   }
 
-  /* Hairline Dividers & Contour Lines */
+  /* Hairline Dividers */
   .hairline-border {
-    @apply border-[#C85A32]/25 dark:border-[#C85A32]/35;
+    @apply border-[#E2E2E8] dark:border-[#292A30];
   }
 
   .hairline-divider {
-    @apply border-t border-[#C85A32]/20 dark:border-[#C85A32]/30;
+    @apply border-t border-[#E2E2E8] dark:border-[#292A30];
   }
 
-  /* Button Presets */
-  .btn-primary {
-    @apply bg-[#181C21] text-[#F1F3F5] hover:bg-[#252B33] dark:bg-[#252B33] dark:text-[#F1F3F5] dark:hover:bg-[#313842] border border-[#C85A32]/40 hover:border-[#C85A32] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5;
+  /* Buttons */
+  .btn-primary, .btn-signal, .btn-terracotta {
+    @apply bg-[#E54833] text-white hover:bg-[#C73524] active:bg-[#C73524] border border-[#E54833] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5;
   }
 
   .btn-secondary {
-    @apply bg-[#F8F9FA] dark:bg-[#1A1F26] text-[#1A1E24] dark:text-[#F1F3F5] hover:bg-[#E9ECEF] dark:hover:bg-[#222831] border border-[#C85A32]/30 hover:border-[#C85A32] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
+    @apply bg-[#EEEEF1] dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] hover:bg-[#E2E2E8] dark:hover:bg-[#292A30] border border-[#D7D7DD] dark:border-[#33343A] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
   }
 
-  .btn-terracotta {
-    @apply bg-[#C85A32] text-white hover:bg-[#B34A24] border border-[#D97757] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
+  .btn-dark {
+    @apply bg-[#18191D] text-[#F4F4F6] hover:bg-[#292A30] dark:bg-[#F4F4F6] dark:text-[#18191D] dark:hover:bg-[#E9E9ED] border border-[#292A30] dark:border-[#E2E2E8] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] inline-flex items-center justify-center gap-1.5;
   }
 
   .btn-contour {
-    @apply bg-[#F8F9FA] dark:bg-[#181C21] text-[#C85A32] dark:text-[#E07A5F] border-2 border-[#C85A32] hover:bg-[#C85A32] hover:text-white font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] inline-flex items-center justify-center gap-1.5;
+    @apply bg-transparent text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#33343A] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] inline-flex items-center justify-center gap-1.5;
   }
 }
 

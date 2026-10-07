@@ -265,14 +265,28 @@ export const api = {
   // Users Management
   getUsers: () => request<User[]>('/users'),
   getUserById: (id: string) => request<User>(`/users/${id}`),
-  createUser: (data: { name: string; email: string; password?: string; role?: 'ADMIN' | 'OPERATOR' }) =>
+  createUser: (data: {
+    name: string;
+    email: string;
+    password?: string;
+    role?: 'ADMIN' | 'OPERATOR';
+    status?: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
+    companyId?: string;
+  }) =>
     request<User>('/users', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   updateUser: (
     id: string,
-    data: { name?: string; email?: string; password?: string; role?: 'ADMIN' | 'OPERATOR' }
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+      role?: 'ADMIN' | 'OPERATOR';
+      status?: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
+      companyId?: string;
+    }
   ) =>
     request<User>(`/users/${id}`, {
       method: 'PUT',

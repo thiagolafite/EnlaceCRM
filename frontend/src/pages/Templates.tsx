@@ -209,7 +209,7 @@ export function Templates() {
   const emailCount = templates.filter((t) => t.channel === 'EMAIL').length;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <ErrorBanner
         error={pageError?.message || null}
         solution={pageError?.solution}
@@ -220,18 +220,21 @@ export function Templates() {
       {/* Header Editorial */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-wider text-[#6C757D] dark:text-[#ADB5BD] mb-0.5">MENSAGENS & MODELOS</p>
-          <h1 className="text-2xl lg:text-3xl font-serif text-[#1A1E24] dark:text-[#F1F3F5] font-normal tracking-tight">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E54833]"></span>
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[#686971] dark:text-[#BFC0C7]">MENSAGENS & MODELOS</p>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-sans text-[#18191D] dark:text-[#F4F4F6] font-medium tracking-tight mt-0.5">
             Templates & Modelos de Mensagem
           </h1>
-          <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD] mt-1">
+          <p className="text-xs text-[#686971] dark:text-[#BFC0C7] mt-1">
             Modelos de felicitações com variáveis dinâmicas de titulares e familiares
           </p>
         </div>
 
         <button
           onClick={() => handleOpenModal()}
-          className="btn-terracotta"
+          className="btn-primary"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Novo Template</span>
@@ -241,14 +244,14 @@ export function Templates() {
       {/* Channel Tabs & Filters */}
       <div className="card-warm p-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Channel Selector */}
-        <div className="flex items-center gap-1 p-1 rounded-full bg-[#E9ECEF] dark:bg-[#14181D] border border-[#C85A32]/25 w-full sm:w-auto text-xs font-medium">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-[#EEEEF1] dark:bg-[#18191D] border border-[#D7D7DD] dark:border-[#292A30] w-full sm:w-auto text-xs font-medium">
           <button
             type="button"
             onClick={() => setChannelFilter('ALL')}
-            className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
               channelFilter === 'ALL'
-                ? 'bg-white dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
+                ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
             }`}
           >
             <Layers className="w-3.5 h-3.5" /> Todos ({templates.length})
@@ -256,21 +259,21 @@ export function Templates() {
           <button
             type="button"
             onClick={() => setChannelFilter('WHATSAPP')}
-            className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
               channelFilter === 'WHATSAPP'
-                ? 'bg-[#C85A32] text-white font-semibold shadow-xs'
-                : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
+                ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
             }`}
           >
-            <MessageCircle className="w-3.5 h-3.5" /> WhatsApp ({whatsappCount})
+            <MessageCircle className="w-3.5 h-3.5 text-[#1E6B37]" /> WhatsApp ({whatsappCount})
           </button>
           <button
             type="button"
             onClick={() => setChannelFilter('EMAIL')}
-            className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
               channelFilter === 'EMAIL'
-                ? 'bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5] border border-[#C85A32]/40 font-semibold shadow-xs'
-                : 'text-[#6C757D] hover:text-[#1A1E24] dark:text-[#ADB5BD]'
+                ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle'
+                : 'text-[#686971] hover:text-[#18191D] dark:text-[#BFC0C7]'
             }`}
           >
             <Mail className="w-3.5 h-3.5" /> E-mail ({emailCount})
@@ -282,12 +285,12 @@ export function Templates() {
           <select
             value={eventTypeFilter}
             onChange={(e) => setEventTypeFilter(e.target.value)}
-            className="bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs font-medium text-[#1A1E24] dark:text-[#F1F3F5] outline-none"
+            className="bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] outline-none"
           >
             <option value="">Todos os tipos de evento</option>
-            <option value="CLIENT_BIRTHDAY">🎂 Aniversário do Cliente</option>
-            <option value="FAMILY_BIRTHDAY">💐 Aniversário de Familiar</option>
-            <option value="FIXED_DATE">📅 Data Fixa do Calendário</option>
+            <option value="CLIENT_BIRTHDAY">Aniversário do Cliente</option>
+            <option value="FAMILY_BIRTHDAY">Aniversário de Familiar</option>
+            <option value="FIXED_DATE">Data Fixa do Calendário</option>
           </select>
 
           <input
@@ -295,26 +298,26 @@ export function Templates() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar template..."
-            className="bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none placeholder:text-[#6C757D]"
+            className="bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none placeholder:text-[#74757C]"
           />
         </div>
       </div>
 
       {/* Templates Grid */}
       {loading ? (
-        <div className="py-16 text-center text-[#6C757D] text-xs">Carregando templates de mensagens...</div>
+        <div className="py-16 text-center text-[#686971] text-xs">Carregando templates de mensagens...</div>
       ) : filteredTemplates.length === 0 ? (
         <div className="card-warm py-16 text-center space-y-2">
-          <MessageSquareText className="w-8 h-8 mx-auto text-[#6C757D]/60" />
-          <p className="font-serif text-[#1A1E24] dark:text-[#F1F3F5] text-base">Nenhum template encontrado</p>
-          <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD]">Tente ajustar os filtros ou cadastrar um novo modelo.</p>
+          <MessageSquareText className="w-8 h-8 mx-auto text-[#686971]/60" />
+          <p className="font-medium text-[#18191D] dark:text-[#F4F4F6] text-base">Nenhum template encontrado</p>
+          <p className="text-xs text-[#686971] dark:text-[#BFC0C7]">Tente ajustar os filtros ou cadastrar um novo modelo.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTemplates.map((tpl) => (
             <div
               key={tpl.id}
-              className="card-warm p-5 flex flex-col justify-between hover:border-[#C85A32] transition-all group shadow-sm"
+              className="card-warm p-5 flex flex-col justify-between hover:border-[#C6C7CD] dark:hover:border-[#44454B] transition-all group shadow-subtle"
             >
               <div>
                 {/* Header with badges and actions */}
@@ -322,17 +325,17 @@ export function Templates() {
                   <div className="space-y-1.5 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {tpl.channel === 'EMAIL' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#FFFFFF] text-[#1A1E24] dark:bg-[#14181D] dark:text-[#F1F3F5] border border-[#C85A32]/35">
-                          <Mail className="w-3 h-3 text-[#C85A32]" /> E-mail
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#EEEEF1] text-[#18191D] dark:bg-[#24252B] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]">
+                          <Mail className="w-3 h-3 text-[#686971]" /> E-mail
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#FFFFFF] text-[#C85A32] dark:bg-[#14181D] dark:text-[#F39C74] border border-[#C85A32]">
-                          <MessageCircle className="w-3 h-3" /> WhatsApp
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#EEEEF1] text-[#1E6B37] dark:bg-[#24252B] dark:text-[#56D364] border border-[#D7D7DD] dark:border-[#292A30]">
+                          <MessageCircle className="w-3 h-3 text-[#1E6B37]" /> WhatsApp
                         </span>
                       )}
                       <EventTypeBadge type={tpl.eventType} />
                     </div>
-                    <h3 className="text-base font-serif text-[#1A1E24] dark:text-[#F1F3F5] truncate mt-1">
+                    <h3 className="text-base font-medium text-[#18191D] dark:text-[#F4F4F6] truncate mt-1">
                       {tpl.name}
                     </h3>
                   </div>
@@ -341,21 +344,21 @@ export function Templates() {
                     <button
                       onClick={() => handlePreview(tpl)}
                       title="Visualizar demonstração"
-                      className="p-1.5 rounded-lg text-[#6C757D] hover:text-[#C85A32] hover:bg-[#E9ECEF] dark:hover:bg-[#1E242B] transition-colors"
+                      className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] transition-colors"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleOpenModal(tpl)}
                       title="Editar template"
-                      className="p-1.5 rounded-lg text-[#6C757D] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] hover:bg-[#E9ECEF] dark:hover:bg-[#1E242B] transition-colors"
+                      className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] transition-colors"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(tpl.id, tpl.name)}
                       title="Excluir template"
-                      className="p-1.5 rounded-lg text-[#6C757D] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                      className="p-1.5 rounded-lg text-[#686971] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -364,25 +367,25 @@ export function Templates() {
 
                 {/* Email Subject if present */}
                 {tpl.channel === 'EMAIL' && tpl.subject && (
-                  <div className="mb-2.5 p-2 rounded-xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/25 text-[11px] text-[#495057] dark:text-[#ADB5BD] truncate">
-                    <strong className="text-[#1A1E24] dark:text-[#F1F3F5]">Assunto:</strong> {tpl.subject}
+                  <div className="mb-2.5 p-2 rounded-xl bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] text-[11px] text-[#686971] dark:text-[#BFC0C7] truncate">
+                    <strong className="text-[#18191D] dark:text-[#F4F4F6]">Assunto:</strong> {tpl.subject}
                   </div>
                 )}
 
                 {/* Content Box */}
-                <div className="p-3.5 rounded-2xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/25 text-xs text-[#1A1E24] dark:text-[#F1F3F5] whitespace-pre-line font-mono line-clamp-4 leading-relaxed">
+                <div className="p-3 rounded-xl bg-[#F4F4F6]/70 dark:bg-[#18191D]/70 border border-[#E2E2E8] dark:border-[#292A30] text-xs text-[#18191D] dark:text-[#F4F4F6] whitespace-pre-line font-mono line-clamp-4 leading-relaxed">
                   {tpl.content}
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="mt-4 pt-3 border-t hairline-border flex items-center justify-between text-xs text-[#6C757D] dark:text-[#ADB5BD]">
+              <div className="mt-4 pt-3 border-t hairline-border flex items-center justify-between text-xs text-[#686971] dark:text-[#BFC0C7]">
                 <span className="truncate max-w-[60%] font-medium">
-                  {tpl.commemorativeDate ? `Vínculo: ${tpl.commemorativeDate.name}` : 'Template Geral'}
+                  {tpl.commemorativeDate ? `Data vinculada: ${tpl.commemorativeDate.name}` : 'Template Geral'}
                 </span>
                 <button
                   onClick={() => handlePreview(tpl)}
-                  className="text-xs font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1 shrink-0"
+                  className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] hover:underline flex items-center gap-1 shrink-0"
                 >
                   <Eye className="w-3.5 h-3.5" /> Preview
                 </button>
@@ -409,7 +412,7 @@ export function Templates() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                 Nome do Template *
               </label>
               <input
@@ -418,34 +421,34 @@ export function Templates() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Ex: Natal & Boas Festas (WhatsApp)"
-                className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                 Canal de Envio *
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, channel: 'WHATSAPP' })}
-                  className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-3 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
                     form.channel === 'WHATSAPP'
-                      ? 'border-[#C85A32] bg-[#FFFFFF] text-[#C85A32] dark:border-[#C85A32] dark:bg-[#181C21] dark:text-[#F39C74]'
-                      : 'border-[#C85A32]/25 bg-[#FFFFFF] dark:bg-[#14181D] text-[#6C757D] dark:text-[#ADB5BD]'
+                      ? 'border-[#18191D] bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D] dark:border-[#F4F4F6]'
+                      : 'border-[#E2E2E8] dark:border-[#292A30] bg-white dark:bg-[#18191D] text-[#686971] dark:text-[#BFC0C7]'
                   }`}
                 >
-                  <MessageCircle className="w-4 h-4 text-[#C85A32] dark:text-[#F39C74]" /> WhatsApp
+                  <MessageCircle className="w-4 h-4 text-[#1E6B37]" /> WhatsApp
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, channel: 'EMAIL' })}
-                  className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-3 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
                     form.channel === 'EMAIL'
-                      ? 'border-[#C85A32] bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5]'
-                      : 'border-[#C85A32]/25 bg-[#FFFFFF] dark:bg-[#14181D] text-[#6C757D] dark:text-[#ADB5BD]'
+                      ? 'border-[#18191D] bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D] dark:border-[#F4F4F6]'
+                      : 'border-[#E2E2E8] dark:border-[#292A30] bg-white dark:bg-[#18191D] text-[#686971] dark:text-[#BFC0C7]'
                   }`}
                 >
                   <Mail className="w-4 h-4" /> E-mail
@@ -454,7 +457,7 @@ export function Templates() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                 Tipo de Evento *
               </label>
               <select
@@ -462,7 +465,7 @@ export function Templates() {
                 onChange={(e) =>
                   setForm({ ...form, eventType: e.target.value as MessageTemplate['eventType'] })
                 }
-                className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
               >
                 <option value="CLIENT_BIRTHDAY">Aniversário do Cliente</option>
                 <option value="FAMILY_BIRTHDAY">Aniversário de Familiar</option>
@@ -471,13 +474,13 @@ export function Templates() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                 Vincular a Data Específica
               </label>
               <select
                 value={form.commemorativeDateId}
                 onChange={(e) => setForm({ ...form, commemorativeDateId: e.target.value })}
-                className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
               >
                 <option value="">Todas as datas (genérico)</option>
                 {dates.map((d) => (
@@ -492,7 +495,7 @@ export function Templates() {
           {/* Email Subject (if email channel) */}
           {form.channel === 'EMAIL' && (
             <div>
-              <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+              <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                 Assunto do E-mail (Subject) *
               </label>
               <input
@@ -501,15 +504,15 @@ export function Templates() {
                 value={form.subject}
                 onChange={(e) => setForm({ ...form, subject: e.target.value })}
                 placeholder="Ex: 🎉 Feliz Aniversário, {{primeiro_nome}}! — {{nome_empresa}}"
-                className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none transition-colors"
+                className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
               />
             </div>
           )}
 
           {/* Dynamic Variable Chips */}
-          <div className="p-3.5 rounded-2xl bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/30 space-y-2">
-            <div className="text-[11px] font-mono uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Clique para inserir tags dinâmicas no texto:
+          <div className="p-3.5 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border border-[#E2E2E8] dark:border-[#292A30] space-y-2">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#E54833]" /> Clique para inserir tags dinâmicas no texto:
             </div>
             <div className="flex flex-wrap gap-1.5">
               {variables.map((v) => (
@@ -518,7 +521,7 @@ export function Templates() {
                   type="button"
                   onClick={() => handleInsertTag(v.tag)}
                   title={v.description}
-                  className="px-2.5 py-1 rounded-full bg-[#F8F9FA] dark:bg-[#181C21] hover:bg-[#C85A32]/10 border border-[#C85A32]/40 text-[#C85A32] dark:text-[#F39C74] text-xs font-mono transition-all font-medium"
+                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#18191D] hover:border-[#C6C7CD] border border-[#D7D7DD] dark:border-[#292A30] text-[#18191D] dark:text-[#F4F4F6] text-xs font-mono transition-all font-medium shadow-subtle"
                 >
                   {v.tag}
                 </button>
@@ -527,7 +530,7 @@ export function Templates() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#495057] dark:text-[#ADB5BD] mb-1">
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
               Conteúdo da Mensagem *
             </label>
             <textarea
@@ -536,11 +539,11 @@ export function Templates() {
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}
               placeholder="Digite o texto da mensagem..."
-              className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2.5 px-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] outline-none font-sans transition-colors"
+              className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2.5 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-sans transition-colors"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t hairline-border">
+          <div className="flex justify-end gap-2 pt-4 border-t hairline-border">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
@@ -550,7 +553,7 @@ export function Templates() {
             </button>
             <button
               type="submit"
-              className="btn-terracotta"
+              className="btn-primary"
             >
               {editingTemplate ? 'Atualizar Template' : 'Salvar Template'}
             </button>
@@ -578,50 +581,50 @@ export function Templates() {
             {previewTemplate?.channel === 'EMAIL' ? (
               /* Preview Envelope E-mail */
               <div className="card-warm overflow-hidden">
-                <div className="bg-[#FFFFFF] dark:bg-[#14181D] p-4 border-b hairline-border space-y-1.5 text-xs">
+                <div className="bg-[#EEEEF1]/60 dark:bg-[#202126]/60 p-4 border-b hairline-border space-y-1.5 text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-[#6C757D] dark:text-[#ADB5BD]">De:</span>
-                    <span className="text-[#1A1E24] dark:text-[#F1F3F5] font-semibold">
+                    <span className="font-medium text-[#686971] dark:text-[#BFC0C7]">De:</span>
+                    <span className="text-[#18191D] dark:text-[#F4F4F6] font-medium font-mono">
                       Enlace CRM &lt;contato@enlacecrm.com.br&gt;
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-[#6C757D] dark:text-[#ADB5BD]">Para:</span>
-                    <span className="text-[#1A1E24] dark:text-[#F1F3F5] font-semibold">
+                    <span className="font-medium text-[#686971] dark:text-[#BFC0C7]">Para:</span>
+                    <span className="text-[#18191D] dark:text-[#F4F4F6] font-medium font-mono">
                       {previewData.sampleContext?.clientName || 'Thiago Silva Lafite Lima'} &lt;cliente@exemplo.com.br&gt;
                     </span>
                   </div>
                   <div className="flex items-center gap-2 pt-1 border-t hairline-border">
-                    <span className="font-semibold text-[#C85A32] dark:text-[#F39C74]">Assunto:</span>
-                    <span className="text-[#1A1E24] dark:text-[#F1F3F5] font-semibold">
+                    <span className="font-medium text-[#18191D] dark:text-[#F4F4F6]">Assunto:</span>
+                    <span className="text-[#18191D] dark:text-[#F4F4F6] font-medium">
                       {previewData.renderedSubject || previewTemplate?.subject || 'Sem assunto'}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-6 text-xs text-[#1A1E24] dark:text-[#F1F3F5] leading-relaxed whitespace-pre-line font-sans">
+                <div className="p-6 text-xs text-[#18191D] dark:text-[#F4F4F6] leading-relaxed whitespace-pre-line font-sans bg-white dark:bg-[#18191D]">
                   {previewData.renderedBody}
                 </div>
               </div>
             ) : (
               /* Preview Chat WhatsApp */
-              <div className="bg-[#14181D] p-6 rounded-3xl border-2 border-[#C85A32]/40 text-[#F1F3F5]">
-                <div className="flex items-center gap-3 pb-3 border-b border-[#C85A32]/30 text-xs text-[#F1F3F5]/80">
-                  <div className="w-8 h-8 rounded-full bg-[#C85A32] flex items-center justify-center font-bold text-white text-xs shadow-xs">
+              <div className="bg-[#18191D] p-6 rounded-2xl border border-[#292A30] text-[#F4F4F6]">
+                <div className="flex items-center gap-3 pb-3 border-b border-[#292A30] text-xs text-[#F4F4F6]/80">
+                  <div className="w-8 h-8 rounded-full bg-[#1E6B37] flex items-center justify-center font-bold text-white text-xs shadow-subtle">
                     V
                   </div>
                   <div>
-                    <div className="font-semibold text-[#F1F3F5]">Enlace CRM — WhatsApp</div>
-                    <div className="text-[11px] text-[#F39C74]">Mensagem formatada para envio</div>
+                    <div className="font-medium text-[#F4F4F6]">Enlace CRM — WhatsApp</div>
+                    <div className="text-[11px] font-mono text-[#BFC0C7]">Mensagem formatada para envio</div>
                   </div>
                 </div>
 
                 <div className="mt-4 flex justify-end">
-                  <div className="max-w-[85%] bg-[#1E252E] border border-[#C85A32]/40 text-[#F1F3F5] rounded-2xl rounded-tr-sm p-4 text-xs shadow-subtle space-y-2 whitespace-pre-line font-sans">
+                  <div className="max-w-[85%] bg-[#24252B] border border-[#292A30] text-[#F4F4F6] rounded-2xl rounded-tr-sm p-4 text-xs shadow-subtle space-y-2 whitespace-pre-line font-sans">
                     <p>{previewData.renderedBody}</p>
-                    <div className="text-[10px] text-[#ADB5BD] text-right flex items-center justify-end gap-1 font-mono">
+                    <div className="text-[10px] text-[#BFC0C7] text-right flex items-center justify-end gap-1 font-mono">
                       <span>Agora</span>
-                      <span className="text-[#C85A32] font-bold">✓✓</span>
+                      <span className="text-[#58A6FF] font-bold">✓✓</span>
                     </div>
                   </div>
                 </div>

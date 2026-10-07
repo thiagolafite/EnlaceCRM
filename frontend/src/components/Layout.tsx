@@ -132,22 +132,23 @@ export function Layout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#F1F3F5] dark:bg-[#111418] text-[#1A1E24] dark:text-[#F1F3F5] transition-colors duration-150 font-sans">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#F4F4F6] dark:bg-[#18191D] text-[#18191D] dark:text-[#F4F4F6] transition-colors duration-150 font-sans">
       {/* ==================================================================== */}
-      {/* 1. DESKTOP SIDEBAR (TITÂNIO PRATEADO ESCURO COM CONTORNO TERRACOTA) */}
+      {/* 1. DESKTOP SIDEBAR (ARDÓSIA QUASE PRETA #18191D COM BORDAS #292A30) */}
       {/* ==================================================================== */}
-      <aside className="hidden lg:flex w-64 border-r-2 border-[#C85A32]/35 bg-[#13171C] flex-col justify-between shrink-0 sticky top-0 h-screen z-30 transition-colors">
+      <aside className="hidden lg:flex w-64 border-r border-[#292A30] bg-[#18191D] flex-col justify-between shrink-0 sticky top-0 h-screen z-30 transition-colors">
         <div className="flex flex-col h-full overflow-hidden">
           {/* Brand Header */}
-          <div className="p-5 flex items-center gap-3 border-b border-[#C85A32]/25 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-[#1C222A] border-2 border-[#C85A32] text-[#C85A32] flex items-center justify-center shrink-0 shadow-sm">
-              <HeartHandshake className="w-5 h-5" />
+          <div className="p-5 flex items-center gap-3 border-b border-[#292A30] shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#222328] border border-[#33343A] text-white flex items-center justify-center shrink-0 shadow-sm relative">
+              <HeartHandshake className="w-5 h-5 text-[#E54833]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E54833] absolute top-1.5 right-1.5"></span>
             </div>
             <div className="min-w-0">
-              <h1 className="font-serif text-base font-semibold tracking-tight text-[#F1F3F5]">
-                Vínculo
+              <h1 className="font-sans text-base font-bold tracking-tight text-[#F4F4F6]">
+                Enlace
               </h1>
-              <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#8E99A4] truncate">
+              <p className="text-[9px] font-mono font-medium tracking-[0.18em] uppercase text-[#71727A] truncate">
                 CRM DE RELACIONAMENTO
               </p>
             </div>
@@ -157,7 +158,7 @@ export function Layout({
           <nav className="p-3 space-y-4 overflow-y-auto flex-1 overscroll-contain">
             {navigationGroups.map((group) => (
               <div key={group.category} className="space-y-1">
-                <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#8E99A4]">
+                <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-[0.15em] text-[#686971]">
                   {group.category}
                 </div>
                 <div className="space-y-1">
@@ -168,25 +169,25 @@ export function Layout({
                       <button
                         key={item.id}
                         onClick={() => handleSelectNav(item.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-xs transition-all ${
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-medium text-xs transition-all ${
                           isActive
-                            ? 'bg-[#1E252E] text-[#F39C74] border-2 border-[#C85A32] shadow-[0_0_8px_rgba(200,90,50,0.18)]'
-                            : 'text-[#8E99A4] hover:text-[#F1F3F5] hover:bg-[#1A2027] border border-transparent'
+                            ? 'bg-[#292A30] text-[#F4F4F6] border border-[#44454B] shadow-sm'
+                            : 'text-[#8E909B] hover:text-[#F4F4F6] hover:bg-[#222328] border border-transparent'
                         }`}
                       >
-                        <div className="flex items-center gap-3 truncate">
-                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#F39C74]' : 'text-[#8E99A4]'}`} />
+                        <div className="flex items-center gap-2.5 truncate">
+                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#E54833]' : 'text-[#71727A]'}`} />
                           <span className="truncate">{item.label}</span>
                         </div>
 
                         {item.badge && (
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                            className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider ${
                               isActive
-                                ? 'bg-[#C85A32] text-white'
+                                ? 'bg-[#E54833] text-white'
                                 : item.badge === 'Hoje'
-                                ? 'bg-[#2A1E1A] text-[#E07A5F] border border-[#C85A32]/40'
-                                : 'bg-[#1C222A] text-[#8E99A4] border border-[#303844]'
+                                ? 'bg-[#E54833]/20 text-[#E54833] border border-[#E54833]/30'
+                                : 'bg-[#222328] text-[#8E909B] border border-[#33343A]'
                             }`}
                           >
                             {item.badge}
@@ -202,36 +203,39 @@ export function Layout({
 
           {/* Bottom Card "Relação que não esfria" */}
           <div className="p-3 shrink-0">
-            <div className="p-3.5 rounded-2xl bg-[#181E25] border border-[#C85A32]/40 space-y-1">
-              <p className="text-xs font-serif font-semibold text-[#F1F3F5]">
-                Relação que não esfria
-              </p>
-              <p className="text-[11px] text-[#8E99A4] leading-relaxed">
+            <div className="p-3 rounded-xl bg-[#202126] border border-[#292A30] space-y-1">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E54833]"></span>
+                <p className="text-xs font-semibold text-[#F4F4F6]">
+                  Relação que não esfria
+                </p>
+              </div>
+              <p className="text-[11px] text-[#71727A] leading-relaxed">
                 A agenda mostra quem merece uma mensagem nos próximos dias e já escreve o texto para você.
               </p>
             </div>
           </div>
 
           {/* User Profile in Sidebar Footer */}
-          <div className="p-3 border-t border-[#C85A32]/25 shrink-0 bg-[#0F1216]">
+          <div className="p-3 border-t border-[#292A30] shrink-0 bg-[#141518]">
             {user && (
-              <div className="flex items-center justify-between p-2 rounded-xl bg-[#181E25] border border-[#C85A32]/35">
+              <div className="flex items-center justify-between p-2 rounded-xl bg-[#202126] border border-[#292A30]">
                 <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-[#1C222A] border border-[#C85A32] text-[#C85A32] flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-[#292A30] border border-[#33343A] text-white flex items-center justify-center font-bold text-xs shrink-0 font-mono">
                     {(user.name || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div className="truncate text-left">
-                    <p className="text-xs font-semibold text-[#F1F3F5] truncate flex items-center gap-1">
+                    <p className="text-xs font-semibold text-[#F4F4F6] truncate flex items-center gap-1">
                       <span>{user.name || 'Usuário'}</span>
-                      {isMaster && <Crown className="w-3 h-3 text-[#E07A5F] shrink-0" />}
+                      {isMaster && <Crown className="w-3 h-3 text-[#E54833] shrink-0" />}
                     </p>
-                    <p className="text-[10px] text-[#8E99A4] truncate">{user.email || ''}</p>
+                    <p className="text-[10px] text-[#71727A] font-mono truncate">{user.email || ''}</p>
                   </div>
                 </div>
                 <button
                   onClick={onLogout}
                   title="Sair da conta"
-                  className="p-1.5 text-[#8E99A4] hover:text-[#C85A32] rounded-lg hover:bg-[#1F2630] transition-colors"
+                  className="p-1.5 text-[#71727A] hover:text-[#E54833] rounded-lg hover:bg-[#292A30] transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -251,23 +255,23 @@ export function Layout({
             onClick={() => setIsMobileMenuOpen(false)}
           />
 
-          <div className="relative w-4/5 max-w-xs bg-[#13171C] border-r-2 border-[#C85A32]/40 flex flex-col justify-between h-full shadow-2xl z-10 text-[#F1F3F5]">
+          <div className="relative w-4/5 max-w-xs bg-[#18191D] border-r border-[#292A30] flex flex-col justify-between h-full shadow-2xl z-10 text-[#F4F4F6]">
             <div>
-              <div className="p-4 flex items-center justify-between border-b border-[#C85A32]/25">
+              <div className="p-4 flex items-center justify-between border-b border-[#292A30]">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#1C222A] border-2 border-[#C85A32] text-[#C85A32] flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-[#222328] border border-[#33343A] text-[#E54833] flex items-center justify-center font-bold text-xs">
                     <HeartHandshake className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-serif font-semibold text-sm text-[#F1F3F5]">
-                      Vínculo
+                    <span className="font-sans font-bold text-sm text-[#F4F4F6]">
+                      Enlace
                     </span>
-                    <p className="text-[8px] tracking-widest uppercase text-[#8E99A4]">CRM DE RELACIONAMENTO</p>
+                    <p className="text-[8px] font-mono tracking-widest uppercase text-[#71727A]">CRM DE RELACIONAMENTO</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1.5 text-[#8E99A4] hover:text-[#F1F3F5] rounded-lg"
+                  className="p-1.5 text-[#71727A] hover:text-[#F4F4F6] rounded-lg"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -276,7 +280,7 @@ export function Layout({
               <nav className="p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-140px)]">
                 {navigationGroups.map((group) => (
                   <div key={group.category} className="space-y-0.5">
-                    <div className="px-2 text-[10px] font-bold uppercase tracking-[0.15em] text-[#8E99A4]">
+                    <div className="px-2 text-[10px] font-mono uppercase tracking-[0.15em] text-[#686971]">
                       {group.category}
                     </div>
                     <div className="space-y-0.5">
@@ -287,18 +291,18 @@ export function Layout({
                           <button
                             key={item.id}
                             onClick={() => handleSelectNav(item.id)}
-                            className={`w-full flex items-center justify-between px-2.5 py-2.5 rounded-xl font-medium text-xs ${
+                            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl font-medium text-xs ${
                               isActive
-                                ? 'bg-[#1E252E] text-[#F39C74] border-2 border-[#C85A32]'
-                                : 'text-[#8E99A4] hover:bg-[#1A2027] hover:text-[#F1F3F5]'
+                                ? 'bg-[#292A30] text-[#F4F4F6] border border-[#44454B]'
+                                : 'text-[#8E909B] hover:bg-[#222328] hover:text-[#F4F4F6]'
                             }`}
                           >
                             <div className="flex items-center gap-2.5 truncate">
-                              <Icon className={`w-4 h-4 ${isActive ? 'text-[#F39C74]' : 'text-[#8E99A4]'}`} />
+                              <Icon className={`w-4 h-4 ${isActive ? 'text-[#E54833]' : 'text-[#71727A]'}`} />
                               <span>{item.label}</span>
                             </div>
                             {item.badge && (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-[#2A1E1A] text-[#E07A5F] border border-[#C85A32]/40">
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold bg-[#E54833]/20 text-[#E54833] border border-[#E54833]/30">
                                 {item.badge}
                               </span>
                             )}
@@ -312,12 +316,12 @@ export function Layout({
             </div>
 
             {user && (
-              <div className="p-3 border-t border-[#C85A32]/25 flex items-center justify-between bg-[#0F1216]">
+              <div className="p-3 border-t border-[#292A30] flex items-center justify-between bg-[#141518]">
                 <div className="truncate">
-                  <p className="text-xs font-semibold text-[#F1F3F5] truncate">{user.name || 'Usuário'}</p>
-                  <p className="text-[10px] text-[#8E99A4] truncate">{user.email || ''}</p>
+                  <p className="text-xs font-semibold text-[#F4F4F6] truncate">{user.name || 'Usuário'}</p>
+                  <p className="text-[10px] text-[#71727A] font-mono truncate">{user.email || ''}</p>
                 </div>
-                <button onClick={onLogout} className="p-1.5 text-[#8E99A4] hover:text-[#C85A32] rounded-lg">
+                <button onClick={onLogout} className="p-1.5 text-[#71727A] hover:text-[#E54833] rounded-lg">
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
@@ -329,29 +333,29 @@ export function Layout({
       {/* ==================================================================== */}
       {/* 3. MAIN CONTENT AREA & HEADER */}
       {/* ==================================================================== */}
-      <main className="flex-1 min-w-0 flex flex-col bg-[#F1F3F5] dark:bg-[#111418]">
+      <main className="flex-1 min-w-0 flex flex-col bg-[#F4F4F6] dark:bg-[#18191D]">
         {/* Top Sticky Notification Banner */}
         <TopStickyAlertBar onNavigate={onNavigate} />
 
-        {/* Silver & Terracotta Header */}
-        <header className="h-16 border-b border-[#C85A32]/25 bg-[#F8F9FA]/85 dark:bg-[#13171C]/85 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 transition-colors">
+        {/* Neo-Swiss Header */}
+        <header className="h-16 border-b border-[#E2E2E8] dark:border-[#292A30] bg-[#F4F4F6]/80 dark:bg-[#18191D]/85 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 transition-colors">
           {/* Left: Mobile hamburger & breadcrumbs */}
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-[#495057] dark:text-[#ADB5BD] hover:bg-[#E9ECEF] dark:hover:bg-[#1E232A] border border-[#C85A32]/30 shrink-0"
+              className="lg:hidden p-2 rounded-xl text-[#4E4F57] dark:text-[#D6D6DC] hover:bg-[#E9E9ED] dark:hover:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] shrink-0"
               title="Abrir Menu"
             >
               <Menu className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2 text-xs truncate">
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6C757D] dark:text-[#8E99A4]">
+              <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#71727A] dark:text-[#8E909B]">
                 {currentCategory}
               </span>
-              <span className="text-[#ADB5BD] dark:text-[#495057]">/</span>
-              <span className="font-serif text-sm font-semibold text-[#1A1E24] dark:text-[#F1F3F5] truncate">
+              <span className="text-[#C6C7CD] dark:text-[#44454B]">/</span>
+              <span className="font-sans text-sm font-semibold text-[#18191D] dark:text-[#F4F4F6] truncate">
                 {currentLabel}
               </span>
             </div>
@@ -361,7 +365,7 @@ export function Layout({
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Live Date Pill */}
             {currentTime && (
-              <span className="hidden md:inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium text-[#495057] dark:text-[#ADB5BD] border border-[#C85A32]/30 bg-[#F8F9FA] dark:bg-[#181C21] shadow-xs capitalize">
+              <span className="hidden md:inline-flex items-center px-3 py-1.5 rounded-full text-xs font-mono text-[#4E4F57] dark:text-[#D6D6DC] border border-[#D7D7DD] dark:border-[#292A30] bg-[#EEEEF1] dark:bg-[#222328] shadow-subtle capitalize">
                 {currentTime}
               </span>
             )}
@@ -373,12 +377,12 @@ export function Layout({
             <button
               onClick={toggleTheme}
               title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
-              className="p-2 rounded-xl border border-[#C85A32]/30 bg-[#F8F9FA] dark:bg-[#181C21] text-[#495057] dark:text-[#ADB5BD] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] hover:border-[#C85A32] shadow-xs transition-colors"
+              className="p-2 rounded-xl border border-[#D7D7DD] dark:border-[#33343A] bg-white/70 dark:bg-[#222328] text-[#4E4F57] dark:text-[#D6D6DC] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:border-[#BFC0C7] shadow-subtle transition-colors"
             >
               {theme === 'dark' ? (
                 <Sun className="w-4 h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-[#495057]" />
+                <Moon className="w-4 h-4 text-[#4E4F57]" />
               )}
             </button>
           </div>
@@ -396,13 +400,13 @@ export function Layout({
       {/* ==================================================================== */}
       {/* 4. MOBILE BOTTOM DOCK */}
       {/* ==================================================================== */}
-      <nav className="lg:hidden fixed bottom-2 left-2 right-2 z-40 bg-[#13171C]/95 backdrop-blur-md border border-[#C85A32]/40 px-2 py-1.5 rounded-2xl flex items-center justify-around shadow-2xl">
+      <nav className="lg:hidden fixed bottom-2 left-2 right-2 z-40 bg-[#18191D]/95 backdrop-blur-md border border-[#292A30] px-2 py-1.5 rounded-2xl flex items-center justify-around shadow-2xl">
         <button
           onClick={() => handleSelectNav('dashboard')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors ${
             currentTab === 'dashboard'
-              ? 'text-[#F39C74] font-semibold bg-[#1E252E] border border-[#C85A32]'
-              : 'text-[#8E99A4] hover:text-[#F1F3F5]'
+              ? 'text-[#F4F4F6] font-semibold bg-[#292A30] border border-[#44454B]'
+              : 'text-[#8E909B] hover:text-[#F4F4F6]'
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -413,8 +417,8 @@ export function Layout({
           onClick={() => handleSelectNav('clients')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors ${
             currentTab === 'clients'
-              ? 'text-[#F39C74] font-semibold bg-[#1E252E] border border-[#C85A32]'
-              : 'text-[#8E99A4] hover:text-[#F1F3F5]'
+              ? 'text-[#F4F4F6] font-semibold bg-[#292A30] border border-[#44454B]'
+              : 'text-[#8E909B] hover:text-[#F4F4F6]'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -425,8 +429,8 @@ export function Layout({
           onClick={() => handleSelectNav('timeline')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors ${
             currentTab === 'timeline' || currentTab === 'dates'
-              ? 'text-[#F39C74] font-semibold bg-[#1E252E] border border-[#C85A32]'
-              : 'text-[#8E99A4] hover:text-[#F1F3F5]'
+              ? 'text-[#F4F4F6] font-semibold bg-[#292A30] border border-[#44454B]'
+              : 'text-[#8E909B] hover:text-[#F4F4F6]'
           }`}
         >
           <CalendarDays className="w-4 h-4" />
@@ -437,8 +441,8 @@ export function Layout({
           onClick={() => handleSelectNav('alerts')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors relative ${
             currentTab === 'alerts'
-              ? 'text-[#F39C74] font-semibold bg-[#1E252E] border border-[#C85A32]'
-              : 'text-[#8E99A4] hover:text-[#F1F3F5]'
+              ? 'text-[#F4F4F6] font-semibold bg-[#292A30] border border-[#44454B]'
+              : 'text-[#8E909B] hover:text-[#F4F4F6]'
           }`}
         >
           <Bell className="w-4 h-4" />
@@ -447,7 +451,7 @@ export function Layout({
 
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl text-[#8E99A4] hover:text-[#F1F3F5]"
+          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl text-[#8E909B] hover:text-[#F4F4F6]"
         >
           <Menu className="w-4 h-4" />
           <span className="text-[10px]">Mais</span>

@@ -52,25 +52,25 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAF6F0] dark:bg-[#120F0D] text-[#1E1611] dark:text-[#F5EFE8] font-sans">
-          <div className="max-w-lg w-full p-8 rounded-3xl card-warm shadow-panel text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#FDF0E6] text-[#C85A32] dark:bg-[#2A1C16] dark:text-[#F39C74] flex items-center justify-center mx-auto font-serif text-2xl font-bold">
-              V
+        <div className="min-h-screen flex items-center justify-center p-4 bg-[#F4F4F6] dark:bg-[#18191D] text-[#18191D] dark:text-[#F4F4F6] font-sans">
+          <div className="max-w-lg w-full p-8 rounded-2xl card-warm shadow-panel text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D] flex items-center justify-center mx-auto font-bold text-xl shadow-subtle">
+              E
             </div>
-            <h2 className="text-xl font-serif text-[#1E1611] dark:text-[#F5EFE8]">Recuperação do Sistema</h2>
-            <p className="text-xs text-[#756557] dark:text-[#B5A599] leading-relaxed">
+            <h2 className="text-xl font-bold text-[#18191D] dark:text-[#F4F4F6]">Recuperação do Sistema</h2>
+            <p className="text-xs text-[#686971] dark:text-[#9DA0AA] leading-relaxed">
               Ocorreu uma instabilidade momentânea na interface. Clique abaixo para reiniciar sua sessão com segurança.
             </p>
 
             {this.state.error && (
-              <div className="p-3 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-left text-[11px] font-mono text-[#C85A32] max-h-36 overflow-auto whitespace-pre-wrap">
+              <div className="p-3 rounded-xl bg-[#EEEEF1] dark:bg-[#24252B] border border-[#E2E2E8] dark:border-[#292A30] text-left text-[11px] font-mono text-[#E54833] max-h-36 overflow-auto whitespace-pre-wrap">
                 {this.state.error.message || String(this.state.error)}
               </div>
             )}
 
             <button
               onClick={this.handleReset}
-              className="w-full btn-terracotta py-3"
+              className="w-full btn-primary py-3"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Limpar Cache & Reiniciar Sessão</span>
@@ -126,12 +126,12 @@ export function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0] dark:bg-[#120F0D] text-[#756557]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F4F6] dark:bg-[#18191D] text-[#686971]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#C85A32] text-white flex items-center justify-center font-serif text-2xl font-bold shadow-subtle animate-pulse">
-            V
+          <div className="w-12 h-12 rounded-2xl bg-[#18191D] text-white dark:bg-white dark:text-[#18191D] flex items-center justify-center font-bold text-xl shadow-subtle animate-pulse">
+            E
           </div>
-          <span className="text-xs font-mono tracking-widest text-[#A09388] uppercase">Carregando Vínculo...</span>
+          <span className="text-[11px] font-mono tracking-widest text-[#71727A] dark:text-[#9DA0AA] uppercase">Carregando Enlace...</span>
         </div>
       </div>
     );

@@ -45,15 +45,15 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
   const displayedEvents = activeTab === 'TODAY' ? todayEvents : upcomingEvents;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0F1216]/80 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
-      <div className="relative w-full max-w-xl bg-[#F8F9FA] dark:bg-[#181C21] border-2 border-[#C85A32]/40 rounded-3xl shadow-modal overflow-hidden flex flex-col max-h-[85vh] my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
+      <div className="relative w-full max-w-xl bg-[#F4F4F6] dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-2xl shadow-modal overflow-hidden flex flex-col max-h-[85vh] my-auto">
         {/* Header */}
-        <div className="p-5 border-b hairline-border flex items-center justify-between">
+        <div className="p-5 border-b hairline-border bg-white/70 dark:bg-[#202126]/90 backdrop-blur-md flex items-center justify-between">
           <div>
-            <h3 className="text-base font-serif font-semibold text-[#1A1E24] dark:text-[#F1F3F5]">
+            <h3 className="text-base font-medium tracking-tight text-[#18191D] dark:text-[#F4F4F6]">
               Felicitações do Dia
             </h3>
-            <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD] mt-0.5">
+            <p className="text-xs text-[#686971] dark:text-[#BFC0C7] mt-0.5">
               Lembretes prontos para disparo direto
             </p>
           </div>
@@ -61,23 +61,23 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
           <button
             type="button"
             onClick={closeDailyModal}
-            className="p-1.5 rounded-lg text-[#6C757D] hover:text-[#1A1E24] dark:hover:text-[#F1F3F5] hover:bg-[#E9ECEF] dark:hover:bg-[#1E252E] transition-colors"
+            className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#292A30] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Subheader Controls: Tabs & Channel Switcher */}
-        <div className="px-5 py-2.5 bg-[#FFFFFF] dark:bg-[#14181D] border-b hairline-border flex items-center justify-between flex-wrap gap-2">
+        <div className="px-5 py-2.5 bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border-b hairline-border flex items-center justify-between flex-wrap gap-2">
           {/* Tabs */}
-          <div className="flex bg-[#E9ECEF] dark:bg-[#1C222A] p-1 rounded-full text-xs font-medium border border-[#C85A32]/25">
+          <div className="flex bg-[#E9E9ED] dark:bg-[#18191D] p-1 rounded-xl text-xs font-medium border border-[#D7D7DD] dark:border-[#292A30]">
             <button
               type="button"
               onClick={() => setActiveTab('TODAY')}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all ${
                 activeTab === 'TODAY'
-                  ? 'bg-white dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                  : 'text-[#6C757D] dark:text-[#ADB5BD] hover:text-[#1A1E24]'
+                  ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle font-semibold'
+                  : 'text-[#686971] dark:text-[#BFC0C7] hover:text-[#18191D]'
               }`}
             >
               Hoje ({todayEvents.length})
@@ -85,10 +85,10 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
             <button
               type="button"
               onClick={() => setActiveTab('UPCOMING')}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-all ${
                 activeTab === 'UPCOMING'
-                  ? 'bg-white dark:bg-[#181C21] text-[#C85A32] dark:text-[#F39C74] border border-[#C85A32]/40 shadow-xs font-semibold'
-                  : 'text-[#6C757D] dark:text-[#ADB5BD] hover:text-[#1A1E24]'
+                  ? 'bg-white dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] shadow-subtle font-semibold'
+                  : 'text-[#686971] dark:text-[#BFC0C7] hover:text-[#18191D]'
               }`}
             >
               Próximos ({upcomingEvents.length})
@@ -96,14 +96,14 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
           </div>
 
           {/* Channel Selector */}
-          <div className="flex bg-[#E9ECEF] dark:bg-[#1C222A] p-1 rounded-full text-xs font-medium border border-[#C85A32]/25">
+          <div className="flex bg-[#E9E9ED] dark:bg-[#18191D] p-1 rounded-xl text-xs font-medium border border-[#D7D7DD] dark:border-[#292A30]">
             <button
               type="button"
               onClick={() => setSelectedChannel('WHATSAPP')}
-              className={`px-2.5 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1 ${
                 selectedChannel === 'WHATSAPP'
-                  ? 'bg-[#C85A32] text-white font-semibold shadow-xs'
-                  : 'text-[#6C757D] dark:text-[#ADB5BD]'
+                  ? 'bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D] font-medium shadow-subtle'
+                  : 'text-[#686971] dark:text-[#BFC0C7]'
               }`}
             >
               <MessageCircle className="w-3 h-3" /> WhatsApp
@@ -111,10 +111,10 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
             <button
               type="button"
               onClick={() => setSelectedChannel('EMAIL')}
-              className={`px-2.5 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1 ${
                 selectedChannel === 'EMAIL'
-                  ? 'bg-[#1A1E24] text-[#F1F3F5] dark:bg-[#2A313A] dark:text-[#F1F3F5] border border-[#C85A32]/40 font-semibold shadow-xs'
-                  : 'text-[#6C757D] dark:text-[#ADB5BD]'
+                  ? 'bg-[#18191D] text-[#F4F4F6] dark:bg-[#F4F4F6] dark:text-[#18191D] font-medium shadow-subtle'
+                  : 'text-[#686971] dark:text-[#BFC0C7]'
               }`}
             >
               <Mail className="w-3 h-3" /> E-mail
@@ -125,7 +125,7 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
         {/* List of Events */}
         <div className="p-5 overflow-y-auto space-y-3.5 flex-1 overscroll-contain">
           {displayedEvents.length === 0 ? (
-            <div className="py-10 text-center text-xs text-[#6C757D]">
+            <div className="py-10 text-center text-xs text-[#686971]">
               Nenhuma felicitação registrada para esta aba.
             </div>
           ) : (
@@ -138,38 +138,38 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
               return (
                 <div
                   key={eventUniqueKey}
-                  className="p-4 rounded-2xl border border-[#C85A32]/35 bg-[#FFFFFF] dark:bg-[#14181D] space-y-3 shadow-subtle"
+                  className="p-4 rounded-2xl border border-[#E2E2E8] dark:border-[#292A30] bg-white/70 dark:bg-[#202126]/80 space-y-3 shadow-subtle"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-[#1A1E24] dark:text-[#F1F3F5]">
+                        <span className="font-medium text-sm text-[#18191D] dark:text-[#F4F4F6]">
                           {event.targetName || event.title}
                         </span>
                         {event.isToday ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FFFFFF] text-[#C85A32] dark:bg-[#181C21] dark:text-[#F39C74] border border-[#C85A32]">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#E54833] text-white">
                             Hoje
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] text-[#6C757D] bg-[#F1F3F5] dark:bg-[#181C21] border border-[#C85A32]/25">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono text-[#686971] dark:text-[#BFC0C7] bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#292A30]">
                             Em {event.daysRemaining}d
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD] mt-0.5">
+                      <p className="text-xs text-[#686971] dark:text-[#BFC0C7] mt-0.5">
                         {event.type === 'FAMILY_BIRTHDAY'
                           ? `Familiar de ${event.clientName || 'Cliente'} • ${event.subtitle}`
                           : event.subtitle}
                       </p>
                     </div>
 
-                    <span className="text-xs font-mono text-[#6C757D] dark:text-[#ADB5BD]">
+                    <span className="text-xs font-mono text-[#686971] dark:text-[#BFC0C7]">
                       {event.phone || event.email || 'Sem contato'}
                     </span>
                   </div>
 
                   {/* Message Preview */}
-                  <div className="p-3 rounded-xl bg-[#F8F9FA] dark:bg-[#181C21] border border-[#C85A32]/25 text-xs font-mono text-[#1A1E24] dark:text-[#F1F3F5] whitespace-pre-line leading-relaxed max-h-28 overflow-y-auto">
+                  <div className="p-3 rounded-xl bg-[#EEEEF1]/70 dark:bg-[#18191D]/80 border border-[#E2E2E8] dark:border-[#292A30] text-xs font-mono text-[#18191D] dark:text-[#F4F4F6] whitespace-pre-line leading-relaxed max-h-28 overflow-y-auto">
                     {msg.body}
                   </div>
 
@@ -178,7 +178,7 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
                     <button
                       type="button"
                       onClick={() => handleCopyText(msg.body, eventUniqueKey)}
-                      className="px-2.5 py-1.5 rounded-xl border border-[#C85A32]/35 hover:bg-[#E9ECEF] dark:hover:bg-[#1E252E] text-xs font-medium text-[#1A1E24] dark:text-[#F1F3F5] transition-colors flex items-center gap-1"
+                      className="btn-secondary"
                     >
                       {copiedId === eventUniqueKey ? (
                         <>
@@ -187,7 +187,7 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3.5 h-3.5 text-[#C85A32]" />
+                          <Copy className="w-3.5 h-3.5" />
                           <span>Copiar</span>
                         </>
                       )}
@@ -197,7 +197,7 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
                       <button
                         type="button"
                         onClick={() => handleOpenWhatsApp(event.phone!, msg.body)}
-                        className="btn-terracotta"
+                        className="btn-primary"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
                         <span>Abrir WhatsApp</span>
@@ -222,7 +222,7 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t hairline-border bg-[#FFFFFF] dark:bg-[#14181D] flex items-center justify-between">
+        <div className="p-4 border-t hairline-border bg-white/70 dark:bg-[#202126]/90 backdrop-blur-md flex items-center justify-between">
           {onNavigate ? (
             <button
               type="button"
@@ -230,7 +230,7 @@ export function DailyNotificationModal({ onNavigate }: DailyNotificationModalPro
                 closeDailyModal();
                 onNavigate('alerts');
               }}
-              className="text-xs font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1"
+              className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] hover:underline flex items-center gap-1"
             >
               <span>Ver todos os alertas</span>
               <ArrowRight className="w-3 h-3" />

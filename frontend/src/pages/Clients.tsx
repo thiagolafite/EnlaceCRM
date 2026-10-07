@@ -584,22 +584,25 @@ export function Clients() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header Editorial */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-wider text-[#A09388] mb-0.5">RELACIONAMENTO</p>
-          <h1 className="text-2xl lg:text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] font-normal tracking-tight">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E54833]"></span>
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[#686971] dark:text-[#BFC0C7]">RELACIONAMENTO</p>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-sans text-[#18191D] dark:text-[#F4F4F6] font-medium tracking-tight mt-0.5">
             Clientes & Árvore Familiar
           </h1>
-          <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1">
+          <p className="text-xs text-[#686971] dark:text-[#BFC0C7] mt-1">
             Gerenciamento de titulares, familiares e preferências de contato
           </p>
         </div>
 
         <button
           onClick={() => handleOpenClientModal()}
-          className="btn-terracotta"
+          className="btn-primary"
         >
           <UserPlus className="w-3.5 h-3.5" />
           <span>Novo Cliente</span>
@@ -618,13 +621,13 @@ export function Clients() {
       {/* Filter & Search Bar */}
       <div className="card-warm p-3.5 flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#C85A32]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#686971]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome, CPF/CNPJ, email, telefone, cidade ou bairro..."
-            className="w-full bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1A1E24] dark:text-[#F1F3F5] placeholder:text-[#8E99A4] outline-none transition-colors"
+            className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 pl-9 pr-3 text-xs text-[#18191D] dark:text-[#F4F4F6] placeholder:text-[#74757C] outline-none transition-colors"
           />
         </div>
 
@@ -632,7 +635,7 @@ export function Clients() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#FFFFFF] dark:bg-[#14181D] border border-[#C85A32]/35 dark:border-[#C85A32]/40 focus:border-[#C85A32] dark:focus:border-[#E07A5F] rounded-xl py-2 px-3 text-xs font-medium text-[#1A1E24] dark:text-[#F1F3F5] outline-none"
+            className="bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] outline-none"
           >
             <option value="">Todos os status</option>
             <option value="ACTIVE">Ativos</option>
@@ -644,31 +647,31 @@ export function Clients() {
       {/* Clients Table */}
       <div className="card-warm overflow-hidden transition-colors">
         {loading ? (
-          <div className="py-16 text-center text-[#8E99A4] text-xs">Carregando lista de clientes...</div>
+          <div className="py-16 text-center text-[#686971] text-xs">Carregando lista de clientes...</div>
         ) : clients.length === 0 ? (
-          <div className="py-16 text-center text-[#8E99A4] space-y-2">
-            <Users className="w-8 h-8 mx-auto text-[#C85A32]/60" />
-            <p className="font-serif text-[#1A1E24] dark:text-[#F1F3F5] text-base">Nenhum cliente encontrado</p>
-            <p className="text-xs text-[#6C757D] dark:text-[#ADB5BD]">Cadastre seu primeiro cliente para iniciar os alertas e felicitações.</p>
+          <div className="py-16 text-center text-[#686971] space-y-2">
+            <Users className="w-8 h-8 mx-auto text-[#686971]/60" />
+            <p className="font-sans font-medium text-[#18191D] dark:text-[#F4F4F6] text-base">Nenhum cliente encontrado</p>
+            <p className="text-xs text-[#686971] dark:text-[#BFC0C7]">Cadastre seu primeiro cliente para iniciar os alertas e felicitações.</p>
           </div>
         ) : (
           <>
             {/* 1. VISÃO EM TABELA (DESKTOP / TABLET >= 768px) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F1F3F5] dark:bg-[#14181D] text-[#495057] dark:text-[#ADB5BD] text-[11px] font-semibold border-b border-[#C85A32]/25">
+                <thead className="bg-[#EEEEF1] dark:bg-[#202126] text-[#686971] dark:text-[#BFC0C7] text-[11px] font-medium border-b border-[#E2E2E8] dark:border-[#292A30]">
                   <tr>
-                    <th className="py-3.5 px-4">Cliente / Empresa</th>
-                    <th className="py-3.5 px-4">Contatos</th>
-                    <th className="py-3.5 px-4">Endereço</th>
-                    <th className="py-3.5 px-4">Aniversário</th>
-                    <th className="py-3.5 px-4">Familiares</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4">LGPD</th>
-                    <th className="py-3.5 px-4 text-right">Ações</th>
+                    <th className="py-3.5 px-4 font-mono">CLIENTE / EMPRESA</th>
+                    <th className="py-3.5 px-4 font-mono">CONTATOS</th>
+                    <th className="py-3.5 px-4 font-mono">ENDEREÇO</th>
+                    <th className="py-3.5 px-4 font-mono">ANIVERSÁRIO</th>
+                    <th className="py-3.5 px-4 font-mono">FAMILIARES</th>
+                    <th className="py-3.5 px-4 font-mono">STATUS</th>
+                    <th className="py-3.5 px-4 font-mono">LGPD</th>
+                    <th className="py-3.5 px-4 text-right font-mono">AÇÕES</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#C85A32]/20 text-[#1A1E24] dark:text-[#F1F3F5]">
+                <tbody className="divide-y divide-[#E2E2E8] dark:divide-[#292A30] text-[#18191D] dark:text-[#F4F4F6]">
                   {clients.map((client) => {
                     const bDateFormatted = client.birthDate
                       ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
@@ -679,38 +682,38 @@ export function Clients() {
                       .join(', ');
 
                     return (
-                      <tr key={client.id} className="hover:bg-[#E9ECEF]/60 dark:hover:bg-[#1E232A]/60 transition-colors">
+                      <tr key={client.id} className="hover:bg-[#EEEEF1]/60 dark:hover:bg-[#202126]/60 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{client.name}</span>
+                            <span className="font-medium text-[#18191D] dark:text-[#F4F4F6]">{client.name}</span>
                             {client.isMother && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FDF2EC] text-[#B84E29] border border-[#F6D5C2] dark:bg-[#2D1A14] dark:text-[#F39C74] dark:border-[#522F22]">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#EEEEF1] dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]">
                                 Mãe
                               </span>
                             )}
                             {client.isFather && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EEF3F8] text-[#2C5282] border border-[#CFDDE8] dark:bg-[#172230] dark:text-[#7EB0D5] dark:border-[#2B3E55]">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#EEEEF1] dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]">
                                 Pai
                               </span>
                             )}
                             {!client.isMother && !client.isFather && client.gender === 'FEMALE' && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#221B17] dark:text-[#B5A599] dark:border-[#2A211D]">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono text-[#686971] dark:text-[#BFC0C7] bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#292A30]">
                                 Mulher
                               </span>
                             )}
                             {!client.isMother && !client.isFather && client.gender === 'MALE' && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#221B17] dark:text-[#B5A599] dark:border-[#2A211D]">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono text-[#686971] dark:text-[#BFC0C7] bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#292A30]">
                                 Homem
                               </span>
                             )}
                           </div>
                           {client.companyName && (
-                            <div className="text-[11px] text-[#756557] dark:text-[#B5A599] flex items-center gap-1 mt-0.5">
-                              <Building2 className="w-3 h-3 text-[#A09388]" /> {client.companyName}
+                            <div className="text-[11px] text-[#686971] dark:text-[#BFC0C7] flex items-center gap-1 mt-0.5">
+                              <Building2 className="w-3 h-3 text-[#74757C]" /> {client.companyName}
                             </div>
                           )}
                           {client.document && (
-                            <div className="text-[10px] text-[#A09388] font-mono mt-0.5">{client.maskedDocument || client.document}</div>
+                            <div className="text-[10px] text-[#74757C] font-mono mt-0.5">{client.maskedDocument || client.document}</div>
                           )}
                         </td>
 
@@ -721,15 +724,15 @@ export function Clients() {
                               target="_blank"
                               rel="noopener noreferrer"
                               title="Conversar no WhatsApp"
-                              className="flex items-center gap-1 text-[#1E1611] dark:text-[#F5EFE8] hover:text-[#C85A32] dark:hover:text-[#F39C74] font-mono transition-colors"
+                              className="flex items-center gap-1 text-[#18191D] dark:text-[#F4F4F6] hover:text-[#E54833] font-mono transition-colors"
                             >
-                              <Phone className="w-3 h-3 text-[#C85A32] dark:text-[#F39C74]" />
+                              <Phone className="w-3 h-3 text-[#E54833]" />
                               <span>{client.phone}</span>
                             </a>
                           )}
                           {client.email && (
-                            <div className="flex items-center gap-1 text-[#756557] dark:text-[#B5A599]">
-                              <Mail className="w-3 h-3 text-[#A09388]" /> {client.email}
+                            <div className="flex items-center gap-1 text-[#686971] dark:text-[#BFC0C7]">
+                              <Mail className="w-3 h-3 text-[#74757C]" /> {client.email}
                             </div>
                           )}
                         </td>
@@ -738,32 +741,32 @@ export function Clients() {
                           {locationStr || client.address ? (
                             <div className="space-y-0.5 max-w-[180px]">
                               {client.address && (
-                                <div className="text-[#1E1611] dark:text-[#F5EFE8] truncate" title={`${client.address}, ${client.addressNumber || 'S/N'}`}>
+                                <div className="text-[#18191D] dark:text-[#F4F4F6] truncate" title={`${client.address}, ${client.addressNumber || 'S/N'}`}>
                                   {client.address}, {client.addressNumber || 'S/N'}
                                 </div>
                               )}
                               {locationStr && (
-                                <div className="text-[11px] text-[#756557] dark:text-[#B5A599] flex items-center gap-1 truncate" title={locationStr}>
-                                  <MapPin className="w-3 h-3 text-[#A09388] shrink-0" />
+                                <div className="text-[11px] text-[#686971] dark:text-[#BFC0C7] flex items-center gap-1 truncate" title={locationStr}>
+                                  <MapPin className="w-3 h-3 text-[#74757C] shrink-0" />
                                   <span className="truncate">{locationStr}</span>
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <span className="text-[#A09388] italic">Não informado</span>
+                            <span className="text-[#74757C] italic">Não informado</span>
                           )}
                         </td>
 
-                        <td className="py-3.5 px-4 font-mono text-[#756557] dark:text-[#B5A599]">
+                        <td className="py-3.5 px-4 font-mono text-[#18191D] dark:text-[#F4F4F6]">
                           {bDateFormatted}
                         </td>
 
                         <td className="py-3.5 px-4">
                           <button
                             onClick={() => handleOpenFamilyModal(client)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF6F0] hover:bg-[#F3ECE4] dark:bg-[#221B17] dark:hover:bg-[#2A211D] border border-[#EDE5DC] dark:border-[#2A211D] text-[#1E1611] dark:text-[#F5EFE8] text-xs font-medium transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEEEF1] hover:bg-[#E2E2E8] dark:bg-[#24252B] dark:hover:bg-[#292A30] border border-[#D7D7DD] dark:border-[#292A30] text-[#18191D] dark:text-[#F4F4F6] text-xs font-medium transition-colors"
                           >
-                            <Heart className="w-3 h-3 text-[#C85A32] dark:text-[#F39C74]" />
+                            <Heart className="w-3 h-3 text-[#E54833]" />
                             <span>{client.familyMembers?.length || 0} familiar(es)</span>
                           </button>
                         </td>
@@ -785,28 +788,28 @@ export function Clients() {
                           <button
                             onClick={() => handleExportClient(client)}
                             title="Exportar Dados (LGPD Art. 18)"
-                            className="p-1.5 rounded-lg text-[#A09388] hover:text-[#C85A32] hover:bg-[#FDF6F0] dark:hover:bg-[#2A1C16] transition-colors"
+                            className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] transition-colors"
                           >
                             <Download className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleOpenClientModal(client)}
                             title="Editar cliente"
-                            className="p-1.5 rounded-lg text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-[#FAF6F0] dark:hover:bg-[#221B17] transition-colors"
+                            className="p-1.5 rounded-lg text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] transition-colors"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleAnonymizeClient(client)}
                             title="Anonimizar Dados (LGPD Art. 18, VI — Direito ao Esquecimento)"
-                            className="p-1.5 rounded-lg text-[#A09388] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
+                            className="p-1.5 rounded-lg text-[#686971] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
                           >
                             <UserX className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteClient(client.id, client.name)}
                             title="Remover cliente"
-                            className="p-1.5 rounded-lg text-[#A09388] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            className="p-1.5 rounded-lg text-[#686971] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -819,7 +822,7 @@ export function Clients() {
             </div>
 
             {/* 2. VISÃO EM CARDS TOUCH (MOBILE < 768px) */}
-            <div className="md:hidden divide-y divide-[#EDE5DC]/70 dark:divide-[#2A211D]/70">
+            <div className="md:hidden divide-y divide-[#E2E2E8] dark:divide-[#292A30]">
               {clients.map((client) => {
                 const bDateFormatted = client.birthDate
                   ? new Date(client.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
@@ -831,27 +834,27 @@ export function Clients() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <h4 className="font-semibold text-sm text-[#1E1611] dark:text-[#F5EFE8]">
+                          <h4 className="font-medium text-sm text-[#18191D] dark:text-[#F4F4F6]">
                             {client.name}
                           </h4>
                           {client.isMother && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FDF2EC] text-[#B84E29] border border-[#F6D5C2] dark:bg-[#2D1A14] dark:text-[#F39C74] dark:border-[#522F22]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#EEEEF1] dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]">
                               Mãe
                             </span>
                           )}
                           {client.isFather && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EEF3F8] text-[#2C5282] border border-[#CFDDE8] dark:bg-[#172230] dark:text-[#7EB0D5] dark:border-[#2B3E55]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#EEEEF1] dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]">
                               Pai
                             </span>
                           )}
                         </div>
                         {client.companyName && (
-                          <div className="text-[11px] text-[#756557] dark:text-[#B5A599] flex items-center gap-1 mt-0.5">
-                            <Building2 className="w-3 h-3 text-[#A09388]" /> {client.companyName}
+                          <div className="text-[11px] text-[#686971] dark:text-[#BFC0C7] flex items-center gap-1 mt-0.5">
+                            <Building2 className="w-3 h-3 text-[#74757C]" /> {client.companyName}
                           </div>
                         )}
                         {client.document && (
-                          <div className="text-[10px] text-[#A09388] font-mono mt-0.5">{client.maskedDocument || client.document}</div>
+                          <div className="text-[10px] text-[#74757C] font-mono mt-0.5">{client.maskedDocument || client.document}</div>
                         )}
                       </div>
 
@@ -860,20 +863,20 @@ export function Clients() {
 
                     {/* Contatos & Aniversário */}
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="p-3 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] space-y-0.5">
-                        <span className="text-[10px] font-mono uppercase text-[#A09388] block">Aniversário</span>
-                        <div className="font-mono text-[#1E1611] dark:text-[#F5EFE8] text-[11px]">
+                      <div className="p-3 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border border-[#E2E2E8] dark:border-[#292A30] space-y-0.5">
+                        <span className="text-[10px] font-mono uppercase text-[#686971] dark:text-[#BFC0C7] block">Aniversário</span>
+                        <div className="font-mono text-[#18191D] dark:text-[#F4F4F6] text-[11px]">
                           {bDateFormatted}
                         </div>
                       </div>
 
-                      <div className="p-3 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] space-y-0.5">
-                        <span className="text-[10px] font-mono uppercase text-[#A09388] block">Familiares</span>
+                      <div className="p-3 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border border-[#E2E2E8] dark:border-[#292A30] space-y-0.5">
+                        <span className="text-[10px] font-mono uppercase text-[#686971] dark:text-[#BFC0C7] block">Familiares</span>
                         <button
                           onClick={() => handleOpenFamilyModal(client)}
-                          className="font-medium text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-1 hover:underline text-[11px]"
+                          className="font-medium text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-1 hover:underline text-[11px]"
                         >
-                          <Heart className="w-3 h-3 text-[#C85A32] dark:text-[#F39C74]" /> {client.familyMembers?.length || 0} pessoa(s)
+                          <Heart className="w-3 h-3 text-[#E54833]" /> {client.familyMembers?.length || 0} pessoa(s)
                         </button>
                       </div>
                     </div>
@@ -886,9 +889,9 @@ export function Clients() {
                             href={`https://wa.me/${client.phone.replace(/\D/g, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1 rounded-full bg-[#C85A32] hover:bg-[#B34A24] text-white font-medium text-xs flex items-center gap-1"
+                            className="px-3 py-1 rounded-full bg-[#18191D] dark:bg-[#F4F4F6] text-white dark:text-[#18191D] font-medium text-xs flex items-center gap-1"
                           >
-                            <Phone className="w-3 h-3" /> WhatsApp
+                            <Phone className="w-3 h-3 text-[#E54833]" /> WhatsApp
                           </a>
                         )}
                         <LgpdBadge
@@ -903,26 +906,26 @@ export function Clients() {
                         <button
                           onClick={() => handleExportClient(client)}
                           title="Exportar Dados (LGPD)"
-                          className="p-1.5 rounded-lg text-[#A09388] hover:bg-[#FAF6F0] dark:hover:bg-[#221B17] hover:text-[#C85A32]"
+                          className="p-1.5 rounded-lg text-[#686971] hover:bg-[#EEEEF1] dark:hover:bg-[#202126] hover:text-[#18191D]"
                         >
                           <Download className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleOpenClientModal(client)}
-                          className="p-1.5 rounded-lg text-[#A09388] hover:bg-[#FAF6F0] dark:hover:bg-[#221B17] hover:text-[#1E1611] dark:hover:text-[#F5EFE8]"
+                          className="p-1.5 rounded-lg text-[#686971] hover:bg-[#EEEEF1] dark:hover:bg-[#202126] hover:text-[#18191D]"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleAnonymizeClient(client)}
                           title="Anonimizar Dados"
-                          className="p-1.5 rounded-lg text-[#A09388] hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/40"
+                          className="p-1.5 rounded-lg text-[#686971] hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/40"
                         >
                           <UserX className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteClient(client.id, client.name)}
-                          className="p-1.5 rounded-lg text-[#A09388] hover:text-rose-600"
+                          className="p-1.5 rounded-lg text-[#686971] hover:text-rose-600"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -955,83 +958,83 @@ export function Clients() {
 
           {/* Seção 1: Identificação & Contato */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74] flex items-center gap-1.5 border-b hairline-border pb-2">
-              <Users className="w-4 h-4" /> Dados Pessoais & Contato
+            <h4 className="text-xs font-mono font-medium uppercase tracking-wider text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-1.5 border-b hairline-border pb-2">
+              <Users className="w-4 h-4 text-[#E54833]" /> Dados Pessoais & Contato
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Nome Completo *</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Nome Completo *</label>
                 <input
                   type="text"
                   required
                   value={clientForm.name}
                   onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
                   placeholder="Ex: Mariana Oliveira da Costa"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">CPF ou CNPJ</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">CPF ou CNPJ</label>
                 <input
                   type="text"
                   value={clientForm.document}
                   onChange={(e) => setClientForm({ ...clientForm, document: e.target.value })}
                   placeholder="000.000.000-00"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Telefone / WhatsApp *</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Telefone / WhatsApp *</label>
                 <input
                   type="text"
                   value={clientForm.phone}
                   onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
                   placeholder="+5511999999999"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">E-mail</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">E-mail</label>
                 <input
                   type="email"
                   value={clientForm.email}
                   onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
                   placeholder="cliente@exemplo.com.br"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Empresa / PJ</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Empresa / PJ</label>
                 <input
                   type="text"
                   value={clientForm.companyName}
                   onChange={(e) => setClientForm({ ...clientForm, companyName: e.target.value })}
                   placeholder="Empresa onde trabalha"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Data de Nascimento</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Data de Nascimento</label>
                 <input
                   type="date"
                   value={clientForm.birthDate}
                   onChange={(e) => setClientForm({ ...clientForm, birthDate: e.target.value })}
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Status</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Status</label>
                 <select
                   value={clientForm.status}
                   onChange={(e) => setClientForm({ ...clientForm, status: e.target.value as any })}
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 >
                   <option value="ACTIVE">Ativo</option>
                   <option value="INACTIVE">Inativo</option>
@@ -1042,20 +1045,20 @@ export function Clients() {
 
           {/* Seção 2: Segmentação Inteligente para Datas Comemorativas */}
           <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74] flex items-center gap-1.5 border-b hairline-border pb-2">
-              <Sparkles className="w-4 h-4" /> Segmentação Familiar & Gênero
+            <h4 className="text-xs font-mono font-medium uppercase tracking-wider text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-1.5 border-b hairline-border pb-2">
+              <Sparkles className="w-4 h-4 text-[#E54833]" /> Segmentação Familiar & Gênero
             </h4>
-            <p className="text-xs text-[#756557] dark:text-[#B5A599]">
+            <p className="text-xs text-[#686971] dark:text-[#BFC0C7]">
               Estes campos permitem que o sistema filtre automaticamente o cliente em datas como Dia das Mães, Dia dos Pais, Dia da Mulher, etc.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Gênero / Sexo</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Gênero / Sexo</label>
                 <select
                   value={clientForm.gender || 'NOT_SPECIFIED'}
                   onChange={(e) => setClientForm({ ...clientForm, gender: e.target.value as any })}
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 >
                   <option value="NOT_SPECIFIED">Não Informado</option>
                   <option value="FEMALE">Feminino (Mulher)</option>
@@ -1065,35 +1068,35 @@ export function Clients() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Profissão / Ocupação (Opcional)</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Profissão / Ocupação (Opcional)</label>
                 <input
                   type="text"
                   value={clientForm.profession}
                   onChange={(e) => setClientForm({ ...clientForm, profession: e.target.value })}
                   placeholder="Ex: Médico(a), Advogado(a), Professor(a)"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
-              <div className="sm:col-span-2 flex flex-wrap gap-4 p-3.5 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D]">
-                <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8]">
+              <div className="sm:col-span-2 flex flex-wrap gap-4 p-3.5 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border border-[#E2E2E8] dark:border-[#292A30]">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-medium text-[#18191D] dark:text-[#F4F4F6]">
                   <input
                     type="checkbox"
                     checked={clientForm.isMother}
                     onChange={(e) => setClientForm({ ...clientForm, isMother: e.target.checked })}
-                    className="w-4 h-4 rounded text-[#C85A32] focus:ring-[#C85A32] border-[#EDE5DC] dark:border-[#2A211D]"
+                    className="w-4 h-4 rounded text-[#E54833] focus:ring-[#E54833] border-[#D7D7DD] dark:border-[#292A30]"
                   />
-                  <span>🌸 É Mãe (Receber felicitações no Dia das Mães)</span>
+                  <span>É Mãe (Receber felicitações no Dia das Mães)</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8]">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-medium text-[#18191D] dark:text-[#F4F4F6]">
                   <input
                     type="checkbox"
                     checked={clientForm.isFather}
                     onChange={(e) => setClientForm({ ...clientForm, isFather: e.target.checked })}
-                    className="w-4 h-4 rounded text-[#2C5282] focus:ring-[#2C5282] border-[#EDE5DC] dark:border-[#2A211D]"
+                    className="w-4 h-4 rounded text-[#1F6FEB] focus:ring-[#1F6FEB] border-[#D7D7DD] dark:border-[#292A30]"
                   />
-                  <span>👔 É Pai (Receber felicitações no Dia dos Pais)</span>
+                  <span>É Pai (Receber felicitações no Dia dos Pais)</span>
                 </label>
               </div>
             </div>
@@ -1101,14 +1104,14 @@ export function Clients() {
 
           {/* Seção 3: Endereço Completo */}
           <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74] flex items-center gap-1.5 border-b hairline-border pb-2">
-              <MapPin className="w-4 h-4" /> Endereço do Cliente
+            <h4 className="text-xs font-mono font-medium uppercase tracking-wider text-[#18191D] dark:text-[#F4F4F6] flex items-center gap-1.5 border-b hairline-border pb-2">
+              <MapPin className="w-4 h-4 text-[#E54833]" /> Endereço do Cliente
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
-                  CEP {loadingClientCep && <span className="text-[10px] text-[#C85A32] font-normal">(Buscando...)</span>}
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
+                  CEP {loadingClientCep && <span className="text-[10px] text-[#E54833] font-mono">(Buscando...)</span>}
                 </label>
                 <input
                   type="text"
@@ -1121,110 +1124,110 @@ export function Clients() {
                     }
                   }}
                   placeholder="00000-000"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono transition-colors"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Logradouro (Rua / Av)</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Logradouro (Rua / Av)</label>
                 <input
                   type="text"
                   value={clientForm.address}
                   onChange={(e) => setClientForm({ ...clientForm, address: e.target.value })}
                   placeholder="Ex: Av. Paulista"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Número</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Número</label>
                 <input
                   type="text"
                   value={clientForm.addressNumber}
                   onChange={(e) => setClientForm({ ...clientForm, addressNumber: e.target.value })}
                   placeholder="1000"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Complemento</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Complemento</label>
                 <input
                   type="text"
                   value={clientForm.addressComplement}
                   onChange={(e) => setClientForm({ ...clientForm, addressComplement: e.target.value })}
                   placeholder="Apto 101, Bloco B"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Bairro</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Bairro</label>
                 <input
                   type="text"
                   value={clientForm.neighborhood}
                   onChange={(e) => setClientForm({ ...clientForm, neighborhood: e.target.value })}
                   placeholder="Bela Vista"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Cidade</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Cidade</label>
                 <input
                   type="text"
                   value={clientForm.city}
                   onChange={(e) => setClientForm({ ...clientForm, city: e.target.value })}
                   placeholder="São Paulo"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Estado (UF)</label>
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Estado (UF)</label>
                 <input
                   type="text"
                   maxLength={2}
                   value={clientForm.state}
                   onChange={(e) => setClientForm({ ...clientForm, state: e.target.value.toUpperCase() })}
                   placeholder="SP"
-                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none uppercase font-mono transition-colors"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none uppercase font-mono transition-colors"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Notas / Observações</label>
+            <label className="block text-xs font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Notas / Observações</label>
             <textarea
               rows={2}
               value={clientForm.notes}
               onChange={(e) => setClientForm({ ...clientForm, notes: e.target.value })}
               placeholder="Preferências, histórico de relacionamento..."
-              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
+              className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] dark:focus:border-[#44454B] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
             />
           </div>
 
           {/* Seção 4: Governança LGPD */}
           <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 border-b hairline-border pb-2">
+            <h4 className="text-xs font-mono font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 border-b hairline-border pb-2">
               <ShieldCheck className="w-4 h-4" /> Governança de Privacidade & LGPD (Art. 7º e 18)
             </h4>
 
-            <div className="p-3.5 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] space-y-3">
+            <div className="p-3.5 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#202126]/60 border border-[#E2E2E8] dark:border-[#292A30] space-y-3">
               <label className="flex items-start gap-2.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   id="lgpdConsent"
                   checked={clientForm.lgpdConsent}
                   onChange={(e) => setClientForm({ ...clientForm, lgpdConsent: e.target.checked })}
-                  className="w-4 h-4 mt-0.5 rounded text-emerald-600 bg-white dark:bg-[#1A1513] border-[#EDE5DC] dark:border-[#2A211D]"
+                  className="w-4 h-4 mt-0.5 rounded text-emerald-600 bg-white dark:bg-[#18191D] border-[#D7D7DD] dark:border-[#292A30]"
                 />
                 <div>
-                  <span className="text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8] block">
+                  <span className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] block">
                     Consentimento LGPD Ativo
                   </span>
-                  <span className="text-[11px] text-[#756557] dark:text-[#B5A599]">
+                  <span className="text-[11px] text-[#686971] dark:text-[#BFC0C7]">
                     O titular concedeu consentimento para armazenamento de dados e envio de mensagens comemorativas.
                   </span>
                 </div>
@@ -1233,13 +1236,13 @@ export function Clients() {
               {clientForm.lgpdConsent && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t hairline-border">
                   <div>
-                    <label className="block text-[11px] font-medium text-[#756557] dark:text-[#B5A599] mb-1">
+                    <label className="block text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                       Origem / Fonte do Consentimento *
                     </label>
                     <select
                       value={clientForm.consentSource}
                       onChange={(e) => setClientForm({ ...clientForm, consentSource: e.target.value })}
-                      className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                      className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                     >
                       <option value="MANUAL">Cadastro Manual / Presencial</option>
                       <option value="WHATSAPP">Conversa de WhatsApp</option>
@@ -1250,7 +1253,7 @@ export function Clients() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-[#756557] dark:text-[#B5A599] mb-1">
+                    <label className="block text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">
                       Observação / Evidência (Opcional)
                     </label>
                     <input
@@ -1258,7 +1261,7 @@ export function Clients() {
                       value={clientForm.consentNote}
                       onChange={(e) => setClientForm({ ...clientForm, consentNote: e.target.value })}
                       placeholder="Ex: Assinado na proposta 1024"
-                      className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                      className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                     />
                   </div>
                 </div>
@@ -1266,7 +1269,7 @@ export function Clients() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t hairline-border">
+          <div className="flex justify-end gap-2 pt-4 border-t hairline-border">
             <button
               type="button"
               onClick={() => setIsClientModalOpen(false)}
@@ -1276,7 +1279,7 @@ export function Clients() {
             </button>
             <button
               type="submit"
-              className="btn-terracotta"
+              className="btn-primary"
             >
               {editingClient ? 'Atualizar Cliente' : 'Salvar Cliente'}
             </button>
@@ -1292,9 +1295,9 @@ export function Clients() {
         subtitle="Gerencie os familiares associados para felicitações automáticas e endereços"
         maxWidth="2xl"
       >
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Form Adicionar/Editar Familiar */}
-          <form onSubmit={handleSaveFamilyMember} className="p-4 rounded-3xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] space-y-4">
+          <form onSubmit={handleSaveFamilyMember} className="p-4 rounded-2xl bg-white/70 dark:bg-[#202126]/80 border border-[#E2E2E8] dark:border-[#292A30] space-y-4">
             {familyModalError && (
               <ErrorBanner
                 error={familyModalError.message}
@@ -1304,7 +1307,7 @@ export function Clients() {
             )}
 
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74]">
+              <h4 className="text-xs font-mono font-medium uppercase tracking-wider text-[#18191D] dark:text-[#F4F4F6]">
                 {editingFamilyMember ? 'Editar Familiar' : '+ Adicionar Novo Familiar'}
               </h4>
 
@@ -1312,28 +1315,28 @@ export function Clients() {
                 <button
                   type="button"
                   onClick={handleCopyClientAddressToFamily}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FDF6F0] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] text-[#C85A32] dark:text-[#F39C74] text-[11px] font-semibold hover:bg-[#FAF0E6] transition-colors"
+                  className="btn-secondary py-1 px-2.5 text-[11px]"
                 >
-                  <Home className="w-3.5 h-3.5" /> Usar mesmo endereço do cliente
+                  <Home className="w-3.5 h-3.5" /> Usar endereço do cliente
                 </button>
               )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-medium text-[#756557] dark:text-[#B5A599] mb-1">Nome do Familiar *</label>
+                <label className="block text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Nome do Familiar *</label>
                 <input
                   type="text"
                   required
                   value={familyForm.name}
                   onChange={(e) => setFamilyForm({ ...familyForm, name: e.target.value })}
                   placeholder="Ex: Dona Helena Silveira"
-                  className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-[#756557] dark:text-[#B5A599] mb-1">Parentesco *</label>
+                <label className="block text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Parentesco *</label>
                 <select
                   value={familyForm.relationship}
                   onChange={(e) => {
@@ -1345,7 +1348,7 @@ export function Clients() {
                       gender: suggestedGender !== 'NOT_SPECIFIED' ? suggestedGender : familyForm.gender,
                     });
                   }}
-                  className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                 >
                   {Object.entries(RELATIONSHIP_LABELS).map(([val, label]) => (
                     <option key={val} value={val}>
@@ -1356,11 +1359,11 @@ export function Clients() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-[#756557] dark:text-[#B5A599] mb-1">Gênero / Sexo *</label>
+                <label className="block text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Gênero / Sexo *</label>
                 <select
                   value={familyForm.gender || 'NOT_SPECIFIED'}
                   onChange={(e) => setFamilyForm({ ...familyForm, gender: e.target.value as any })}
-                  className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                 >
                   <option value="NOT_SPECIFIED">Não Informado</option>
                   <option value="FEMALE">Feminino (Mulher)</option>
@@ -1370,47 +1373,47 @@ export function Clients() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-[#756557] dark:text-[#B5A599] mb-1">Data de Nascimento *</label>
+                <label className="block text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Data de Nascimento *</label>
                 <input
                   type="date"
                   required
                   value={familyForm.birthDate}
                   onChange={(e) => setFamilyForm({ ...familyForm, birthDate: e.target.value })}
-                  className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-[#756557] dark:text-[#B5A599] mb-1">Telefone (Opcional - LGPD)</label>
+                <label className="block text-[11px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-1">Telefone (Opcional - LGPD)</label>
                 <input
                   type="text"
                   value={familyForm.phone}
                   onChange={(e) => setFamilyForm({ ...familyForm, phone: e.target.value })}
                   placeholder="+55..."
-                  className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
+                  className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] focus:border-[#C6C7CD] rounded-xl py-2 px-3 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono"
                 />
               </div>
             </div>
 
             {/* Governança LGPD do Familiar & Menores */}
             <div className="pt-2 border-t hairline-border space-y-2.5">
-              <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Governança LGPD & Proteção a Menores
               </div>
 
-              <div className="space-y-2 p-3 rounded-2xl bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D]">
+              <div className="space-y-2 p-3 rounded-xl bg-[#EEEEF1]/60 dark:bg-[#18191D]/80 border border-[#E2E2E8] dark:border-[#292A30]">
                 <label className="flex items-start gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={familyForm.consentHolderConfirmed}
                     onChange={(e) => setFamilyForm({ ...familyForm, consentHolderConfirmed: e.target.checked })}
-                    className="w-4 h-4 mt-0.5 rounded text-emerald-600 bg-white dark:bg-[#1A1513] border-[#EDE5DC] dark:border-[#2A211D]"
+                    className="w-4 h-4 mt-0.5 rounded text-emerald-600 bg-white dark:bg-[#18191D] border-[#D7D7DD] dark:border-[#292A30]"
                   />
                   <div>
-                    <span className="text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8] block">
+                    <span className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] block">
                       Consentimento do Titular Confirmado
                     </span>
-                    <span className="text-[11px] text-[#756557] dark:text-[#B5A599]">
+                    <span className="text-[11px] text-[#686971] dark:text-[#BFC0C7]">
                       O titular principal autorizou expressamente o cadastro deste familiar.
                     </span>
                   </div>
@@ -1421,13 +1424,13 @@ export function Clients() {
                     type="checkbox"
                     checked={familyForm.allowMinorNotifications}
                     onChange={(e) => setFamilyForm({ ...familyForm, allowMinorNotifications: e.target.checked })}
-                    className="w-4 h-4 mt-0.5 rounded text-[#C85A32] bg-white dark:bg-[#1A1513] border-[#EDE5DC] dark:border-[#2A211D]"
+                    className="w-4 h-4 mt-0.5 rounded text-[#E54833] bg-white dark:bg-[#18191D] border-[#D7D7DD] dark:border-[#292A30]"
                   />
                   <div>
-                    <span className="text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8] block">
+                    <span className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6] block">
                       Permitir Notificações se Menor de 18 Anos (Exceção Registrada)
                     </span>
-                    <span className="text-[11px] text-[#756557] dark:text-[#B5A599]">
+                    <span className="text-[11px] text-[#686971] dark:text-[#BFC0C7]">
                       Por padrão, o sistema protege menores e não gera mensagens diretas sem autorização prévia.
                     </span>
                   </div>
@@ -1437,14 +1440,14 @@ export function Clients() {
 
             {/* Endereço do Familiar */}
             <div className="pt-2 border-t hairline-border space-y-2.5">
-              <div className="text-[11px] font-bold text-[#756557] dark:text-[#B5A599] flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-[#C85A32]" /> Endereço do Familiar (Opcional)
+              <div className="text-[11px] font-mono font-medium uppercase text-[#686971] dark:text-[#BFC0C7] flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-[#E54833]" /> Endereço do Familiar (Opcional)
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
-                  <label className="block text-[10px] font-medium text-[#756557] dark:text-[#B5A599] mb-0.5">
-                    CEP {loadingFamilyCep && <span className="text-[#C85A32]">(Buscando...)</span>}
+                  <label className="block text-[10px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-0.5">
+                    CEP {loadingFamilyCep && <span className="text-[#E54833] font-mono">(Buscando...)</span>}
                   </label>
                   <input
                     type="text"
@@ -1457,74 +1460,74 @@ export function Clients() {
                       }
                     }}
                     placeholder="00000-000"
-                    className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
+                    className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none font-mono"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-medium text-[#756557] dark:text-[#B5A599] mb-0.5">Logradouro / Rua</label>
+                  <label className="block text-[10px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-0.5">Logradouro / Rua</label>
                   <input
                     type="text"
                     value={familyForm.address}
                     onChange={(e) => setFamilyForm({ ...familyForm, address: e.target.value, sameAddressAsClient: false })}
                     placeholder="Rua, Avenida..."
-                    className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                    className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-medium text-[#756557] dark:text-[#B5A599] mb-0.5">Número</label>
+                  <label className="block text-[10px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-0.5">Número</label>
                   <input
                     type="text"
                     value={familyForm.addressNumber}
                     onChange={(e) => setFamilyForm({ ...familyForm, addressNumber: e.target.value, sameAddressAsClient: false })}
                     placeholder="123"
-                    className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                    className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-medium text-[#756557] dark:text-[#B5A599] mb-0.5">Complemento</label>
+                  <label className="block text-[10px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-0.5">Complemento</label>
                   <input
                     type="text"
                     value={familyForm.addressComplement}
                     onChange={(e) => setFamilyForm({ ...familyForm, addressComplement: e.target.value, sameAddressAsClient: false })}
                     placeholder="Apto, Bloco"
-                    className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                    className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-medium text-[#756557] dark:text-[#B5A599] mb-0.5">Bairro</label>
+                  <label className="block text-[10px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-0.5">Bairro</label>
                   <input
                     type="text"
                     value={familyForm.neighborhood}
                     onChange={(e) => setFamilyForm({ ...familyForm, neighborhood: e.target.value, sameAddressAsClient: false })}
                     placeholder="Bairro"
-                    className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                    className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-medium text-[#756557] dark:text-[#B5A599] mb-0.5">Cidade</label>
+                  <label className="block text-[10px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-0.5">Cidade</label>
                   <input
                     type="text"
                     value={familyForm.city}
                     onChange={(e) => setFamilyForm({ ...familyForm, city: e.target.value, sameAddressAsClient: false })}
                     placeholder="Cidade"
-                    className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
+                    className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-medium text-[#756557] dark:text-[#B5A599] mb-0.5">UF</label>
+                  <label className="block text-[10px] font-medium text-[#686971] dark:text-[#BFC0C7] mb-0.5">UF</label>
                   <input
                     type="text"
                     maxLength={2}
                     value={familyForm.state}
                     onChange={(e) => setFamilyForm({ ...familyForm, state: e.target.value.toUpperCase(), sameAddressAsClient: false })}
                     placeholder="BA"
-                    className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 px-2.5 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none uppercase font-mono"
+                    className="w-full bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] rounded-xl py-1.5 px-2.5 text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none uppercase font-mono"
                   />
                 </div>
               </div>
@@ -1563,7 +1566,7 @@ export function Clients() {
               )}
               <button
                 type="submit"
-                className="btn-terracotta"
+                className="btn-primary"
               >
                 {editingFamilyMember ? 'Atualizar Familiar' : 'Adicionar Familiar'}
               </button>
@@ -1572,12 +1575,12 @@ export function Clients() {
 
           {/* Lista de Familiares Existentes */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-[#1E1611] dark:text-[#F5EFE8]">
+            <h4 className="text-xs font-mono font-medium uppercase tracking-wider text-[#18191D] dark:text-[#F4F4F6]">
               Familiares Cadastrados ({selectedClientForFamily?.familyMembers?.length || 0})
             </h4>
 
             {(!selectedClientForFamily?.familyMembers || selectedClientForFamily.familyMembers.length === 0) ? (
-              <p className="text-xs text-[#A09388] py-4 text-center">Nenhum familiar cadastrado para este cliente.</p>
+              <p className="text-xs text-[#686971] py-4 text-center">Nenhum familiar cadastrado para este cliente.</p>
             ) : (
               <div className="space-y-2 max-h-56 overflow-y-auto">
                 {selectedClientForFamily.familyMembers.map((fm) => {
@@ -1586,35 +1589,35 @@ export function Clients() {
                   return (
                     <div
                       key={fm.id}
-                      className="p-3.5 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] flex items-center justify-between gap-2"
+                      className="p-3.5 rounded-xl bg-white/70 dark:bg-[#18191D]/70 border border-[#E2E2E8] dark:border-[#292A30] flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{fm.name}</span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FDF2EC] text-[#B84E29] border border-[#F6D5C2] dark:bg-[#2D1A14] dark:text-[#F39C74] dark:border-[#522F22]">
+                          <span className="text-xs font-medium text-[#18191D] dark:text-[#F4F4F6]">{fm.name}</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#EEEEF1] dark:bg-[#24252B] text-[#18191D] dark:text-[#F4F4F6] border border-[#D7D7DD] dark:border-[#292A30]">
                             {RELATIONSHIP_LABELS[fm.relationship] || fm.relationship}
                           </span>
                           {fm.gender === 'FEMALE' && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#221B17] dark:text-[#B5A599] dark:border-[#2A211D]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono text-[#686971] dark:text-[#BFC0C7] bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#292A30]">
                               Feminino
                             </span>
                           )}
                           {fm.gender === 'MALE' && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3ECE4] text-[#756557] border border-[#EDE5DC] dark:bg-[#221B17] dark:text-[#B5A599] dark:border-[#2A211D]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono text-[#686971] dark:text-[#BFC0C7] bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#292A30]">
                               Masculino
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-[#756557] dark:text-[#B5A599] flex items-center gap-2 mt-0.5">
+                        <div className="text-[11px] text-[#686971] dark:text-[#BFC0C7] flex items-center gap-2 mt-0.5">
                           <span className="flex items-center gap-1 font-mono">
-                            <Calendar className="w-3 h-3 text-[#A09388]" />
+                            <Calendar className="w-3 h-3 text-[#74757C]" />
                             {new Date(fm.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                           </span>
                           {fm.phone && <span className="font-mono">• {fm.phone}</span>}
                         </div>
                         {fmLocation && (
-                          <div className="text-[10px] text-[#A09388] flex items-center gap-1 mt-0.5 truncate" title={fmLocation}>
-                            <MapPin className="w-2.5 h-2.5 text-[#C85A32] shrink-0" />
+                          <div className="text-[10px] text-[#74757C] flex items-center gap-1 mt-0.5 truncate" title={fmLocation}>
+                            <MapPin className="w-2.5 h-2.5 text-[#E54833] shrink-0" />
                             <span className="truncate">{fmLocation}</span>
                           </div>
                         )}
@@ -1645,14 +1648,14 @@ export function Clients() {
                               notes: fm.notes || '',
                             });
                           }}
-                          className="p-1.5 text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-white dark:hover:bg-[#1A1513] rounded-lg transition-colors"
+                          className="p-1.5 text-[#686971] hover:text-[#18191D] dark:hover:text-[#F4F4F6] hover:bg-[#EEEEF1] dark:hover:bg-[#24252B] rounded-lg transition-colors"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteFamilyMember(fm.id, fm.name)}
-                          className="p-1.5 text-[#A09388] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                          className="p-1.5 text-[#686971] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1689,12 +1692,12 @@ export function Clients() {
       >
         <div className="space-y-4">
           {exportLoading ? (
-            <div className="py-12 text-center text-[#A09388] text-xs animate-pulse">
+            <div className="py-12 text-center text-[#686971] text-xs animate-pulse">
               Gerando relatório de portabilidade de dados...
             </div>
           ) : exportDataContent ? (
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs">
+              <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs">
                 <div className="flex items-center gap-1.5 font-medium">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   <span>Relatório emitido em conformidade com o Art. 18, V da Lei Geral de Proteção de Dados.</span>
@@ -1707,7 +1710,7 @@ export function Clients() {
                       setCopiedExport(true);
                       setTimeout(() => setCopiedExport(false), 2000);
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-[#18181B] border border-emerald-300 dark:border-emerald-700 text-[#1E1611] dark:text-[#F5EFE8] hover:bg-stone-50 text-[11px] font-semibold transition-colors"
+                    className="btn-secondary py-1 px-2.5 text-[11px]"
                   >
                     {copiedExport ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     {copiedExport ? 'Copiado!' : 'Copiar JSON'}
@@ -1725,7 +1728,7 @@ export function Clients() {
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold transition-colors"
+                    className="btn-primary py-1 px-2.5 text-[11px]"
                   >
                     <Download className="w-3 h-3" />
                     Baixar JSON
@@ -1734,12 +1737,12 @@ export function Clients() {
               </div>
 
               {/* Prévia dos Dados */}
-              <div className="max-h-96 overflow-y-auto rounded-2xl bg-[#FAF6F0] dark:bg-[#120F0D] border border-[#EDE5DC] dark:border-[#2A211D] p-3 text-[11px] font-mono text-[#1E1611] dark:text-[#F5EFE8]">
+              <div className="max-h-96 overflow-y-auto rounded-xl bg-white dark:bg-[#18191D] border border-[#E2E2E8] dark:border-[#292A30] p-3 text-[11px] font-mono text-[#18191D] dark:text-[#F4F4F6]">
                 <pre className="whitespace-pre-wrap">{JSON.stringify(exportDataContent, null, 2)}</pre>
               </div>
             </div>
           ) : (
-            <div className="py-8 text-center text-[#A09388] text-xs">Nenhum dado retornado.</div>
+            <div className="py-8 text-center text-[#686971] text-xs">Nenhum dado retornado.</div>
           )}
 
           <div className="flex justify-end pt-2 border-t hairline-border">
