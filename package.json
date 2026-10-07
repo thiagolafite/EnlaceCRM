@@ -10,7 +10,7 @@
     "postinstall": "cd backend && npm run prisma:generate",
     "build:backend": "cd backend && npm run prisma:generate && npm run build",
     "build:frontend": "cd frontend && npm run build",
-    "build": "cd backend && npm run prisma:generate && npm run build && cd ../frontend && npm run build"
+    "build": "cd backend && npm run prisma:generate && npm run build && cd ../frontend && npm install && npm run build"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
