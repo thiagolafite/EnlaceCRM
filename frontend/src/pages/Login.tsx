@@ -113,36 +113,36 @@ export function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#FBFBFA] dark:bg-[#0D0D0E] text-[#18181B] dark:text-[#EDEDEA] relative transition-colors duration-150 font-sans">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#FAF6F0] dark:bg-[#120F0D] text-[#1E1611] dark:text-[#F5EFE8] relative transition-colors duration-150 font-sans">
       {/* Theme Toggle Button top right */}
       <div className="absolute top-6 right-6 z-20">
         <button
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
-          className="p-2 rounded-lg border border-[#E7E7E4] dark:border-[#26262B] bg-white dark:bg-[#141416] text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-[#F4F4F2] dark:hover:bg-[#1C1C20] transition-colors"
+          className="p-2.5 rounded-full border border-[#EDE5DC] dark:border-[#2A211D] bg-white dark:bg-[#1A1513] text-[#756557] dark:text-[#B5A599] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] transition-colors shadow-subtle"
         >
-          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-600" />}
+          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-[#756557]" />}
         </button>
       </div>
 
       <div className="w-full max-w-sm">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#18181B] dark:bg-[#EDEDEA] text-white dark:text-[#18181B] font-bold text-sm tracking-tight mb-3 shadow-subtle">
-            E
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#C85A32] text-white font-serif font-bold text-2xl mb-3 shadow-panel">
+            V
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-[#18181B] dark:text-[#EDEDEA]">
-            Enlace CRM
+          <h1 className="text-2xl font-serif font-normal tracking-tight text-[#1E1611] dark:text-[#F5EFE8]">
+            Vínculo
           </h1>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-            Relacionamento & Felicitações
+          <p className="text-[10px] font-mono tracking-widest text-[#A09388] uppercase mt-1">
+            CRM DE RELACIONAMENTO
           </p>
         </div>
 
         {/* Card */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle space-y-5">
+        <div className="card-warm p-6 sm:p-8 space-y-5 shadow-panel">
           {/* Tabs Mode */}
-          <div className="flex p-1 bg-[#F4F4F2] dark:bg-[#1A1A1E] rounded-xl text-xs">
+          <div className="flex p-1 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] rounded-full text-xs font-medium">
             <button
               type="button"
               onClick={() => {
@@ -150,10 +150,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
                 setErrorState(null);
                 setSuccessMessage('');
               }}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex-1 py-1.5 rounded-full text-xs font-medium transition-all ${
                 mode === 'login'
-                  ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
-                  : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
               }`}
             >
               Entrar
@@ -165,10 +165,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
                 setErrorState(null);
                 setSuccessMessage('');
               }}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex-1 py-1.5 rounded-full text-xs font-medium transition-all ${
                 mode === 'register'
-                  ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
-                  : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
               }`}
             >
               Criar Conta
@@ -177,9 +177,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
 
           {/* Success / Pending Alert */}
           {successMessage && (
-            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 text-amber-900 dark:text-amber-200 text-xs leading-relaxed space-y-1">
+            <div className="p-3.5 rounded-2xl bg-[#FDF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] text-[#B84E29] dark:text-[#F39C74] text-xs leading-relaxed space-y-1">
               <div className="font-semibold flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-[#C85A32] shrink-0" />
                 <span>Conta em Análise</span>
               </div>
               <p>{successMessage}</p>
@@ -199,35 +199,35 @@ export function Login({ onLoginSuccess }: LoginProps) {
           {mode === 'login' ? (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599]">
                   E-mail
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388] pointer-events-none" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="seu@email.com"
-                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599]">
                   Senha
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388] pointer-events-none" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -235,7 +235,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] dark:bg-[#EDEDEA] dark:hover:bg-[#FFFFFF] text-white dark:text-[#18181B] font-medium text-xs shadow-subtle transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+                className="w-full py-3 px-4 rounded-full bg-[#C85A32] hover:bg-[#B34A24] text-white font-semibold text-xs shadow-subtle transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
               >
                 <span>{loading ? 'Acessando...' : 'Acessar Sistema'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -244,45 +244,45 @@ export function Login({ onLoginSuccess }: LoginProps) {
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599]">
                   Nome Completo
                 </label>
                 <div className="relative">
-                  <UserIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <UserIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388] pointer-events-none" />
                   <input
                     type="text"
                     required
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="Seu nome"
-                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
+                    className="w-full pl-10 pr-3.5 py-2 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599]">
                   E-mail Corporativo
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388] pointer-events-none" />
                   <input
                     type="email"
                     required
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="seu@empresa.com"
-                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
+                    className="w-full pl-10 pr-3.5 py-2 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599]">
                   Senha (mínimo 10 caracteres)
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388] pointer-events-none" />
                   <input
                     type="password"
                     required
@@ -290,17 +290,17 @@ export function Login({ onLoginSuccess }: LoginProps) {
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="••••••••••"
-                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
+                    className="w-full pl-10 pr-3.5 py-2 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599]">
                   Confirmar Senha
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388] pointer-events-none" />
                   <input
                     type="password"
                     required
@@ -308,7 +308,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
                     placeholder="••••••••••"
-                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-xl text-xs text-[#18181B] dark:text-[#EDEDEA] outline-none transition-colors"
+                    className="w-full pl-10 pr-3.5 py-2 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -320,15 +320,15 @@ export function Login({ onLoginSuccess }: LoginProps) {
                   id="regTerms"
                   checked={regTermsAccepted}
                   onChange={(e) => setRegTermsAccepted(e.target.checked)}
-                  className="mt-0.5 rounded border-[#E7E7E4] dark:border-[#26262B] text-stone-900 focus:ring-0 cursor-pointer"
+                  className="mt-0.5 rounded border-[#EDE5DC] dark:border-[#2A211D] text-[#C85A32] focus:ring-0 cursor-pointer"
                 />
-                <label htmlFor="regTerms" className="text-[11px] text-stone-600 dark:text-stone-400 leading-tight select-none">
+                <label htmlFor="regTerms" className="text-[11px] text-[#756557] dark:text-[#B5A599] leading-tight select-none">
                   Li e concordo com os{' '}
-                  <a href="/terms-of-use" target="_blank" rel="noopener noreferrer" className="text-stone-900 dark:text-stone-100 font-medium underline hover:text-emerald-600">
+                  <a href="/terms-of-use" target="_blank" rel="noopener noreferrer" className="text-[#1E1611] dark:text-[#F5EFE8] font-medium underline hover:text-[#C85A32]">
                     Termos de Uso
                   </a>{' '}
                   e a{' '}
-                  <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-stone-900 dark:text-stone-100 font-medium underline hover:text-emerald-600">
+                  <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#1E1611] dark:text-[#F5EFE8] font-medium underline hover:text-[#C85A32]">
                     Política de Privacidade (LGPD)
                   </a>.
                 </label>
@@ -337,7 +337,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] dark:bg-[#EDEDEA] dark:hover:bg-[#FFFFFF] text-white dark:text-[#18181B] font-medium text-xs shadow-subtle transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-3"
+                className="w-full py-3 px-4 rounded-full bg-[#C85A32] hover:bg-[#B34A24] text-white font-semibold text-xs shadow-subtle transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-3"
               >
                 <span>{loading ? 'Cadastrando...' : 'Criar Conta de Acesso'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -347,12 +347,12 @@ export function Login({ onLoginSuccess }: LoginProps) {
         </div>
 
         {/* Footer Legal Links */}
-        <div className="mt-6 text-center text-[11px] text-stone-500 dark:text-stone-400 space-x-3">
-          <a href="/privacy-policy" className="hover:text-stone-900 dark:hover:text-stone-100 underline">
+        <div className="mt-6 text-center text-[11px] text-[#A09388] space-x-3">
+          <a href="/privacy-policy" className="hover:text-[#1E1611] dark:hover:text-[#F5EFE8] underline">
             Privacidade & LGPD
           </a>
           <span>•</span>
-          <a href="/terms-of-use" className="hover:text-stone-900 dark:hover:text-stone-100 underline">
+          <a href="/terms-of-use" className="hover:text-[#1E1611] dark:hover:text-[#F5EFE8] underline">
             Termos de Uso
           </a>
         </div>

@@ -250,21 +250,21 @@ export function Users({ currentUser }: UsersProps) {
 
       {/* Master Mode Banner */}
       {isMaster && (
-        <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-500/15 via-purple-500/10 to-indigo-500/15 border border-amber-500/30 flex items-center justify-between gap-4 shadow-luxury">
+        <div className="card-warm p-5 border border-[#EDE5DC] dark:border-[#2A211D] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-glow-amber/40 shrink-0">
-              <Crown className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl bg-[#C85A32] text-white flex items-center justify-center font-bold shrink-0 shadow-subtle">
+              <Crown className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-black font-outfit text-amber-950 dark:text-amber-200 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2">
                 Controle de Acesso & Trava de Segurança Master Ativa
               </h3>
-              <p className="text-xs text-amber-800/90 dark:text-amber-300/80 font-medium">
-                Novos cadastros no sistema iniciam **bloqueados** e só têm permissão para acessar o CRM após a sua aprovação explícita.
+              <p className="text-xs text-[#756557] dark:text-[#B5A599]">
+                Novos cadastros no sistema iniciam bloqueados e só têm permissão para acessar o CRM após a sua aprovação explícita.
               </p>
             </div>
           </div>
-          <span className="shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white shadow-xs">
+          <span className="shrink-0 px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611]">
             SUPER_ADMIN
           </span>
         </div>
@@ -272,16 +272,16 @@ export function Users({ currentUser }: UsersProps) {
 
       {/* Pending Approvals Alert Banner */}
       {isMaster && pendingUsers.length > 0 && (
-        <div className="p-6 rounded-3xl bg-amber-500/10 border-2 border-amber-400/80 dark:border-amber-500/40 shadow-glow-amber/20 space-y-3.5 animate-in fade-in duration-300">
+        <div className="card-peach p-5 space-y-3.5 animate-in fade-in duration-300">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
-              <h4 className="font-black font-outfit text-sm text-amber-950 dark:text-amber-100 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-500" />
+              <span className="w-2 h-2 rounded-full bg-[#C85A32] animate-ping"></span>
+              <h4 className="font-serif text-base text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-[#C85A32]" />
                 {pendingUsers.length} novo{pendingUsers.length === 1 ? '' : 's'} cadastro{pendingUsers.length === 1 ? '' : 's'} aguardando sua autorização:
               </h4>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-white">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[#C85A32] text-white">
               Ação Requerida
             </span>
           </div>
@@ -290,14 +290,14 @@ export function Users({ currentUser }: UsersProps) {
             {pendingUsers.map((pu) => (
               <div
                 key={pu.id}
-                className="p-4 rounded-2xl bg-white/90 dark:bg-obsidian-900/90 border border-amber-200/80 dark:border-amber-500/20 flex items-center justify-between gap-3 shadow-xs"
+                className="p-4 rounded-2xl bg-white dark:bg-[#1A1513] border border-[#F5D2BF] dark:border-[#4C2D20] flex items-center justify-between gap-3 shadow-subtle"
               >
                 <div className="min-w-0">
-                  <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                  <div className="font-semibold text-xs text-[#1E1611] dark:text-[#F5EFE8] truncate">
                     {pu.name}
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                    {pu.email} • <span className="font-mono text-indigo-600 dark:text-indigo-400">{pu.companyId}</span>
+                  <div className="text-[11px] text-[#756557] dark:text-[#B5A599] truncate">
+                    {pu.email} • <span className="font-mono text-[#C85A32]">{pu.companyId}</span>
                   </div>
                 </div>
 
@@ -306,7 +306,7 @@ export function Users({ currentUser }: UsersProps) {
                     type="button"
                     disabled={approvingId === pu.id}
                     onClick={() => handleToggleApproval(pu, true)}
-                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs shadow-xs flex items-center gap-1 transition-all disabled:opacity-50"
+                    className="btn-terracotta text-xs"
                   >
                     <Check className="w-3.5 h-3.5" /> Aprovar & Ativar
                   </button>
@@ -314,7 +314,7 @@ export function Users({ currentUser }: UsersProps) {
                     type="button"
                     disabled={approvingId === pu.id}
                     onClick={() => handleToggleApproval(pu, false)}
-                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                    className="p-2 rounded-xl text-[#A09388] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                     title="Rejeitar / Bloquear"
                   >
                     <Ban className="w-4 h-4" />
@@ -326,20 +326,21 @@ export function Users({ currentUser }: UsersProps) {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
+      {/* Header Editorial */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+          <p className="text-[10px] font-mono uppercase tracking-wider text-[#A09388] mb-0.5">SEGURANÇA & ACESSO</p>
+          <h1 className="text-2xl lg:text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] font-normal tracking-tight">
             Usuários & Permissões do Sistema
-          </h2>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+          </h1>
+          <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1">
             Gerenciamento de operadores e administradores com controle de acesso Master
           </p>
         </div>
 
         <button
           onClick={() => handleOpenModal()}
-          className="btn-primary"
+          className="btn-terracotta"
         >
           <UserPlus className="w-3.5 h-3.5" />
           <span>Novo Usuário</span>
@@ -347,16 +348,16 @@ export function Users({ currentUser }: UsersProps) {
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="p-3 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="card-warm p-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Status Filter */}
-        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[#F4F4F2] dark:bg-[#1C1C20] text-xs font-medium w-full sm:w-auto">
+        <div className="flex items-center gap-1 p-1 rounded-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs font-medium w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1.5 rounded-md transition-colors ${
+            className={`px-3.5 py-1.5 rounded-full transition-all ${
               statusFilter === 'ALL'
-                ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
-                : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
+                : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
             }`}
           >
             Todos ({users.length})
@@ -365,10 +366,10 @@ export function Users({ currentUser }: UsersProps) {
             <button
               type="button"
               onClick={() => setStatusFilter('PENDING_APPROVAL')}
-              className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1 ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1 ${
                 statusFilter === 'PENDING_APPROVAL'
-                  ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300'
-                  : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-[#FDF0E6] text-[#C85A32] dark:bg-[#2A1C16] dark:text-[#F39C74] font-semibold shadow-subtle'
+                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
               }`}
             >
               <Clock className="w-3.5 h-3.5" /> Pendentes ({pendingUsers.length})
@@ -377,10 +378,10 @@ export function Users({ currentUser }: UsersProps) {
           <button
             type="button"
             onClick={() => setStatusFilter('ACTIVE')}
-            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1 ${
+            className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1 ${
               statusFilter === 'ACTIVE'
-                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300'
-                : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-semibold shadow-subtle'
+                : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" /> Ativos
@@ -389,41 +390,41 @@ export function Users({ currentUser }: UsersProps) {
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome ou e-mail..."
-            className="w-full bg-[#FBFBFA] dark:bg-[#1A1A1E] border border-[#E7E7E4] dark:border-[#26262B] focus:border-stone-900 dark:focus:border-stone-100 rounded-lg py-2 pl-9 pr-3 text-xs text-[#18181B] dark:text-[#EDEDEA] placeholder:text-stone-400 outline-none transition-colors"
+            className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] placeholder:text-[#A09388] outline-none transition-colors"
           />
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm transition-colors">
+      <div className="card-warm overflow-hidden shadow-subtle transition-colors">
         {loading ? (
-          <div className="py-16 text-center text-slate-400">Carregando usuários do sistema...</div>
+          <div className="py-16 text-center text-[#A09388] text-xs">Carregando usuários do sistema...</div>
         ) : filteredUsers.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 space-y-2">
-            <UsersIcon className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700" />
-            <p className="font-semibold text-slate-700 dark:text-slate-300">Nenhum usuário encontrado</p>
-            <p className="text-xs">Cadastre novos operadores ou administradores.</p>
+          <div className="py-16 text-center text-[#A09388] space-y-2">
+            <UsersIcon className="w-8 h-8 mx-auto text-[#A09388]/60" />
+            <p className="font-serif text-[#1E1611] dark:text-[#F5EFE8] text-base">Nenhum usuário encontrado</p>
+            <p className="text-xs text-[#756557] dark:text-[#B5A599]">Cadastre novos operadores ou administradores.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold border-b border-slate-200 dark:border-slate-800">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] text-[11px] font-semibold border-b border-[#EDE5DC] dark:border-[#2A211D]">
                 <tr>
-                  <th className="py-4 px-6">Usuário</th>
-                  <th className="py-4 px-6">Perfil</th>
-                  <th className="py-4 px-6">Status de Acesso</th>
-                  {isMaster && <th className="py-4 px-6">Empresa / Tenant</th>}
-                  <th className="py-4 px-6">Data de Cadastro</th>
-                  <th className="py-4 px-6 text-right">Ações</th>
+                  <th className="py-3.5 px-4">Usuário</th>
+                  <th className="py-3.5 px-4">Perfil</th>
+                  <th className="py-3.5 px-4">Status de Acesso</th>
+                  {isMaster && <th className="py-3.5 px-4">Empresa / Tenant</th>}
+                  <th className="py-3.5 px-4">Data de Cadastro</th>
+                  <th className="py-3.5 px-4 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300 text-xs">
+              <tbody className="divide-y divide-[#EDE5DC]/70 dark:divide-[#2A211D]/70 text-[#1E1611] dark:text-[#F5EFE8]">
                 {filteredUsers.map((u) => {
                   const isCurrent = currentUser && currentUser.id === u.id;
                   const isPending = u.status === 'PENDING_APPROVAL';
@@ -442,90 +443,89 @@ export function Users({ currentUser }: UsersProps) {
                   return (
                     <tr
                       key={u.id}
-                      className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
-                        isPending ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''
+                      className={`hover:bg-[#FAF6F0]/60 dark:hover:bg-[#201814]/60 transition-colors ${
+                        isPending ? 'bg-[#FBF0E6]/40 dark:bg-[#2A1C16]/40' : ''
                       }`}
                     >
-                      <td className="py-4 px-6">
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-9 h-9 rounded-2xl border flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${
+                            className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 ${
                               u.role === 'MASTER'
-                                ? 'bg-amber-50 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/20'
-                                : 'bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400'
+                                ? 'bg-[#FDF0E6] text-[#C85A32] border-[#F5D2BF] dark:bg-[#2A1C16] dark:text-[#F39C74] dark:border-[#4C2D20]'
+                                : 'bg-[#FAF6F0] text-[#1E1611] border-[#EDE5DC] dark:bg-[#15100E] dark:text-[#F5EFE8] dark:border-[#2A211D]'
                             }`}
                           >
-                            {u.role === 'MASTER' ? <Crown className="w-4 h-4 text-amber-500" /> : u.name.charAt(0).toUpperCase()}
+                            {u.role === 'MASTER' ? <Crown className="w-3.5 h-3.5 text-[#C85A32]" /> : u.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                            <div className="font-semibold text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2">
                               <span>{u.name}</span>
                               {isCurrent && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FDF0E6] text-[#C85A32] border border-[#F5D2BF] dark:bg-[#2A1C16] dark:text-[#F39C74] dark:border-[#4C2D20]">
                                   Você
                                 </span>
                               )}
                             </div>
-                            <div className="text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                              <Mail className="w-3 h-3 text-slate-400" /> {u.email}
+                            <div className="text-[#756557] dark:text-[#B5A599] flex items-center gap-1 mt-0.5 text-[11px]">
+                              <Mail className="w-3 h-3 text-[#A09388]" /> {u.email}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-4 px-6 whitespace-nowrap">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         {u.role === 'MASTER' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/80 text-amber-800 dark:text-amber-300 font-black">
-                            <Crown className="w-3 h-3 text-amber-500" /> MASTER
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FDF0E6] text-[#C85A32] border border-[#F5D2BF] dark:bg-[#2A1C16] dark:text-[#F39C74] dark:border-[#4C2D20] font-semibold text-[11px]">
+                            <Crown className="w-3 h-3 text-[#C85A32]" /> MASTER
                           </span>
                         ) : u.role === 'ADMIN' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold">
-                            <ShieldCheck className="w-3 h-3 text-purple-600" /> Administrador
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FAF6F0] text-[#1E1611] border border-[#EDE5DC] dark:bg-[#15100E] dark:text-[#F5EFE8] dark:border-[#2A211D] font-medium text-[11px]">
+                            <ShieldCheck className="w-3 h-3" /> Administrador
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 font-bold">
-                            <UserCheck className="w-3 h-3 text-emerald-600" /> Operador
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FAF6F0] text-[#756557] border border-[#EDE5DC] dark:bg-[#15100E] dark:text-[#B5A599] dark:border-[#2A211D] font-medium text-[11px]">
+                            <UserCheck className="w-3 h-3" /> Operador
                           </span>
                         )}
                       </td>
 
                       {/* Status de Acesso */}
-                      <td className="py-4 px-6 whitespace-nowrap">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         {isPending ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-700">
-                            <Clock className="w-3 h-3 text-amber-600 animate-spin" /> Aguardando Liberação
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FDF0E6] text-[#C85A32] dark:bg-[#2A1C16] dark:text-[#F39C74] border border-[#F5D2BF] dark:border-[#4C2D20] font-medium text-[11px]">
+                            <Clock className="w-3 h-3 text-[#C85A32] animate-spin" /> Aguardando Liberação
                           </span>
                         ) : isBlocked ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-bold border border-rose-300 dark:border-rose-700">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-medium text-[11px]">
                             <Ban className="w-3 h-3 text-rose-600" /> Desativado
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800/60">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-medium text-[11px]">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Ativo
                           </span>
                         )}
                       </td>
 
                       {isMaster && (
-                        <td className="py-4 px-6 text-slate-600 dark:text-slate-400 font-mono whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                        <td className="py-3.5 px-4 text-[#756557] dark:text-[#B5A599] font-mono whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-[10px]">
                             {u.companyId || 'default_company'}
                           </span>
                         </td>
                       )}
 
-                      <td className="py-4 px-6 text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-[#756557] dark:text-[#B5A599] font-mono whitespace-nowrap text-[11px]">
                         {formattedDate}
                       </td>
 
-                      <td className="py-4 px-6 text-right space-x-1.5 whitespace-nowrap">
-                        {/* Quick Master Approval Button */}
+                      <td className="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
                         {isMaster && isPending && (
                           <button
                             onClick={() => handleToggleApproval(u, true)}
-                            disabled={approvingId === u.id}
+                            disabled={approvingId === puId(u)}
                             title="Aprovar e Liberar Acesso"
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm inline-flex items-center gap-1 transition-all"
+                            className="btn-terracotta text-[11px] py-1 px-2.5"
                           >
                             <Check className="w-3 h-3" /> Aprovar
                           </button>
@@ -538,19 +538,19 @@ export function Users({ currentUser }: UsersProps) {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isBlocked
                                 ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950'
-                                : 'text-slate-400 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                : 'text-[#A09388] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40'
                             }`}
                           >
-                            {isBlocked ? <Check className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                            {isBlocked ? <Check className="w-3.5 h-3.5" /> : <Ban className="w-3.5 h-3.5" />}
                           </button>
                         )}
 
                         <button
                           onClick={() => handleOpenModal(u)}
                           title="Editar usuário / Redefinir senha"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-1.5 rounded-lg text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] transition-colors"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
 
                         <button
@@ -565,11 +565,11 @@ export function Users({ currentUser }: UsersProps) {
                           }
                           className={`p-1.5 rounded-lg transition-colors ${
                             isCurrent || u.role === 'MASTER'
-                              ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
-                              : 'text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                              ? 'text-[#A09388]/40 cursor-not-allowed'
+                              : 'text-[#A09388] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40'
                           }`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -597,42 +597,42 @@ export function Users({ currentUser }: UsersProps) {
           />
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
               Nome Completo *
             </label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388]" />
               <input
                 type="text"
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Ex: Carlos Silva"
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+                className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-10 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
               E-mail de Login *
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388]" />
               <input
                 type="email"
                 required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="usuario@enlacecrm.com.br"
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+                className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-10 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
               />
             </div>
           </div>
 
           {/* Role selector */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
               Perfil de Acesso / Permissão *
             </label>
             <div className={`grid gap-3 ${isMaster ? 'grid-cols-3' : 'grid-cols-2'}`}>
@@ -640,18 +640,18 @@ export function Users({ currentUser }: UsersProps) {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, role: 'MASTER' })}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                  className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                     form.role === 'MASTER'
-                      ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 ring-2 ring-amber-500/30'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
+                      ? 'border-[#F5D2BF] bg-[#FDF6F0] text-[#C85A32] dark:border-[#4C2D20] dark:bg-[#2A1C16] dark:text-[#F39C74]'
+                      : 'border-[#EDE5DC] dark:border-[#2A211D] bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599]'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <Crown className="w-5 h-5 text-amber-500" />
-                    {form.role === 'MASTER' && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
+                    <Crown className="w-5 h-5 text-[#C85A32]" />
+                    {form.role === 'MASTER' && <CheckCircle2 className="w-4 h-4 text-[#C85A32]" />}
                   </div>
-                  <div className="font-bold text-xs">MASTER</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                  <div className="font-semibold text-xs text-[#1E1611] dark:text-[#F5EFE8]">MASTER</div>
+                  <div className="text-[10px] text-[#756557] dark:text-[#B5A599] mt-0.5 leading-tight">
                     Acesso global a todas empresas.
                   </div>
                 </button>
@@ -660,18 +660,18 @@ export function Users({ currentUser }: UsersProps) {
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: 'ADMIN' })}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                   form.role === 'ADMIN'
-                    ? 'border-purple-500 bg-purple-50/70 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 ring-2 ring-purple-500/20'
-                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
+                    ? 'border-[#EDE5DC] bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611]'
+                    : 'border-[#EDE5DC] dark:border-[#2A211D] bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <ShieldCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  {form.role === 'ADMIN' && <CheckCircle2 className="w-4 h-4 text-purple-600" />}
+                  <ShieldCheck className="w-5 h-5" />
+                  {form.role === 'ADMIN' && <CheckCircle2 className="w-4 h-4" />}
                 </div>
-                <div className="font-bold text-xs">Administrador</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                <div className="font-semibold text-xs">Administrador</div>
+                <div className="text-[10px] opacity-80 mt-0.5 leading-tight">
                   Acesso a cadastros e automações.
                 </div>
               </button>
@@ -679,18 +679,18 @@ export function Users({ currentUser }: UsersProps) {
               <button
                 type="button"
                 onClick={() => setForm({ ...form, role: 'OPERATOR' })}
-                className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                   form.role === 'OPERATOR'
-                    ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20'
-                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400'
+                    ? 'border-[#EDE5DC] bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611]'
+                    : 'border-[#EDE5DC] dark:border-[#2A211D] bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <UserCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  {form.role === 'OPERATOR' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+                  <UserCheck className="w-5 h-5" />
+                  {form.role === 'OPERATOR' && <CheckCircle2 className="w-4 h-4" />}
                 </div>
-                <div className="font-bold text-xs">Operador</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                <div className="font-semibold text-xs">Operador</div>
+                <div className="text-[10px] opacity-80 mt-0.5 leading-tight">
                   Operação diária de alertas e agenda.
                 </div>
               </button>
@@ -700,13 +700,13 @@ export function Users({ currentUser }: UsersProps) {
           {/* Status selector (Master only) */}
           {isMaster && editingUser && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
                 Status da Conta / Liberação
               </label>
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as any })}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
+                className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
               >
                 <option value="ACTIVE">🟢 Ativo (Acesso Liberado)</option>
                 <option value="PENDING_APPROVAL">⏳ Pendente de Aprovação</option>
@@ -718,31 +718,31 @@ export function Users({ currentUser }: UsersProps) {
           {/* Master Company Tenant Edit */}
           {isMaster && editingUser && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
                 ID da Empresa / Tenant (Controle Master)
               </label>
               <div className="relative">
-                <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A09388]" />
                 <input
                   type="text"
                   value={form.companyId}
                   onChange={(e) => setForm({ ...form, companyId: e.target.value })}
                   placeholder="default_company ou ID da empresa"
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-10 pr-3 text-xs text-slate-900 dark:text-slate-100 font-mono outline-none"
+                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-10 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] font-mono outline-none"
                 />
               </div>
             </div>
           )}
 
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+          <div className="p-4 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] space-y-3">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599]">
                 {editingUser ? 'Redefinir Senha do Usuário' : 'Senha de Acesso *'}
               </label>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#C85A32] dark:text-[#F39C74] font-medium hover:underline flex items-center gap-1"
               >
                 {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 {showPassword ? 'Ocultar' : 'Visualizar'}
@@ -751,43 +751,43 @@ export function Users({ currentUser }: UsersProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required={!editingUser}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder={editingUser ? 'Digitar nova senha' : 'Mínimo 6 dígitos'}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-9 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none font-mono"
+                  className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required={Boolean(form.password)}
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                   placeholder="Confirme a nova senha"
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 pl-9 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none font-mono"
+                  className="w-full bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 pl-9 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <div className="flex justify-end gap-3 pt-3 border-t hairline-border">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="btn-secondary"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50"
+              className="btn-terracotta"
             >
               {saving ? 'Salvando...' : editingUser ? 'Atualizar Usuário' : 'Cadastrar Usuário'}
             </button>
@@ -796,4 +796,8 @@ export function Users({ currentUser }: UsersProps) {
       </Modal>
     </div>
   );
+}
+
+function puId(u: UserType) {
+  return u.id;
 }

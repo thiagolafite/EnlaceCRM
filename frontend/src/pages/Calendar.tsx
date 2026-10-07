@@ -66,17 +66,6 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
   OTHER: 'Familiar',
 };
 
-const RELATIONSHIP_POSSESSIVE: Record<string, string> = {
-  SPOUSE: 'seu(sua) cônjuge',
-  CHILD: 'seu(sua) filho(a)',
-  SON: 'seu filho',
-  DAUGHTER: 'sua filha',
-  MOTHER: 'sua mãe',
-  FATHER: 'seu pai',
-  SIBLING: 'seu(sua) irmão(ã)',
-  OTHER: 'seu familiar',
-};
-
 export interface UnifiedCalendarEvent {
   id: string;
   name: string;
@@ -98,77 +87,23 @@ export interface UnifiedCalendarEvent {
   rawDateObject?: CommemorativeDate;
 }
 
-function parseDayAndMonth(dateStr: string | Date | null | undefined): { day: number; month: number } | null {
-  if (!dateStr) return null;
-  try {
-    const str = typeof dateStr === 'string' ? dateStr : dateStr.toISOString();
-    const cleanDate = str.split('T')[0];
-    const parts = cleanDate.split('-');
-    if (parts.length === 3) {
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-      if (!isNaN(day) && !isNaN(month)) {
-        return { day, month };
-      }
-    }
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) {
-      return { day: d.getUTCDate(), month: d.getUTCMonth() + 1 };
-    }
-  } catch (err) {
-    console.error('Erro ao fazer parse de data:', dateStr, err);
-  }
-  return null;
-}
-
-function interpolateMessage(
-  templateText: string,
-  data: {
-    nome_cliente?: string;
-    primeiro_nome?: string;
-    nome_familiar?: string;
-    nome_homenageado?: string;
-    primeiro_nome_homenageado?: string;
-    parentesco?: string;
-    parentesco_possessivo?: string;
-    nome_empresa?: string;
-    ano_atual?: string;
-  }
-): string {
-  let result = templateText;
-  const company = data.nome_empresa || 'Enlace CRM';
-  const currentYear = data.ano_atual || String(new Date().getFullYear());
-
-  result = result.replace(/\{\{nome_cliente\}\}/g, data.nome_cliente || 'Cliente');
-  result = result.replace(/\{\{primeiro_nome\}\}/g, data.primeiro_nome || data.nome_cliente?.split(' ')[0] || 'Cliente');
-  result = result.replace(/\{\{nome_familiar\}\}/g, data.nome_familiar || data.nome_homenageado || 'seu familiar');
-  result = result.replace(/\{\{nome_homenageado\}\}/g, data.nome_homenageado || data.nome_familiar || 'Homenageado');
-  result = result.replace(/\{\{primeiro_nome_homenageado\}\}/g, data.primeiro_nome_homenageado || data.nome_homenageado?.split(' ')[0] || 'Homenageado');
-  result = result.replace(/\{\{parentesco\}\}/g, data.parentesco || 'familiar');
-  result = result.replace(/\{\{parentesco_possessivo\}\}/g, data.parentesco_possessivo || 'seu familiar');
-  result = result.replace(/\{\{nome_empresa\}\}/g, company);
-  result = result.replace(/\{\{ano_atual\}\}/g, currentYear);
-  return result;
-}
-
 export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   const [dates, setDates] = useState<CommemorativeDate[]>([]);
+  const [upcoming, setUpcoming] = useState<UpcomingEvent[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
-  const [upcoming, setUpcoming] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'year' | 'agenda' | 'fixed'>(defaultTab);
-  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
-  const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'BIRTHDAYS' | 'FIXED'>('ALL');
+  const [selectedTab, setSelectedTab] = useState<'year' | 'fixed' | 'agenda'>(defaultTab);
 
   // Estados de Erro Direcionais
   const [pageError, setPageError] = useState<{ message: string; solution?: string } | null>(null);
   const [modalError, setModalError] = useState<{ message: string; solution?: string } | null>(null);
 
-  // Copy Feedback
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  // Filtros do Calendário Anual
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'BIRTHDAYS' | 'FIXED'>('ALL');
 
-  // Modal para criar/editar data fixa
+  // Modal State para Criar/Editar Data Comemorativa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDate, setEditingDate] = useState<CommemorativeDate | null>(null);
   const [form, setForm] = useState({
@@ -178,54 +113,43 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     year: '',
     description: '',
     category: 'FIXED',
-    targetAudience: 'ALL_CLIENTS',
+    targetAudience: 'ALL',
     active: true,
   });
 
-  // Modal de Envio Rápido de Aniversário (Item 3)
-  const [selectedBirthday, setSelectedBirthday] = useState<UnifiedCalendarEvent | null>(null);
+  // Modal State para Enviar Mensagem de Aniversário (Facilitador do Item 3)
   const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
+  const [selectedBirthday, setSelectedBirthday] = useState<UnifiedCalendarEvent | null>(null);
   const [birthdayChannel, setBirthdayChannel] = useState<'WHATSAPP' | 'EMAIL'>('WHATSAPP');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Modal de Disparo de Feriado / Data Fixa com Seleção de Clientes (Item 4)
-  const [selectedHoliday, setSelectedHoliday] = useState<CommemorativeDate | null>(null);
+  // Modal State para Disparo em Massa de Feriado/Data Comemorativa (Facilitador do Item 4)
   const [isHolidayBroadcastModalOpen, setIsHolidayBroadcastModalOpen] = useState(false);
+  const [selectedHoliday, setSelectedHoliday] = useState<CommemorativeDate | null>(null);
   const [holidayChannel, setHolidayChannel] = useState<'WHATSAPP' | 'EMAIL'>('WHATSAPP');
   const [holidayAudienceFilter, setHolidayAudienceFilter] = useState<AudienceFilterKey>('AUTO');
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [holidaySearch, setHolidaySearch] = useState('');
 
-  useEffect(() => {
-    if (defaultTab) {
-      setSelectedTab(defaultTab);
-    }
-  }, [defaultTab]);
-
   const loadData = async () => {
     try {
       setLoading(true);
       setPageError(null);
-      const [datesData, upcomingData, clientsRes, tplsData] = await Promise.all([
+      const [datesData, upcomingData, clientsData, templatesData] = await Promise.all([
         api.getDates(),
         api.getUpcomingEvents(60),
-        api.getClients({ limit: 1000 }),
+        api.getClients({ status: 'ACTIVE' }),
         api.getTemplates(),
       ]);
       setDates(Array.isArray(datesData) ? datesData : []);
       setUpcoming(Array.isArray(upcomingData) ? upcomingData : []);
-      setTemplates(Array.isArray(tplsData) ? tplsData : []);
-
-      const clientsList = Array.isArray(clientsRes)
-        ? clientsRes
-        : (clientsRes as any)?.data && Array.isArray((clientsRes as any).data)
-        ? (clientsRes as any).data
-        : [];
-      setClients(clientsList);
+      setClients(Array.isArray(clientsData) ? clientsData : []);
+      setTemplates(Array.isArray(templatesData) ? templatesData : []);
     } catch (err: any) {
       console.error('Erro ao carregar dados do calendário:', err);
       setPageError({
         message: err.message || 'Erro ao carregar dados do calendário.',
-        solution: err.solution || 'Verifique sua conexão de rede ou tente recarregar a página.',
+        solution: err.solution || 'Verifique sua conexão e tente novamente.',
       });
     } finally {
       setLoading(false);
@@ -236,38 +160,39 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     loadData();
   }, []);
 
-  // Mesclar todas as datas comemorativas fixas + aniversários de clientes e familiares
+  // Construir lista unificada de eventos para os 12 meses
   const unifiedEvents: UnifiedCalendarEvent[] = [];
 
-  // 1. Inserir Datas Comemorativas Fixas
   dates.forEach((d) => {
-    unifiedEvents.push({
-      id: d.id,
-      name: d.name,
-      day: d.day,
-      month: d.month,
-      year: d.year,
-      category: d.category as any,
-      targetAudience: d.targetAudience,
-      description: d.description,
-      active: d.active,
-      isCustomDate: true,
-      rawDateObject: d,
-    });
+    if (d.active !== false) {
+      unifiedEvents.push({
+        id: `date-${d.id}`,
+        name: d.name,
+        day: d.day,
+        month: d.month,
+        year: d.year,
+        category: (d.category as any) || 'FIXED',
+        targetAudience: d.targetAudience || 'ALL',
+        description: d.description,
+        active: d.active,
+        isCustomDate: true,
+        rawDateObject: d,
+      });
+    }
   });
 
-  // 2. Inserir Aniversários de Clientes (Cadastrados Automaticamente)
   clients.forEach((c) => {
     if (c.birthDate) {
-      const parsed = parseDayAndMonth(c.birthDate);
-      if (parsed) {
+      const parts = c.birthDate.split('T')[0].split('-');
+      if (parts.length >= 3) {
+        const bMonth = Number(parts[1]);
+        const bDay = Number(parts[2]);
         unifiedEvents.push({
-          id: `client-${c.id}`,
-          name: `Aniversário de ${c.name}`,
-          day: parsed.day,
-          month: parsed.month,
+          id: `client-bday-${c.id}`,
+          name: `Aniversário: ${c.name}`,
+          day: bDay,
+          month: bMonth,
           category: 'CLIENT_BIRTHDAY',
-          description: `Cliente Titular ${c.companyName ? `• ${c.companyName}` : ''}`,
           clientId: c.id,
           clientName: c.name,
           phone: c.phone,
@@ -276,20 +201,20 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       }
     }
 
-    // 3. Inserir Aniversários dos Familiares do Cliente
-    if (c.familyMembers && Array.isArray(c.familyMembers)) {
+    if (Array.isArray(c.familyMembers)) {
       c.familyMembers.forEach((fm) => {
         if (fm.birthDate) {
-          const parsedFm = parseDayAndMonth(fm.birthDate);
-          if (parsedFm) {
-            const relText = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
+          const parts = fm.birthDate.split('T')[0].split('-');
+          if (parts.length >= 3) {
+            const bMonth = Number(parts[1]);
+            const bDay = Number(parts[2]);
+            const relLabel = RELATIONSHIP_LABELS[fm.relationship] || 'Familiar';
             unifiedEvents.push({
-              id: `family-${fm.id}`,
-              name: `Aniversário de ${fm.name} (${relText})`,
-              day: parsedFm.day,
-              month: parsedFm.month,
+              id: `family-bday-${fm.id}`,
+              name: `${fm.name} (${relLabel})`,
+              day: bDay,
+              month: bMonth,
               category: 'FAMILY_BIRTHDAY',
-              description: `Familiar do cliente ${c.name}`,
               clientId: c.id,
               clientName: c.name,
               familyMemberId: fm.id,
@@ -304,50 +229,46 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     }
   });
 
-  const handleOpenModal = (item?: CommemorativeDate, defaultMonth?: number, defaultDay?: number) => {
+  const handleOpenModal = (dateToEdit?: CommemorativeDate, prefillMonth?: number, prefillDay?: number) => {
     setModalError(null);
-    if (item) {
-      setEditingDate(item);
+    if (dateToEdit) {
+      setEditingDate(dateToEdit);
       setForm({
-        name: item.name,
-        day: item.day,
-        month: item.month,
-        year: item.year ? String(item.year) : '',
-        description: item.description || '',
-        category: item.category,
-        targetAudience: item.targetAudience,
-        active: item.active,
+        name: dateToEdit.name,
+        day: dateToEdit.day,
+        month: dateToEdit.month,
+        year: dateToEdit.year ? String(dateToEdit.year) : '',
+        description: dateToEdit.description || '',
+        category: dateToEdit.category,
+        targetAudience: dateToEdit.targetAudience || 'ALL',
+        active: dateToEdit.active !== false,
       });
     } else {
       setEditingDate(null);
       setForm({
         name: '',
-        day: defaultDay || new Date().getDate(),
-        month: defaultMonth || new Date().getMonth() + 1,
+        day: prefillDay || 1,
+        month: prefillMonth || 1,
         year: '',
         description: '',
         category: 'FIXED',
-        targetAudience: 'ALL_CLIENTS',
+        targetAudience: 'ALL',
         active: true,
       });
     }
     setIsModalOpen(true);
   };
 
-  // Abrir Modal de Envio Rápido de Aniversário (Item 3)
   const handleOpenBirthdayModal = (event: UnifiedCalendarEvent) => {
     setSelectedBirthday(event);
     setBirthdayChannel('WHATSAPP');
     setIsBirthdayModalOpen(true);
   };
 
-  // Abrir Modal de Disparo de Feriado / Data Fixa (Item 4) com Filtro Inteligente de Público e Destinatários
   const handleOpenHolidayBroadcastModal = (dateObj: CommemorativeDate) => {
     setSelectedHoliday(dateObj);
     setHolidayChannel('WHATSAPP');
     setHolidayAudienceFilter('AUTO');
-
-    // Auto-detectar público-alvo da data e selecionar apenas os destinatários correspondentes
     const detected = detectCommemorativeAudience(dateObj);
     const eligible = getEligibleBroadcastRecipients(clients, 'AUTO', detected.key);
     setSelectedClientIds(eligible.map((r) => r.id));
@@ -403,7 +324,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     } catch (err: any) {
       setPageError({
         message: err.message || 'Erro ao excluir data comemorativa.',
-        solution: err.solution || 'Verifique se a data ainda existe e se você possui permissão de administrador.',
+        solution: err.solution || 'Verifique se você possui permissão de administrador.',
       });
     }
   };
@@ -414,9 +335,8 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  // Helper para gerar a matriz de dias de um mês específico
   const getMonthMatrix = (year: number, monthIndex: number) => {
-    const firstDay = new Date(year, monthIndex, 1).getDay(); // 0 = Domingo
+    const firstDay = new Date(year, monthIndex, 1).getDay();
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
 
     const days: Array<{ day: number | null }> = [];
@@ -433,49 +353,49 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     switch (category) {
       case 'CLIENT_BIRTHDAY':
         return {
-          badge: 'bg-amber-500 text-white shadow-amber-500/40 ring-2 ring-amber-300',
-          card: 'bg-amber-50/95 text-amber-950 dark:bg-amber-950/70 dark:text-amber-200 border-amber-300 dark:border-amber-700/80',
-          dot: 'bg-amber-500',
-          tag: '🎂 Aniversário de Cliente',
+          badge: 'bg-[#C85A32] text-white',
+          card: 'bg-[#FDF6F0] text-[#B84E29] dark:bg-[#2D1A14] dark:text-[#F39C74] border-[#F6D5C2] dark:border-[#522F22]',
+          dot: 'bg-[#C85A32]',
+          tag: '🎂 Aniversário Cliente',
           icon: Cake,
         };
       case 'FAMILY_BIRTHDAY':
         return {
-          badge: 'bg-rose-500 text-white shadow-rose-500/40 ring-2 ring-rose-300',
-          card: 'bg-rose-50/95 text-rose-950 dark:bg-rose-950/70 dark:text-rose-200 border-rose-300 dark:border-rose-700/80',
-          dot: 'bg-rose-500',
-          tag: '💐 Aniversário de Familiar',
+          badge: 'bg-[#E07A5F] text-white',
+          card: 'bg-[#FDF2EC] text-[#B84E29] dark:bg-[#2A1C16] dark:text-[#F39C74] border-[#F5D2BF] dark:border-[#4C2D20]',
+          dot: 'bg-[#E07A5F]',
+          tag: '💐 Aniversário Familiar',
           icon: Heart,
         };
       case 'FIXED':
         return {
-          badge: 'bg-purple-600 text-white shadow-purple-600/30',
-          card: 'bg-purple-50/90 text-purple-950 dark:bg-purple-950/70 dark:text-purple-200 border-purple-200 dark:border-purple-800/80',
-          dot: 'bg-purple-600',
+          badge: 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611]',
+          card: 'bg-[#FAF6F0] text-[#1E1611] dark:bg-[#1A1513] dark:text-[#F5EFE8] border-[#EDE5DC] dark:border-[#2A211D]',
+          dot: 'bg-[#1E1611] dark:bg-[#FAF6F0]',
           tag: 'Feriado Nacional',
           icon: Star,
         };
       case 'CULTURAL':
         return {
-          badge: 'bg-indigo-600 text-white shadow-indigo-600/30',
-          card: 'bg-indigo-50/90 text-indigo-950 dark:bg-indigo-950/70 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800/80',
-          dot: 'bg-indigo-600',
-          tag: 'Comemorativa / Cultural',
+          badge: 'bg-[#756557] text-white',
+          card: 'bg-[#FAF6F0] text-[#756557] dark:bg-[#1A1513] dark:text-[#B5A599] border-[#EDE5DC] dark:border-[#2A211D]',
+          dot: 'bg-[#756557]',
+          tag: 'Cultural / Celebrativa',
           icon: Sparkles,
         };
       case 'CORPORATE':
         return {
-          badge: 'bg-emerald-600 text-white shadow-emerald-600/30',
-          card: 'bg-emerald-50/90 text-emerald-950 dark:bg-emerald-950/70 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800/80',
-          dot: 'bg-emerald-600',
-          tag: 'Corporativa / Clientes',
+          badge: 'bg-[#2C5282] text-white',
+          card: 'bg-[#EEF3F8] text-[#2C5282] dark:bg-[#172230] dark:text-[#7EB0D5] border-[#CFDDE8] dark:border-[#2B3E55]',
+          dot: 'bg-[#2C5282]',
+          tag: 'Corporativa',
           icon: Briefcase,
         };
       default:
         return {
-          badge: 'bg-slate-700 text-white shadow-slate-700/30',
-          card: 'bg-slate-50 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700',
-          dot: 'bg-slate-600',
+          badge: 'bg-[#756557] text-white',
+          card: 'bg-[#FAF6F0] text-[#756557] dark:bg-[#1A1513] dark:text-[#B5A599] border-[#EDE5DC] dark:border-[#2A211D]',
+          dot: 'bg-[#756557]',
           tag: 'Geral',
           icon: CalendarIcon,
         };
@@ -486,7 +406,6 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     (e) => e.category === 'CLIENT_BIRTHDAY' || e.category === 'FAMILY_BIRTHDAY'
   ).length;
 
-  // Obter texto renderizado de mensagem de aniversário
   const getBirthdayRenderedMessage = (event: UnifiedCalendarEvent, channel: 'WHATSAPP' | 'EMAIL') => {
     const isClient = event.category === 'CLIENT_BIRTHDAY';
     const eventType = isClient ? 'CLIENT_BIRTHDAY' : 'FAMILY_BIRTHDAY';
@@ -499,42 +418,32 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     const birthdayFirstName = birthdayPersonName.split(' ')[0];
 
     const defaultContent = isClient
-      ? channel === 'WHATSAPP'
-        ? `Olá, ${birthdayFirstName}! 🎉🎂\n\nHoje é um dia muito especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, com muita saúde, paz, prosperidade e momentos inesquecíveis.\n\nÉ um imenso privilégio ter você como nosso cliente. Parabéns pelo seu dia! ✨🎈`
-        : `Prezado(a) ${birthdayPersonName},\n\nHoje é um dia de celebração! 🎂✨\n\nToda a equipe da {{nome_empresa}} deseja a você um Feliz Aniversário, com muita saúde e realizações!\n\nAtenciosamente,\nEquipe {{nome_empresa}}`
-      : channel === 'WHATSAPP'
-      ? `Olá, ${birthdayFirstName}! 💐🎂\n\nHoje é o seu dia especial! Toda a equipe da {{nome_empresa}} deseja a você um feliz aniversário, com muita saúde, paz, alegria e momentos inesquecíveis!\n\nQue seu novo ciclo seja repleto de celebrações e carinho ao lado de toda a sua família. Parabéns pelo seu dia! ✨🎈`
-      : `Prezada(o) ${birthdayPersonName},\n\nHoje é um dia de muita celebração! 🎂✨\n\nToda a equipe da {{nome_empresa}} deseja a você um Feliz Aniversário, com muita saúde, paz e realizações ao lado de toda a família!\n\nCordialmente,\nEquipe {{nome_empresa}}`;
+      ? `Olá, ${birthdayFirstName}! 🎉🎂\n\nToda a equipe da {{nome_empresa}} deseja a você um Feliz Aniversário! Que seu novo ciclo seja repleto de saúde, realizações e prosperidade.\n\nUm grande abraço!`
+      : `Olá, ${event.clientName || 'Cliente'}! 🎉\n\nSoubemos que hoje é o aniversário de ${event.relationship ? RELATIONSHIP_LABELS[event.relationship]?.toLowerCase() || 'seu familiar' : 'alguém especial'}, ${event.familyMemberName || 'seu familiar'}!\n\nA equipe da {{nome_empresa}} deseja muitas felicidades e momentos de celebração em família!\n\nUm grande abraço!`;
+
+    const defaultSubject = isClient
+      ? `🎉 Feliz Aniversário, ${birthdayFirstName}! — {{nome_empresa}}`
+      : `🎉 Felicitações de Aniversário — {{nome_empresa}}`;
 
     const rawContent = matchedTpl?.content || defaultContent;
-    const rawSubject = matchedTpl?.subject || `🎉 Feliz Aniversário, ${birthdayFirstName}! — {{nome_empresa}}`;
+    const rawSubject = matchedTpl?.subject || defaultSubject;
 
-    const renderedBody = interpolateMessage(rawContent, {
-      nome_cliente: event.clientName || 'Cliente',
-      primeiro_nome: birthdayFirstName,
-      nome_familiar: event.familyMemberName || 'Familiar',
-      nome_homenageado: birthdayPersonName,
-      primeiro_nome_homenageado: birthdayFirstName,
-      parentesco: event.relationship ? RELATIONSHIP_LABELS[event.relationship] : 'familiar',
-      parentesco_possessivo: event.relationship ? RELATIONSHIP_POSSESSIVE[event.relationship] : 'seu familiar',
-      nome_empresa: 'Enlace CRM',
-      ano_atual: String(currentYear),
-    });
+    const interpolate = (str: string) => {
+      return str
+        .replace(/\{\{nome_cliente\}\}/gi, event.clientName || '')
+        .replace(/\{\{primeiro_nome\}\}/gi, (event.clientName || '').split(' ')[0] || '')
+        .replace(/\{\{nome_familiar\}\}/gi, event.familyMemberName || '')
+        .replace(/\{\{parentesco\}\}/gi, event.relationship ? RELATIONSHIP_LABELS[event.relationship] || '' : '')
+        .replace(/\{\{nome_empresa\}\}/gi, 'Enlace CRM')
+        .replace(/\{\{ano_atual\}\}/gi, String(currentYear));
+    };
 
-    const renderedSubject = interpolateMessage(rawSubject, {
-      nome_cliente: event.clientName || 'Cliente',
-      primeiro_nome: birthdayFirstName,
-      nome_familiar: event.familyMemberName || 'Familiar',
-      nome_homenageado: birthdayPersonName,
-      primeiro_nome_homenageado: birthdayFirstName,
-      nome_empresa: 'Enlace CRM',
-      ano_atual: String(currentYear),
-    });
-
-    return { subject: renderedSubject, body: renderedBody };
+    return {
+      subject: interpolate(rawSubject),
+      body: interpolate(rawContent),
+    };
   };
 
-  // Obter texto renderizado de mensagem de Feriado / Data Comemorativa Fixa para um Destinatário (Cliente ou Familiar)
   const getHolidayRenderedMessage = (
     holiday: CommemorativeDate,
     recipient: BroadcastRecipient,
@@ -542,9 +451,9 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
   ) => {
     const matchedTpl = templates.find(
       (t) =>
-        t.eventType === 'FIXED_DATE' &&
         t.channel === channel &&
-        (t.commemorativeDateId === holiday.id || t.name.toLowerCase().includes(holiday.name.toLowerCase()))
+        ((t.commemorativeDateId && t.commemorativeDateId === holiday.id) ||
+          t.eventType === 'FIXED_DATE')
     );
 
     const targetFirstName = recipient.targetName.split(' ')[0];
@@ -558,48 +467,30 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         channel === 'WHATSAPP'
           ? `Olá, ${targetFirstName}! ✨\n\nNeste(a) *${holiday.name}*, a equipe da {{nome_empresa}} deseja a você muitas felicidades, reconhecimento e um dia maravilhoso!\n\nUm grande abraço!`
           : `Prezada(o) ${recipient.targetName},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} deseja a você um excelente dia, com harmonia e realizações.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
-    } else if (recipient.isDirectContact) {
-      // Familiar com WhatsApp/contato direto
-      defaultContent =
-        channel === 'WHATSAPP'
-          ? `Olá, ${targetFirstName}! ✨\n\nNeste(a) *${holiday.name}*, a equipe da {{nome_empresa}} deseja a você um dia especial, repleto de homenagens, saúde e alegrias!\n\nParabéns pelo seu dia!`
-          : `Prezada(o) ${recipient.targetName},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} envia a você votos de muita saúde, paz e realizações.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
     } else {
-      // Familiar sem WhatsApp cadastrado (enviando pelo WhatsApp do cliente titular)
       defaultContent =
         channel === 'WHATSAPP'
-          ? `Olá, ${clientFirstName}! ✨\n\nNeste(a) *${holiday.name}*, a equipe da {{nome_empresa}} pede licença para enviar um carinhoso abraço e felicitações especiais para sua *${recipient.relationshipLabel.toLowerCase()}*, *${recipient.targetName}*! 🎉\n\nQue a família de vocês tenha um dia muito especial!`
+          ? `Olá, ${clientFirstName}! ✨\n\nNeste(a) *${holiday.name}*, a equipe da {{nome_empresa}} envia um carinhoso abraço e felicitações especiais para sua *${recipient.relationshipLabel.toLowerCase()}*, *${recipient.targetName}*! 🎉\n\nQue a família de vocês tenha um dia muito especial!`
           : `Prezado(a) ${recipient.clientName},\n\nEm celebração ao(à) ${holiday.name}, a {{nome_empresa}} envia votos afetuosos para sua ${recipient.relationshipLabel.toLowerCase()}, ${recipient.targetName}.\n\nCordialmente,\nEquipe {{nome_empresa}}`;
-      defaultSubject = `🌟 Feliz ${holiday.name} para sua ${recipient.relationshipLabel} — {{nome_empresa}}`;
     }
 
     const rawContent = matchedTpl?.content || defaultContent;
     const rawSubject = matchedTpl?.subject || defaultSubject;
 
-    const renderedBody = interpolateMessage(rawContent, {
-      nome_cliente: recipient.clientName,
-      primeiro_nome: clientFirstName,
-      nome_homenageado: recipient.targetName,
-      primeiro_nome_homenageado: targetFirstName,
-      parentesco: recipient.relationshipLabel,
-      nome_empresa: 'Enlace CRM',
-      ano_atual: String(currentYear),
-    });
+    const interpolate = (str: string) => {
+      return str
+        .replace(/\{\{nome_cliente\}\}/gi, recipient.clientName)
+        .replace(/\{\{primeiro_nome\}\}/gi, clientFirstName)
+        .replace(/\{\{nome_homenageado\}\}/gi, recipient.targetName)
+        .replace(/\{\{primeiro_nome_homenageado\}\}/gi, targetFirstName)
+        .replace(/\{\{parentesco\}\}/gi, recipient.relationshipLabel)
+        .replace(/\{\{nome_empresa\}\}/gi, 'Enlace CRM')
+        .replace(/\{\{ano_atual\}\}/gi, String(currentYear));
+    };
 
-    const renderedSubject = interpolateMessage(rawSubject, {
-      nome_cliente: recipient.clientName,
-      primeiro_nome: clientFirstName,
-      nome_homenageado: recipient.targetName,
-      primeiro_nome_homenageado: targetFirstName,
-      parentesco: recipient.relationshipLabel,
-      nome_empresa: 'Enlace CRM',
-      ano_atual: String(currentYear),
-    });
-
-    return { subject: renderedSubject, body: renderedBody };
+    return { subject: interpolate(rawSubject), body: interpolate(rawContent) };
   };
 
-  // Disparar WhatsApp Web / App
   const handleOpenWhatsApp = (phone: string, text: string) => {
     let clean = phone.replace(/\D/g, '');
     if (!clean.startsWith('55') && clean.length <= 11) {
@@ -609,23 +500,19 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     window.open(url, '_blank');
   };
 
-  // Disparar Cliente de E-mail
   const handleOpenEmail = (email: string, subject: string, body: string) => {
     const mailto = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailto, '_blank');
   };
 
-  // Detecção de público-alvo da data selecionada
   const detectedHolidayAudience = selectedHoliday ? detectCommemorativeAudience(selectedHoliday) : null;
   
-  // Obter destinatários elegíveis para o público ativo
   const audienceEligibleRecipients = getEligibleBroadcastRecipients(
     clients,
     holidayAudienceFilter,
     detectedHolidayAudience?.key
   );
 
-  // Filtrar destinatários na modal de feriado (combinando público-alvo e texto de busca)
   const filteredBroadcastRecipients = audienceEligibleRecipients.filter((r) => {
     if (!holidaySearch) return true;
     const s = holidaySearch.toLowerCase();
@@ -665,45 +552,46 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         onRetry={loadData}
       />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
+      {/* Header Editorial */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+          <p className="text-[10px] font-mono uppercase tracking-wider text-[#A09388] mb-0.5">CALENDÁRIO & EVENTOS</p>
+          <h1 className="text-2xl lg:text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] font-normal tracking-tight">
             Calendário & Datas Comemorativas
-          </h2>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+          </h1>
+          <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1">
             Feriados nacionais, datas comemorativas e aniversários integrados
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="bg-[#F4F4F2] dark:bg-[#1C1C20] p-0.5 rounded-lg flex items-center text-xs font-medium">
+          <div className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] p-1 rounded-full flex items-center text-xs font-medium">
             <button
               onClick={() => setSelectedTab('year')}
-              className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
                 selectedTab === 'year'
-                  ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
-                  : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599] dark:hover:text-[#F5EFE8]'
               }`}
             >
               <CalendarIcon className="w-3.5 h-3.5" /> Calendário Anual
             </button>
             <button
               onClick={() => setSelectedTab('agenda')}
-              className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
                 selectedTab === 'agenda'
-                  ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
-                  : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599] dark:hover:text-[#F5EFE8]'
               }`}
             >
               <Clock className="w-3.5 h-3.5" /> Agenda 60 Dias
             </button>
             <button
               onClick={() => setSelectedTab('fixed')}
-              className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
                 selectedTab === 'fixed'
-                  ? 'bg-white dark:bg-[#141416] text-[#18181B] dark:text-[#EDEDEA] shadow-subtle'
-                  : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599] dark:hover:text-[#F5EFE8]'
               }`}
             >
               <List className="w-3.5 h-3.5" /> Datas Fixas ({dates.length})
@@ -712,7 +600,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
           <button
             onClick={() => handleOpenModal()}
-            className="btn-primary"
+            className="btn-terracotta"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Nova Data</span>
@@ -721,48 +609,48 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       </div>
 
       {/* ==================================================================== */}
-      {/* 1. VISÃO: CALENDÁRIO ANUAL DOS 12 MESES (COM BOTÕES FACILITADORES) */}
+      {/* 1. VISÃO: CALENDÁRIO ANUAL DOS 12 MESES */}
       {/* ==================================================================== */}
       {selectedTab === 'year' && (
         <div className="space-y-4">
           {/* Year Navigator, Filters & Legend */}
-          <div className="p-3 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle flex flex-col lg:flex-row items-center justify-between gap-3">
+          <div className="card-warm p-4 flex flex-col lg:flex-row items-center justify-between gap-3">
             {/* Year Controls */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentYear((prev) => prev - 1)}
-                className="p-1.5 rounded-md border border-[#E7E7E4] dark:border-[#26262B] hover:bg-[#F4F4F2] text-stone-600 dark:text-stone-300 transition-colors"
+                className="p-1.5 rounded-lg border border-[#EDE5DC] dark:border-[#2A211D] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] text-[#756557] dark:text-[#B5A599] transition-colors"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-base font-semibold text-[#18181B] dark:text-[#EDEDEA] px-1 font-mono">
+              <span className="text-lg font-serif text-[#1E1611] dark:text-[#F5EFE8] px-2 font-normal">
                 {currentYear}
               </span>
               <button
                 onClick={() => setCurrentYear((prev) => prev + 1)}
-                className="p-1.5 rounded-md border border-[#E7E7E4] dark:border-[#26262B] hover:bg-[#F4F4F2] text-stone-600 dark:text-stone-300 transition-colors"
+                className="p-1.5 rounded-lg border border-[#EDE5DC] dark:border-[#2A211D] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] text-[#756557] dark:text-[#B5A599] transition-colors"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
 
               <button
                 onClick={() => loadData()}
                 title="Atualizar dados do calendário"
-                className="p-1.5 rounded-md text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
+                className="p-1.5 rounded-lg text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] transition-colors ml-1"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
             {/* Event Category Filter Buttons */}
-            <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100/80 dark:bg-obsidian-950/80 border border-slate-200/60 dark:border-white/[0.04] text-xs">
+            <div className="flex items-center gap-1.5 p-1 rounded-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs">
               <button
                 type="button"
                 onClick={() => setCategoryFilter('ALL')}
-                className={`px-3 py-1.5 rounded-xl font-black transition-all ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   categoryFilter === 'ALL'
-                    ? 'bg-white dark:bg-obsidian-850 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                    : 'text-slate-500 dark:text-slate-400'
+                    ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle'
+                    : 'text-[#756557] dark:text-[#B5A599]'
                 }`}
               >
                 Todas ({unifiedEvents.length})
@@ -770,10 +658,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 type="button"
                 onClick={() => setCategoryFilter('BIRTHDAYS')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                   categoryFilter === 'BIRTHDAYS'
-                    ? 'bg-amber-500 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-amber-600'
+                    ? 'bg-[#C85A32] text-white shadow-subtle'
+                    : 'text-[#756557] dark:text-[#B5A599] hover:text-[#C85A32]'
                 }`}
               >
                 🎂 Aniversários ({totalBirthdaysCount})
@@ -781,10 +669,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 type="button"
                 onClick={() => setCategoryFilter('FIXED')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   categoryFilter === 'FIXED'
-                    ? 'bg-purple-600 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-purple-600'
+                    ? 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611] shadow-subtle'
+                    : 'text-[#756557] dark:text-[#B5A599]'
                 }`}
               >
                 📅 Feriados & Fixas ({dates.length})
@@ -792,25 +680,24 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             </div>
 
             {/* Legenda de Categorias */}
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-              <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-200 dark:border-amber-800">
-                <span className="w-2 h-2 rounded-full bg-amber-500 shadow-xs"></span> Aniversários de Clientes
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
+              <span className="flex items-center gap-1.5 text-[#B84E29] dark:text-[#F39C74] bg-[#FDF6F0] dark:bg-[#2D1A14] px-2.5 py-0.5 rounded-full border border-[#F6D5C2] dark:border-[#522F22]">
+                <span className="w-2 h-2 rounded-full bg-[#C85A32]"></span> Clientes
               </span>
-              <span className="flex items-center gap-1.5 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-lg border border-rose-200 dark:border-rose-800">
-                <span className="w-2 h-2 rounded-full bg-rose-500 shadow-xs"></span> Familiares
+              <span className="flex items-center gap-1.5 text-[#B84E29] dark:text-[#F39C74] bg-[#FDF2EC] dark:bg-[#2A1C16] px-2.5 py-0.5 rounded-full border border-[#F5D2BF] dark:border-[#4C2D20]">
+                <span className="w-2 h-2 rounded-full bg-[#E07A5F]"></span> Familiares
               </span>
-              <span className="flex items-center gap-1.5 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border border-purple-200 dark:border-purple-800">
-                <span className="w-2 h-2 rounded-full bg-purple-600 shadow-xs"></span> Feriados / Fixas
+              <span className="flex items-center gap-1.5 text-[#756557] dark:text-[#B5A599] bg-[#FAF6F0] dark:bg-[#1A1513] px-2.5 py-0.5 rounded-full border border-[#EDE5DC] dark:border-[#2A211D]">
+                <span className="w-2 h-2 rounded-full bg-[#1E1611] dark:bg-[#FAF6F0]"></span> Feriados
               </span>
             </div>
           </div>
 
-          {/* Grade dos 12 Meses (3x4 ou 4x3) */}
+          {/* Grade dos 12 Meses */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {MONTHS_PT.map((monthName, monthIndex) => {
               const monthNum = monthIndex + 1;
 
-              // Filtrar eventos do mês atual
               const monthEvents = unifiedEvents
                 .filter((d) => {
                   if (d.month !== monthNum) return false;
@@ -830,27 +717,27 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               return (
                 <div
                   key={monthName}
-                  className="p-4 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm flex flex-col justify-between transition-all group"
+                  className="card-warm p-4 flex flex-col justify-between transition-all group hover:border-[#DFCFC0]"
                 >
                   <div>
                     {/* Month Header */}
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
-                      <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
+                    <div className="flex items-center justify-between border-b hairline-border pb-2.5 mb-3">
+                      <h3 className="text-base font-serif text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#C85A32]"></span>
                         {monthName}
                       </h3>
 
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] border border-[#EDE5DC] dark:border-[#2A211D]">
                         {monthEvents.length} evento{monthEvents.length === 1 ? '' : 's'}
                       </span>
                     </div>
 
                     {/* Mini Calendar Grid Matrix */}
-                    <div className="mb-3 bg-slate-50 dark:bg-slate-950/70 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                    <div className="mb-3 bg-[#FAF6F0] dark:bg-[#15100E] p-2.5 rounded-2xl border border-[#EDE5DC] dark:border-[#2A211D]">
                       {/* Weekday headers */}
-                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1">
+                      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-[#A09388] mb-1">
                         {WEEKDAYS_SHORT.map((wd, i) => (
-                          <span key={i} className={i === 0 ? 'text-rose-400' : ''}>
+                          <span key={i} className={i === 0 ? 'text-[#C85A32]' : ''}>
                             {wd}
                           </span>
                         ))}
@@ -891,12 +778,12 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                                   ? `${cell.day}/${monthNum} - ${hasEvent.name}`
                                   : `Criar data em ${cell.day}/${monthNum}`
                               }
-                              className={`h-6 w-full rounded-md text-[11px] font-bold flex items-center justify-center transition-all ${
+                              className={`h-6 w-full rounded-md text-[11px] font-medium flex items-center justify-center transition-all ${
                                 hasEvent && theme
-                                  ? `${theme.badge} shadow-xs hover:scale-110 font-extrabold`
+                                  ? `${theme.badge} shadow-xs font-semibold scale-105`
                                   : isToday
-                                  ? 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300 border border-amber-300'
-                                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                                  ? 'bg-[#FDF0E6] dark:bg-[#2A1C16] text-[#C85A32] dark:text-[#F39C74] border border-[#F5D2BF] dark:border-[#4C2D20] font-bold'
+                                  : 'text-[#1E1611] dark:text-[#F5EFE8] hover:bg-white dark:hover:bg-[#201814]'
                               }`}
                             >
                               {cell.day}
@@ -908,12 +795,12 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
                     {/* Preenchimento das Comemorações & Aniversários do Mês */}
                     <div className="space-y-2">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-[#A09388]">
                         Comemorações de {monthName}:
                       </div>
 
                       {monthEvents.length === 0 ? (
-                        <div className="text-xs text-slate-400 italic py-2 text-center">
+                        <div className="text-xs text-[#A09388] italic py-2 text-center">
                           Nenhum evento neste mês.
                         </div>
                       ) : (
@@ -933,15 +820,15 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                                     handleOpenHolidayBroadcastModal(evt.rawDateObject);
                                   }
                                 }}
-                                className={`w-full p-2 rounded-xl border text-left text-xs transition-all hover:scale-[1.01] flex items-start gap-2 shadow-xs ${theme.card} group/btn`}
+                                className={`w-full p-2.5 rounded-2xl border text-left text-xs transition-all flex items-start gap-2 shadow-subtle ${theme.card} group/btn`}
                               >
-                                <span className="font-mono font-black text-[11px] shrink-0 bg-white/80 dark:bg-slate-900/90 px-1.5 py-0.5 rounded-lg border border-current shadow-xs">
+                                <span className="font-mono font-bold text-[11px] shrink-0 bg-white/90 dark:bg-[#1A1513]/90 px-1.5 py-0.5 rounded-lg border border-current">
                                   {String(evt.day).padStart(2, '0')}
                                 </span>
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-bold truncate text-[11px] flex items-center justify-between gap-1">
+                                  <div className="font-semibold truncate text-[11px] flex items-center justify-between gap-1">
                                     <span className="truncate">{evt.name}</span>
-                                    <span className="shrink-0 text-[10px] opacity-0 group-hover/btn:opacity-100 transition-opacity text-indigo-600 dark:text-indigo-400 font-extrabold">
+                                    <span className="shrink-0 text-[10px] opacity-0 group-hover/btn:opacity-100 transition-opacity text-[#C85A32] font-semibold">
                                       {isBirthday ? 'Enviar ➔' : 'Disparo ➔'}
                                     </span>
                                   </div>
@@ -956,11 +843,11 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                   </div>
 
                   {/* Add event button inside month */}
-                  <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                  <div className="mt-3 pt-2 border-t hairline-border flex justify-end">
                     <button
                       type="button"
                       onClick={() => handleOpenModal(undefined, monthNum)}
-                      className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                      className="text-[11px] font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1"
                     >
                       <Plus className="w-3 h-3" /> Adicionar em {monthName}
                     </button>
@@ -973,18 +860,18 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       )}
 
       {/* ==================================================================== */}
-      {/* 2. VISÃO: AGENDA PRÓXIMOS 60 DIAS (LINHA DO TEMPO) */}
+      {/* 2. VISÃO: AGENDA PRÓXIMOS 60 DIAS */}
       {/* ==================================================================== */}
       {selectedTab === 'agenda' && (
-        <div className="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4 transition-colors">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Linha do Tempo de Felicitações (Próximos 60 Dias)
+        <div className="card-warm p-6 space-y-4">
+          <h3 className="text-xl font-serif text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2 font-normal">
+            <Clock className="w-5 h-5 text-[#C85A32]" /> Linha do Tempo de Felicitações (Próximos 60 Dias)
           </h3>
 
           {loading ? (
-            <div className="py-12 text-center text-slate-400">Calculando datas e aniversários...</div>
+            <div className="py-12 text-center text-[#A09388] text-xs">Calculando datas e aniversários...</div>
           ) : upcoming.length === 0 ? (
-            <div className="py-12 text-center text-slate-400">Nenhum evento previsto para os próximos 60 dias.</div>
+            <div className="py-12 text-center text-[#A09388] text-xs">Nenhum evento previsto para os próximos 60 dias.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {upcoming.map((evt, idx) => {
@@ -992,18 +879,18 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 return (
                   <div
                     key={idx}
-                    className={`p-4 rounded-2xl border transition-all ${
+                    className={`p-4 rounded-3xl border transition-all ${
                       evt.isToday
-                        ? 'bg-indigo-50 dark:bg-gradient-to-br dark:from-indigo-950/80 dark:to-slate-900 border-indigo-300 dark:border-indigo-500/50 shadow-md'
-                        : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                        ? 'bg-[#FBF0E6] dark:bg-[#2A1C16] border-[#F5D2BF] dark:border-[#4C2D20] shadow-panel'
+                        : 'bg-[#FAF6F0] dark:bg-[#15100E] border-[#EDE5DC] dark:border-[#2A211D] hover:border-[#DFCFC0]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="text-center w-14 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
-                        <span className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">
+                      <div className="text-center w-14 py-2 rounded-2xl bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] shadow-subtle shrink-0">
+                        <span className="block text-[10px] font-mono text-[#C85A32] uppercase">
                           {MONTHS_PT[evt.month - 1].substring(0, 3)}
                         </span>
-                        <span className="block text-lg font-extrabold text-slate-900 dark:text-white">
+                        <span className="block text-lg font-serif text-[#1E1611] dark:text-[#F5EFE8]">
                           {String(evt.day).padStart(2, '0')}
                         </span>
                       </div>
@@ -1012,16 +899,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                         <div className="flex items-center gap-1.5 mb-1">
                           <EventTypeBadge type={evt.type} />
                         </div>
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{evt.title}</h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{evt.subtitle}</p>
+                        <h4 className="text-sm font-semibold text-[#1E1611] dark:text-[#F5EFE8] truncate">{evt.title}</h4>
+                        <p className="text-xs text-[#756557] dark:text-[#B5A599] truncate mt-0.5">{evt.subtitle}</p>
                       </div>
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                      <span className="text-slate-600 dark:text-slate-400 font-semibold">
+                    <div className="mt-3 pt-3 border-t hairline-border flex items-center justify-between text-xs">
+                      <span className="text-[#1E1611] dark:text-[#F5EFE8] font-medium">
                         {evt.isToday ? '🔥 Acontece Hoje!' : `Em ${evt.daysRemaining} dias`}
                       </span>
-                      <span className="text-[11px] text-indigo-600 dark:text-indigo-300 font-bold">
+                      <span className="text-[11px] text-[#C85A32] dark:text-[#F39C74] font-medium">
                         {isBirthday ? 'Aniversário' : 'Data Fixa'}
                       </span>
                     </div>
@@ -1034,7 +921,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       )}
 
       {/* ==================================================================== */}
-      {/* 3. VISÃO: LISTA DE DATAS FIXAS CADASTRADAS (CARDS) */}
+      {/* 3. VISÃO: LISTA DE DATAS FIXAS CADASTRADAS */}
       {/* ==================================================================== */}
       {selectedTab === 'fixed' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1043,15 +930,15 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             return (
               <div
                 key={item.id}
-                className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all flex flex-col justify-between"
+                className="card-warm p-5 hover:border-[#DFCFC0] transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between mb-3">
-                    <div className="text-center w-12 py-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                      <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">
+                    <div className="text-center w-12 py-1.5 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D]">
+                      <span className="block text-[10px] font-mono text-[#A09388] uppercase">
                         {MONTHS_PT[item.month - 1].substring(0, 3)}
                       </span>
-                      <span className="block text-base font-extrabold text-indigo-600 dark:text-indigo-400">
+                      <span className="block text-base font-serif text-[#C85A32] dark:text-[#F39C74]">
                         {String(item.day).padStart(2, '0')}
                       </span>
                     </div>
@@ -1060,21 +947,21 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                       <button
                         onClick={() => handleOpenHolidayBroadcastModal(item)}
                         title="Disparar para Clientes"
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300"
+                        className="p-1.5 text-[#A09388] hover:text-[#C85A32] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] rounded-lg transition-colors"
                       >
                         <Send className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleOpenModal(item)}
                         title="Editar data"
-                        className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300"
+                        className="p-1.5 text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] rounded-lg transition-colors"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id, item.name)}
                         title="Excluir data"
-                        className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
+                        className="p-1.5 text-[#A09388] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1082,31 +969,31 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                   </div>
 
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${theme.card}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium ${theme.card}`}>
                       {theme.tag}
                     </span>
                   </div>
 
-                  <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{item.name}</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                  <h4 className="text-base font-serif text-[#1E1611] dark:text-[#F5EFE8]">{item.name}</h4>
+                  <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1 line-clamp-2">
                     {item.description || 'Sem descrição informada.'}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
+                <div className="mt-4 pt-3 border-t hairline-border flex items-center justify-between text-xs text-[#756557] dark:text-[#B5A599]">
                   <button
                     type="button"
                     onClick={() => handleOpenHolidayBroadcastModal(item)}
-                    className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 text-xs"
+                    className="font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1 text-xs"
                   >
                     <Send className="w-3.5 h-3.5" /> Disparar para Clientes
                   </button>
 
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium ${
                       item.active
-                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                        : 'bg-[#FAF6F0] dark:bg-[#15100E] text-[#A09388] border border-[#EDE5DC] dark:border-[#2A211D]'
                     }`}
                   >
                     {item.active ? 'Ativa' : 'Inativa'}
@@ -1136,7 +1023,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           />
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
               Nome da Data *
             </label>
             <input
@@ -1145,13 +1032,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Ex: Dia das Mães, Dia do Cliente, Natal"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Dia *</label>
+              <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Dia *</label>
               <input
                 type="number"
                 min="1"
@@ -1159,16 +1046,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 required
                 value={form.day}
                 onChange={(e) => setForm({ ...form, day: Number(e.target.value) })}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+                className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Mês *</label>
+              <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Mês *</label>
               <select
                 value={form.month}
                 onChange={(e) => setForm({ ...form, month: Number(e.target.value) })}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+                className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
               >
                 {MONTHS_PT.map((m, i) => (
                   <option key={i} value={i + 1}>
@@ -1180,13 +1067,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
               Categoria
             </label>
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
             >
               <option value="FIXED">Feriado Nacional / Oficial</option>
               <option value="CULTURAL">Comemorativa / Familiar / Cultural</option>
@@ -1195,26 +1082,26 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Ano Específico (Opcional - deixe vazio para recorrente anual)
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
+              Ano Específico (Opcional - deixe vazio para todos os anos)
             </label>
             <input
               type="number"
               value={form.year}
               onChange={(e) => setForm({ ...form, year: e.target.value })}
-              placeholder="Ex: 2026 (ou em branco para todos os anos)"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              placeholder="Ex: 2026"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Descrição</label>
             <textarea
               rows={2}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Votos e contexto da celebração..."
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none transition-colors"
             />
           </div>
 
@@ -1224,24 +1111,24 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               id="activeDate"
               checked={form.active}
               onChange={(e) => setForm({ ...form, active: e.target.checked })}
-              className="w-4 h-4 rounded text-indigo-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+              className="w-4 h-4 rounded text-[#C85A32] bg-[#FAF6F0] dark:bg-[#15100E] border-[#EDE5DC] dark:border-[#2A211D]"
             />
-            <label htmlFor="activeDate" className="text-xs text-slate-700 dark:text-slate-300 cursor-pointer font-semibold">
+            <label htmlFor="activeDate" className="text-xs text-[#1E1611] dark:text-[#F5EFE8] cursor-pointer font-medium">
               Data comemorativa ativa no motor de automação
             </label>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t hairline-border">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300"
+              className="btn-secondary"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30"
+              className="btn-terracotta"
             >
               {editingDate ? 'Atualizar Data' : 'Salvar Data'}
             </button>
@@ -1250,7 +1137,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       </Modal>
 
       {/* ==================================================================== */}
-      {/* MODAL 2: ENVIAR MENSAGEM DE ANIVERSÁRIO (FACILITADOR WHATSAPP & E-MAIL - ITEM 3) */}
+      {/* MODAL 2: ENVIAR MENSAGEM DE ANIVERSÁRIO */}
       {/* ==================================================================== */}
       <Modal
         isOpen={isBirthdayModalOpen}
@@ -1267,16 +1154,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
           return (
             <div className="space-y-4">
               {/* Header do aniversariante */}
-              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 flex items-center justify-between gap-3">
+              <div className="p-4 rounded-3xl bg-[#FBF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-extrabold text-xl shrink-0 shadow-md shadow-amber-500/30">
+                  <div className="w-11 h-11 rounded-2xl bg-[#C85A32] text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-subtle">
                     🎂
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-base text-slate-900 dark:text-white">
+                    <h4 className="font-serif text-base text-[#1E1611] dark:text-[#F5EFE8]">
                       {selectedBirthday.name}
                     </h4>
-                    <p className="text-xs text-amber-800 dark:text-amber-300 font-semibold">
+                    <p className="text-xs text-[#B84E29] dark:text-[#F39C74] font-medium">
                       Dia {String(selectedBirthday.day).padStart(2, '0')} de {MONTHS_PT[selectedBirthday.month - 1]}
                       {selectedBirthday.clientName && ` • Cliente: ${selectedBirthday.clientName}`}
                     </p>
@@ -1284,14 +1171,14 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 </div>
 
                 {/* Channel Selector */}
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/80">
+                <div className="flex items-center gap-1 p-1 rounded-full bg-white dark:bg-[#1A1513] border border-[#F5D2BF] dark:border-[#4C2D20]">
                   <button
                     type="button"
                     onClick={() => setBirthdayChannel('WHATSAPP')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                       birthdayChannel === 'WHATSAPP'
-                        ? 'bg-emerald-500 text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                        ? 'bg-[#C85A32] text-white shadow-subtle'
+                        : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
                     }`}
                   >
                     <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
@@ -1299,10 +1186,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                   <button
                     type="button"
                     onClick={() => setBirthdayChannel('EMAIL')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                       birthdayChannel === 'EMAIL'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                        ? 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611] shadow-subtle'
+                        : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
                     }`}
                   >
                     <Mail className="w-3.5 h-3.5" /> E-mail
@@ -1312,37 +1199,37 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
               {/* Subject if email */}
               {birthdayChannel === 'EMAIL' && (
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
-                  <strong className="text-slate-500">Assunto:</strong>{' '}
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{msg.subject}</span>
+                <div className="p-3 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs">
+                  <strong className="text-[#756557] dark:text-[#B5A599]">Assunto:</strong>{' '}
+                  <span className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{msg.subject}</span>
                 </div>
               )}
 
               {/* Message Preview Box */}
               <div>
                 <div className="flex items-center justify-between mb-1 text-xs">
-                  <span className="font-bold text-slate-600 dark:text-slate-400">Mensagem Pronta:</span>
+                  <span className="font-medium text-[#756557] dark:text-[#B5A599]">Mensagem Pronta:</span>
                   <button
                     type="button"
                     onClick={() => handleCopyText(msg.body, 'bday-copy')}
-                    className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1"
+                    className="text-[#C85A32] dark:text-[#F39C74] font-medium hover:underline flex items-center gap-1"
                   >
-                    {copiedId === 'bday-copy' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedId === 'bday-copy' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiedId === 'bday-copy' ? 'Copiado!' : 'Copiar Texto'}
                   </button>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line font-mono leading-relaxed max-h-60 overflow-y-auto">
+                <div className="p-4 rounded-3xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs text-[#1E1611] dark:text-[#F5EFE8] whitespace-pre-line font-mono leading-relaxed max-h-60 overflow-y-auto">
                   {msg.body}
                 </div>
               </div>
 
               {/* Quick Action Buttons */}
-              <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t hairline-border">
                 <button
                   type="button"
                   onClick={() => setIsBirthdayModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300"
+                  className="btn-secondary"
                 >
                   Fechar
                 </button>
@@ -1352,7 +1239,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     type="button"
                     disabled={!hasPhone}
                     onClick={() => handleOpenWhatsApp(selectedBirthday.phone!, msg.body)}
-                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
+                    className="btn-terracotta disabled:opacity-50"
                   >
                     <MessageCircle className="w-4 h-4" />
                     {hasPhone ? `Enviar no WhatsApp (${selectedBirthday.phone})` : 'Telefone não informado'}
@@ -1362,7 +1249,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     type="button"
                     disabled={!hasEmail}
                     onClick={() => handleOpenEmail(selectedBirthday.email!, msg.subject, msg.body)}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
+                    className="btn-primary disabled:opacity-50"
                   >
                     <Mail className="w-4 h-4" />
                     {hasEmail ? `Enviar E-mail (${selectedBirthday.email})` : 'E-mail não informado'}
@@ -1375,7 +1262,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
       </Modal>
 
       {/* ==================================================================== */}
-      {/* MODAL 3: DISPARO DE FERIADO / DATA FIXA COM SELEÇÃO DE CLIENTES (ITEM 4) */}
+      {/* MODAL 3: DISPARO DE FERIADO / DATA FIXA */}
       {/* ==================================================================== */}
       <Modal
         isOpen={isHolidayBroadcastModalOpen}
@@ -1387,25 +1274,25 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
         {selectedHoliday && (
           <div className="space-y-4">
             {/* Header info & channel switcher */}
-            <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 rounded-3xl bg-[#FBF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#C85A32] dark:text-[#F39C74]">
                   Data Comemorativa / Feriado
                 </span>
-                <h4 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                  <Star className="w-4 h-4 text-purple-600" /> {selectedHoliday.name} (Dia {String(selectedHoliday.day).padStart(2, '0')}/{String(selectedHoliday.month).padStart(2, '0')})
+                <h4 className="font-serif text-base text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-2">
+                  <Star className="w-4 h-4 text-[#C85A32]" /> {selectedHoliday.name} (Dia {String(selectedHoliday.day).padStart(2, '0')}/{String(selectedHoliday.month).padStart(2, '0')})
                 </h4>
               </div>
 
               {/* Channel Selector */}
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800/80">
+              <div className="flex items-center gap-1 p-1 rounded-full bg-white dark:bg-[#1A1513] border border-[#F5D2BF] dark:border-[#4C2D20]">
                 <button
                   type="button"
                   onClick={() => setHolidayChannel('WHATSAPP')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                     holidayChannel === 'WHATSAPP'
-                      ? 'bg-emerald-500 text-white shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                      ? 'bg-[#C85A32] text-white shadow-subtle'
+                      : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
                   }`}
                 >
                   <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
@@ -1413,10 +1300,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 <button
                   type="button"
                   onClick={() => setHolidayChannel('EMAIL')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                     holidayChannel === 'EMAIL'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                      ? 'bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611] shadow-subtle'
+                      : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
                   }`}
                 >
                   <Mail className="w-3.5 h-3.5" /> E-mail
@@ -1426,16 +1313,16 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
             {/* Smart Audience Filter Banner */}
             {detectedHolidayAudience && (
-              <div className={`p-3.5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 ${detectedHolidayAudience.badgeColor}`}>
+              <div className="p-3.5 rounded-2xl border border-[#F5D2BF] dark:border-[#4C2D20] bg-[#FAF6F0] dark:bg-[#15100E] flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-xl shrink-0">{detectedHolidayAudience.iconText}</span>
                   <div>
-                    <div className="text-xs font-black flex items-center gap-1.5">
+                    <div className="text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8] flex items-center gap-1.5">
                       <span>Filtro Automático de Público:</span>
-                      <span className="underline underline-offset-2">{detectedHolidayAudience.label}</span>
+                      <span className="underline underline-offset-2 text-[#C85A32] dark:text-[#F39C74]">{detectedHolidayAudience.label}</span>
                       <span className="text-[11px] font-normal opacity-80">({audienceEligibleRecipients.length} homenageados elegíveis)</span>
                     </div>
-                    <p className="text-[11px] opacity-90 mt-0.5">
+                    <p className="text-[11px] text-[#756557] dark:text-[#B5A599] mt-0.5">
                       {detectedHolidayAudience.description}
                     </p>
                   </div>
@@ -1443,13 +1330,13 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
 
                 {/* Audience Switcher Dropdown */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <label className="text-[11px] font-bold opacity-80 flex items-center gap-1">
+                  <label className="text-[11px] font-medium text-[#756557] dark:text-[#B5A599] flex items-center gap-1">
                     <Filter className="w-3 h-3" /> Filtrar:
                   </label>
                   <select
                     value={holidayAudienceFilter}
                     onChange={(e) => handleAudienceFilterChange(e.target.value as any)}
-                    className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl py-1 px-2.5 text-xs font-bold text-slate-800 dark:text-slate-200 outline-none shadow-xs"
+                    className="bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1 px-2.5 text-xs font-medium text-[#1E1611] dark:text-[#F5EFE8] outline-none"
                   >
                     <option value="AUTO">🤖 Automático ({detectedHolidayAudience.label})</option>
                     <option value="MOTHERS_ONLY">🌸 Apenas Mães</option>
@@ -1470,40 +1357,40 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                 <button
                   type="button"
                   onClick={handleToggleSelectAllRecipients}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+                  className="px-3 py-1.5 rounded-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8] transition-colors"
                 >
                   {filteredBroadcastRecipients.length > 0 &&
                   filteredBroadcastRecipients.every((r) => selectedClientIds.includes(r.id))
                     ? 'Desmarcar Filtrados'
                     : 'Selecionar Filtrados'}
                 </button>
-                <span className="text-xs font-bold text-slate-500">
+                <span className="text-xs font-mono text-[#756557] dark:text-[#B5A599]">
                   {selectedClientIds.length} selecionado(s) de {filteredBroadcastRecipients.length} homenageado(s)
                 </span>
               </div>
 
               {/* Search recipients */}
               <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
                 <input
                   type="text"
                   value={holidaySearch}
                   onChange={(e) => setHolidaySearch(e.target.value)}
                   placeholder="Buscar familiar ou cliente..."
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
+                  className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] rounded-xl py-1.5 pl-8 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
                 />
               </div>
             </div>
 
             {/* Recipients Table with Individual Sending Action */}
-            <div className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden max-h-80 overflow-y-auto">
+            <div className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] rounded-3xl overflow-hidden max-h-80 overflow-y-auto">
               {filteredBroadcastRecipients.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 space-y-1">
-                  <p className="font-bold text-slate-600 dark:text-slate-300">Nenhum homenageado atende aos critérios do filtro atual.</p>
+                <div className="p-8 text-center text-xs text-[#A09388] space-y-1">
+                  <p className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">Nenhum homenageado atende aos critérios do filtro atual.</p>
                   <p className="text-[11px]">Você pode alterar a opção de público no seletor acima ou cadastrar novos contatos.</p>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
+                <div className="divide-y divide-[#EDE5DC]/70 dark:divide-[#2A211D]/70">
                   {filteredBroadcastRecipients.map((recipient) => {
                     const isSelected = selectedClientIds.includes(recipient.id);
                     const msg = getHolidayRenderedMessage(selectedHoliday, recipient, holidayChannel);
@@ -1514,7 +1401,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                       <div
                         key={recipient.id}
                         className={`p-3.5 flex items-center justify-between gap-3 transition-colors ${
-                          isSelected ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : 'opacity-60'
+                          isSelected ? 'bg-[#FBF0E6]/60 dark:bg-[#2A1C16]/60' : 'opacity-60'
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
@@ -1522,28 +1409,28 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleRecipient(recipient.id)}
-                            className="w-4 h-4 rounded text-indigo-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 cursor-pointer shrink-0"
+                            className="w-4 h-4 rounded text-[#C85A32] bg-white dark:bg-[#1A1513] border-[#EDE5DC] dark:border-[#2A211D] cursor-pointer shrink-0"
                           />
                           <div className="min-w-0">
-                            <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5 flex-wrap">
+                            <div className="font-semibold text-xs text-[#1E1611] dark:text-[#F5EFE8] truncate flex items-center gap-1.5 flex-wrap">
                               <span>{recipient.targetName}</span>
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${recipient.badgeColor || 'bg-indigo-100 text-indigo-800'}`}>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FDF2EC] text-[#B84E29] border border-[#F6D5C2] dark:bg-[#2D1A14] dark:text-[#F39C74] dark:border-[#522F22]">
                                 {recipient.matchReason}
                               </span>
                             </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                            <div className="text-[11px] text-[#756557] dark:text-[#B5A599] truncate mt-0.5">
                               {recipient.type === 'FAMILY_MEMBER' ? (
                                 <span>
-                                  Familiar de <strong className="font-semibold text-slate-700 dark:text-slate-300">{recipient.clientName}</strong>
+                                  Familiar de <strong className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{recipient.clientName}</strong>
                                   {' • '}
                                   {recipient.isDirectContact ? (
-                                    <span>WhatsApp Direto: {recipient.phone}</span>
+                                    <span className="font-mono">WhatsApp Direto: {recipient.phone}</span>
                                   ) : (
-                                    <span>Enviar via {recipient.clientName} ({recipient.phone || 'Sem Telefone'})</span>
+                                    <span className="font-mono">Enviar via {recipient.clientName} ({recipient.phone || 'Sem Telefone'})</span>
                                   )}
                                 </span>
                               ) : (
-                                <span>
+                                <span className="font-mono">
                                   Cliente Titular • {holidayChannel === 'WHATSAPP' ? recipient.phone || 'Sem WhatsApp' : recipient.email || 'Sem E-mail'}
                                 </span>
                               )}
@@ -1557,10 +1444,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                             type="button"
                             onClick={() => handleCopyText(msg.body, `h-${recipient.id}`)}
                             title="Copiar mensagem"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1.5 rounded-lg text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-white dark:hover:bg-[#1A1513] transition-colors"
                           >
                             {copiedId === `h-${recipient.id}` ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-500" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
                             ) : (
                               <Copy className="w-3.5 h-3.5" />
                             )}
@@ -1571,7 +1458,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               type="button"
                               disabled={!hasPhone}
                               onClick={() => handleOpenWhatsApp(recipient.phone!, msg.body)}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-[11px] font-bold text-white shadow-md shadow-emerald-600/20 flex items-center gap-1 transition-all disabled:opacity-40"
+                              className="px-3 py-1.5 rounded-full bg-[#C85A32] hover:bg-[#B34A24] text-[11px] font-medium text-white shadow-subtle flex items-center gap-1 transition-all disabled:opacity-40"
                             >
                               <MessageCircle className="w-3.5 h-3.5" /> Enviar WhatsApp
                             </button>
@@ -1580,7 +1467,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                               type="button"
                               disabled={!hasEmail}
                               onClick={() => handleOpenEmail(recipient.email!, msg.subject, msg.body)}
-                              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-[11px] font-bold text-white shadow-md shadow-indigo-600/20 flex items-center gap-1 transition-all disabled:opacity-40"
+                              className="px-3 py-1.5 rounded-full bg-[#1E1611] hover:bg-[#2F241F] dark:bg-[#FAF6F0] dark:text-[#1E1611] text-[11px] font-medium text-[#FAF6F0] shadow-subtle flex items-center gap-1 transition-all disabled:opacity-40"
                             >
                               <Mail className="w-3.5 h-3.5" /> Enviar E-mail
                             </button>
@@ -1594,7 +1481,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
             </div>
 
             {/* Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t hairline-border">
               <button
                 type="button"
                 onClick={() => {
@@ -1607,10 +1494,10 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
                     .join('\n');
                   handleCopyText(allMsgs, 'copy-all-broadcast');
                 }}
-                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                className="text-xs font-medium text-[#C85A32] dark:text-[#F39C74] hover:underline flex items-center gap-1"
               >
                 {copiedId === 'copy-all-broadcast' ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
@@ -1622,7 +1509,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
               <button
                 type="button"
                 onClick={() => setIsHolidayBroadcastModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300"
+                className="btn-secondary"
               >
                 Concluir
               </button>

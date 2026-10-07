@@ -4,45 +4,49 @@
 
 @layer base {
   body {
-    @apply bg-[#FBFBFA] text-[#18181B] dark:bg-[#0D0D0E] dark:text-[#EDEDEA] transition-colors duration-150 antialiased font-sans;
-    letter-spacing: -0.011em;
+    @apply bg-[#FAF6F0] text-[#1E1611] dark:bg-[#120F0D] dark:text-[#F5EFE8] transition-colors duration-150 antialiased font-sans;
+    letter-spacing: -0.015em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight text-[#18181B] dark:text-[#EDEDEA];
+    @apply tracking-tight text-[#1E1611] dark:text-[#F5EFE8];
   }
 }
 
 @layer utilities {
-  /* Minimalist Studio Cards */
-  .studio-card {
-    @apply bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] rounded-2xl shadow-subtle transition-all duration-150;
+  /* Warm Editorial Studio Cards */
+  .studio-card, .card-warm {
+    @apply bg-white dark:bg-[#1A1513] border border-[#EDE5DC] dark:border-[#2A211D] rounded-3xl shadow-subtle transition-all duration-150;
   }
 
-  .studio-card-interactive {
-    @apply studio-card hover:border-[#D4D4D0] dark:hover:border-[#383840] hover:shadow-panel;
+  .studio-card-interactive, .card-warm-interactive {
+    @apply studio-card hover:border-[#DFCFC0] dark:hover:border-[#3D3028] hover:shadow-panel;
+  }
+
+  .card-peach {
+    @apply bg-[#FBF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] rounded-3xl shadow-subtle transition-all duration-150;
   }
 
   /* Hairline Dividers */
   .hairline-border {
-    @apply border-[#E7E7E4] dark:border-[#26262B];
+    @apply border-[#EDE5DC] dark:border-[#2A211D];
   }
 
   .hairline-divider {
-    @apply border-t border-[#E7E7E4] dark:border-[#26262B];
+    @apply border-t border-[#EDE5DC] dark:border-[#2A211D];
   }
 
-  /* Studio Button Presets */
+  /* Button Presets */
   .btn-primary {
-    @apply bg-[#18181B] text-white hover:bg-[#27272A] dark:bg-[#EDEDEA] dark:text-[#18181B] dark:hover:bg-[#FFFFFF] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5;
+    @apply bg-[#1E1611] text-[#FAF6F0] hover:bg-[#33261F] dark:bg-[#F5EFE8] dark:text-[#1E1611] dark:hover:bg-[#FFFFFF] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5;
   }
 
   .btn-secondary {
-    @apply bg-white dark:bg-[#1A1A1E] text-[#18181B] dark:text-[#EDEDEA] hover:bg-[#F4F4F2] dark:hover:bg-[#242429] border border-[#E7E7E4] dark:border-[#26262B] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
+    @apply bg-white dark:bg-[#221B17] text-[#1E1611] dark:text-[#F5EFE8] hover:bg-[#F8F2EA] dark:hover:bg-[#2B231E] border border-[#EDE5DC] dark:border-[#2A211D] font-medium text-xs py-2 px-3.5 rounded-xl transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
   }
 
   .btn-terracotta {
-    @apply bg-[#ea580c] text-white hover:bg-[#c2410c] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
+    @apply bg-[#C85A32] text-white hover:bg-[#B34A24] font-medium text-xs py-2 px-3.5 rounded-xl shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 inline-flex items-center justify-center gap-1.5;
   }
 }
 

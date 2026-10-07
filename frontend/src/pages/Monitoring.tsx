@@ -145,9 +145,9 @@ export function Monitoring({ currentUser }: MonitoringProps) {
         };
       case 'SECURITY':
         return {
-          badge: 'bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+          badge: 'bg-[#FDF0E6] dark:bg-[#2A1C16] text-[#C85A32] dark:text-[#F39C74] border-[#F5D2BF] dark:border-[#4C2D20]',
           icon: ShieldAlert,
-          color: 'text-purple-600',
+          color: 'text-[#C85A32]',
         };
       case 'WARN':
         return {
@@ -157,9 +157,9 @@ export function Monitoring({ currentUser }: MonitoringProps) {
         };
       default:
         return {
-          badge: 'bg-sky-50 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+          badge: 'bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] border-[#EDE5DC] dark:border-[#2A211D]',
           icon: Activity,
-          color: 'text-sky-600',
+          color: 'text-[#756557]',
         };
     }
   };
@@ -173,11 +173,11 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   if (!isMaster) {
     return (
       <div className="py-20 text-center space-y-4 max-w-md mx-auto">
-        <div className="w-16 h-16 rounded-3xl bg-rose-50 dark:bg-rose-950 border border-rose-200 dark:border-rose-800 flex items-center justify-center mx-auto text-rose-600">
+        <div className="w-16 h-16 rounded-3xl bg-[#FDF0E6] dark:bg-[#2A1C16] border border-[#F5D2BF] dark:border-[#4C2D20] flex items-center justify-center mx-auto text-[#C85A32]">
           <Lock className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-black text-slate-900 dark:text-white">Acesso Restrito ao Usuário Master</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <h2 className="text-xl font-serif text-[#1E1611] dark:text-[#F5EFE8]">Acesso Restrito ao Usuário Master</h2>
+        <p className="text-xs text-[#756557] dark:text-[#B5A599]">
           O painel de monitoramento de infraestrutura e logs de segurança é restrito a administradores Master globais.
         </p>
       </div>
@@ -185,7 +185,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <ErrorBanner
         error={error?.message || null}
         solution={error?.solution}
@@ -195,24 +195,25 @@ export function Monitoring({ currentUser }: MonitoringProps) {
 
       {/* Toast de Confirmação */}
       {actionSuccessMessage && (
-        <div className="p-3 rounded-xl bg-[#18181B] dark:bg-[#EDEDEA] text-white dark:text-[#18181B] font-medium text-xs flex items-center gap-2 shadow-subtle animate-in fade-in">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
+        <div className="p-3.5 rounded-2xl bg-[#1E1611] dark:bg-[#FAF6F0] text-[#FAF6F0] dark:text-[#1E1611] font-medium text-xs flex items-center gap-2 shadow-dropdown animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
           <span>{actionSuccessMessage}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
+      {/* Header Editorial */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
-              Auditoria de Segurança & Logs (SOC)
-            </h2>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[#A09388]">INFRAESTRUTURA & AUDITORIA</p>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#1E1611] text-[#FAF6F0] dark:bg-[#FAF6F0] dark:text-[#1E1611]">
               Master
             </span>
           </div>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+          <h1 className="text-2xl lg:text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] font-normal tracking-tight mt-0.5">
+            Auditoria de Segurança & Logs (SOC)
+          </h1>
+          <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1">
             Monitoramento de erros de sistema, auditoria de acessos e integridade do banco de dados
           </p>
         </div>
@@ -223,7 +224,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             disabled={simulating}
             className="btn-secondary"
           >
-            <ShieldAlert className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            <ShieldAlert className="w-3.5 h-3.5 text-[#C85A32]" />
             <span>Simular Alerta</span>
           </button>
 
@@ -232,13 +233,13 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             disabled={simulating}
             className="btn-secondary"
           >
-            <Flame className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+            <Flame className="w-3.5 h-3.5 text-rose-600" />
             <span>Simular Erro</span>
           </button>
 
           <button
             onClick={handleRefresh}
-            className="btn-primary"
+            className="btn-terracotta"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             <span>Atualizar</span>
@@ -250,90 +251,90 @@ export function Monitoring({ currentUser }: MonitoringProps) {
       {metrics && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Erros 24h */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div className="card-warm p-5 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Erros (Últimas 24h)</span>
-              <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#A09388]">Erros (Últimas 24h)</span>
+              <div className="text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] mt-1">
                 {metrics.counts.errors24h}
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+              <span className="text-[11px] text-[#756557] dark:text-[#B5A599] flex items-center gap-1 mt-0.5">
                 {metrics.counts.errors24h === 0 ? (
-                  <span className="text-emerald-500 font-bold flex items-center gap-1">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" /> Sistema estável sem erros
                   </span>
                 ) : (
-                  <span className="text-rose-500 font-bold">Atenção a falhas recentes</span>
+                  <span className="text-rose-600 font-medium">Atenção a falhas recentes</span>
                 )}
               </span>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800 text-rose-600 flex items-center justify-center font-bold">
-              <Flame className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800 text-rose-600 flex items-center justify-center font-bold">
+              <Flame className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 2: Segurança */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div className="card-peach p-5 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Auditoria & Segurança (24h)</span>
-              <div className="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#B84E29] dark:text-[#F39C74]">Auditoria & Segurança (24h)</span>
+              <div className="text-3xl font-serif text-[#C85A32] dark:text-[#F39C74] mt-1">
                 {metrics.counts.securityIncidents24h}
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+              <span className="text-[11px] text-[#756557] dark:text-[#B5A599] mt-0.5 block">
                 Tentativas de login e acessos
               </span>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-600 flex items-center justify-center font-bold">
-              <ShieldAlert className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl bg-[#FDF6F0] dark:bg-[#1A1513] border border-[#F5D2BF] dark:border-[#4C2D20] text-[#C85A32] flex items-center justify-center font-bold">
+              <ShieldAlert className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 3: Supabase Latency */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div className="card-warm p-5 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Banco de Dados (Supabase)</span>
-              <div className="text-2xl font-black text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#A09388]">Banco de Dados (Supabase)</span>
+              <div className="text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] mt-1 flex items-center gap-2">
                 <span>{metrics.database.status}</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 block">
+              <span className="text-[11px] text-[#756557] dark:text-[#B5A599] font-mono mt-0.5 block">
                 Latência: {metrics.database.latencyMs}ms • PostgreSQL
               </span>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-600 flex items-center justify-center font-bold">
-              <Database className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-600 flex items-center justify-center font-bold">
+              <Database className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 4: Infra & Tenants */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div className="card-warm p-5 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Empresas / Tenants</span>
-              <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#A09388]">Empresas / Tenants</span>
+              <div className="text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] mt-1">
                 {metrics.counts.activeTenantsCount} empresa{metrics.counts.activeTenantsCount === 1 ? '' : 's'}
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">
+              <span className="text-[11px] text-[#756557] dark:text-[#B5A599] mt-0.5 block font-mono">
                 {metrics.counts.totalUsers} usuários • Uptime: {formatUptime(metrics.systemHealth.uptimeSeconds)}
               </span>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-600 flex items-center justify-center font-bold">
-              <Building2 className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-[#1E1611] dark:text-[#F5EFE8] flex items-center justify-center font-bold">
+              <Building2 className="w-5 h-5" />
             </div>
           </div>
         </div>
       )}
 
       {/* Filters Bar */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition-colors">
+      <div className="card-warm p-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Level Filter */}
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
+          <div className="flex items-center gap-1 p-1 rounded-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-xs">
             <button
               type="button"
               onClick={() => { setLevelFilter('ALL'); setPage(1); }}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
+              className={`px-3 py-1 rounded-full font-medium transition-all ${
                 levelFilter === 'ALL'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white dark:bg-[#1E1512] text-[#1E1611] dark:text-[#F5EFE8] shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-[#1E1611] dark:text-[#B5A599]'
               }`}
             >
               Todos
@@ -341,10 +342,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <button
               type="button"
               onClick={() => { setLevelFilter('ERROR'); setPage(1); }}
-              className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
                 levelFilter === 'ERROR'
-                  ? 'bg-rose-500 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-rose-600'
+                  ? 'bg-rose-500 text-white shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-rose-600'
               }`}
             >
               <Flame className="w-3 h-3" /> Erros
@@ -352,10 +353,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <button
               type="button"
               onClick={() => { setLevelFilter('SECURITY'); setPage(1); }}
-              className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
                 levelFilter === 'SECURITY'
-                  ? 'bg-purple-600 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-purple-600'
+                  ? 'bg-[#C85A32] text-white shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-[#C85A32]'
               }`}
             >
               <ShieldAlert className="w-3 h-3" /> Segurança
@@ -363,10 +364,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <button
               type="button"
               onClick={() => { setLevelFilter('WARN'); setPage(1); }}
-              className={`px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
                 levelFilter === 'WARN'
-                  ? 'bg-amber-500 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-amber-600'
+                  ? 'bg-amber-500 text-white shadow-subtle font-semibold'
+                  : 'text-[#756557] hover:text-amber-600'
               }`}
             >
               <AlertTriangle className="w-3 h-3" /> Avisos
@@ -377,7 +378,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
           <select
             value={categoryFilter}
             onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-            className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-1.5 px-3 text-xs text-slate-700 dark:text-slate-300 outline-none"
+            className="bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-1.5 px-3 text-xs font-medium text-[#1E1611] dark:text-[#F5EFE8] outline-none"
           >
             <option value="ALL">Todas as Categorias</option>
             <option value="AUTH">🔑 Autenticação (AUTH)</option>
@@ -390,44 +391,44 @@ export function Monitoring({ currentUser }: MonitoringProps) {
 
         {/* Search */}
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-72">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#A09388]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por mensagem, IP, e-mail..."
-            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 outline-none"
+            className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-1.5 pl-9 pr-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] placeholder:text-[#A09388] outline-none transition-colors"
           />
         </form>
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm transition-colors">
+      <div className="card-warm overflow-hidden shadow-subtle transition-colors">
         {loading ? (
-          <div className="py-16 text-center text-slate-400">Consultando logs do sistema...</div>
+          <div className="py-16 text-center text-[#A09388] text-xs">Consultando logs do sistema...</div>
         ) : logs.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 space-y-2">
+          <div className="py-16 text-center text-[#A09388] space-y-2">
             <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500" />
-            <p className="font-bold text-slate-700 dark:text-slate-300">Nenhum registro de erro ou incidente encontrado</p>
-            <p className="text-xs">O sistema está operando perfeitamente com os filtros selecionados.</p>
+            <p className="font-serif text-[#1E1611] dark:text-[#F5EFE8] text-base">Nenhum registro de erro ou incidente</p>
+            <p className="text-xs text-[#756557] dark:text-[#B5A599]">O sistema está operando perfeitamente com os filtros selecionados.</p>
           </div>
         ) : (
           <>
             {/* 1. VISÃO EM TABELA (DESKTOP >= 768px) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 uppercase font-bold border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-[#FAF6F0] dark:bg-[#15100E] text-[#756557] dark:text-[#B5A599] text-[11px] font-semibold border-b border-[#EDE5DC] dark:border-[#2A211D]">
                   <tr>
-                    <th className="py-3.5 px-5">Data / Hora</th>
-                    <th className="py-3.5 px-5">Nível</th>
-                    <th className="py-3.5 px-5">Ação / Categoria</th>
-                    <th className="py-3.5 px-5">Mensagem do Evento</th>
-                    <th className="py-3.5 px-5">Usuário / Empresa</th>
-                    <th className="py-3.5 px-5">IP Origem</th>
-                    <th className="py-3.5 px-5 text-right">Detalhes</th>
+                    <th className="py-3.5 px-4">Data / Hora</th>
+                    <th className="py-3.5 px-4">Nível</th>
+                    <th className="py-3.5 px-4">Ação / Categoria</th>
+                    <th className="py-3.5 px-4">Mensagem do Evento</th>
+                    <th className="py-3.5 px-4">Usuário / Empresa</th>
+                    <th className="py-3.5 px-4">IP Origem</th>
+                    <th className="py-3.5 px-4 text-right">Detalhes</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+                <tbody className="divide-y divide-[#EDE5DC]/70 dark:divide-[#2A211D]/70 text-[#1E1611] dark:text-[#F5EFE8]">
                   {logs.map((log) => {
                     const theme = getLevelBadge(log.level);
                     const Icon = theme.icon;
@@ -444,45 +445,45 @@ export function Monitoring({ currentUser }: MonitoringProps) {
                     return (
                       <tr
                         key={log.id}
-                        className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                        className="hover:bg-[#FAF6F0]/60 dark:hover:bg-[#201814]/60 transition-colors cursor-pointer"
                         onClick={() => {
                           setSelectedLog(log);
                           setIsDetailModalOpen(true);
                         }}
                       >
-                        <td className="py-3.5 px-5 font-mono whitespace-nowrap text-slate-500 dark:text-slate-400">
+                        <td className="py-3.5 px-4 font-mono text-[#756557] dark:text-[#B5A599] whitespace-nowrap">
                           {formattedDate}
                         </td>
 
-                        <td className="py-3.5 px-5 whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${theme.badge}`}>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${theme.badge}`}>
                             <Icon className="w-3 h-3" /> {log.level}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-5 whitespace-nowrap font-mono">
-                          <span className="font-bold text-slate-900 dark:text-slate-100">{log.action}</span>
-                          <span className="text-[10px] text-slate-400 block">{log.category}</span>
+                        <td className="py-3.5 px-4 whitespace-nowrap font-mono">
+                          <span className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{log.action}</span>
+                          <span className="text-[10px] text-[#A09388] block font-sans">{log.category}</span>
                         </td>
 
-                        <td className="py-3.5 px-5 max-w-md">
-                          <div className="font-medium truncate text-slate-800 dark:text-slate-200" title={log.message}>
+                        <td className="py-3.5 px-4 max-w-md">
+                          <div className="font-medium truncate text-[#1E1611] dark:text-[#F5EFE8]" title={log.message}>
                             {log.message}
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-5 whitespace-nowrap text-slate-500 dark:text-slate-400">
+                        <td className="py-3.5 px-4 whitespace-nowrap text-[#756557] dark:text-[#B5A599]">
                           <div>{log.userEmail || 'Anônimo / Sistema'}</div>
                           {log.companyId && (
-                            <div className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400">{log.companyId}</div>
+                            <div className="text-[10px] font-mono text-[#C85A32] dark:text-[#F39C74]">{log.companyId}</div>
                           )}
                         </td>
 
-                        <td className="py-3.5 px-5 whitespace-nowrap font-mono text-[11px] text-slate-500">
+                        <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px] text-[#A09388]">
                           {log.ipAddress || '—'}
                         </td>
 
-                        <td className="py-3.5 px-5 text-right whitespace-nowrap">
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -490,7 +491,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
                               setSelectedLog(log);
                               setIsDetailModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1.5 rounded-lg text-[#A09388] hover:text-[#1E1611] dark:hover:text-[#F5EFE8] hover:bg-[#FAF6F0] dark:hover:bg-[#201814] transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -503,7 +504,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             </div>
 
             {/* 2. VISÃO EM CARDS TOUCH (MOBILE < 768px) */}
-            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+            <div className="md:hidden divide-y divide-[#EDE5DC]/70 dark:divide-[#2A211D]/70">
               {logs.map((log) => {
                 const theme = getLevelBadge(log.level);
                 const Icon = theme.icon;
@@ -523,28 +524,28 @@ export function Monitoring({ currentUser }: MonitoringProps) {
                       setSelectedLog(log);
                       setIsDetailModalOpen(true);
                     }}
-                    className="p-4 space-y-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                    className="p-4 space-y-2.5 hover:bg-[#FAF6F0]/60 dark:hover:bg-[#201814]/60 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${theme.badge}`}>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${theme.badge}`}>
                         <Icon className="w-3 h-3" /> {log.level}
                       </span>
-                      <span className="text-[11px] font-mono text-slate-400">{formattedDate}</span>
+                      <span className="text-[11px] font-mono text-[#A09388]">{formattedDate}</span>
                     </div>
 
                     <div>
-                      <div className="font-bold text-xs text-slate-900 dark:text-white font-mono flex items-center justify-between">
+                      <div className="font-semibold text-xs text-[#1E1611] dark:text-[#F5EFE8] font-mono flex items-center justify-between">
                         <span>{log.action}</span>
-                        <span className="text-[10px] text-slate-400 font-sans font-normal">{log.category}</span>
+                        <span className="text-[10px] text-[#A09388] font-sans font-normal">{log.category}</span>
                       </div>
-                      <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 line-clamp-2">
+                      <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1 line-clamp-2">
                         {log.message}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500 border-t border-slate-100 dark:border-slate-800/60">
+                    <div className="flex items-center justify-between pt-1 text-[11px] text-[#756557] dark:text-[#B5A599] border-t hairline-border">
                       <span className="truncate">{log.userEmail || 'Sistema'}</span>
-                      <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1">
+                      <span className="text-[#C85A32] dark:text-[#F39C74] font-medium flex items-center gap-1">
                         Ver detalhes ➔
                       </span>
                     </div>
@@ -556,11 +557,11 @@ export function Monitoring({ currentUser }: MonitoringProps) {
         )}
 
         {/* Pagination & Clear */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="p-4 border-t hairline-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <button
               onClick={handleClearLogs}
-              className="text-slate-400 hover:text-rose-600 text-xs font-semibold flex items-center gap-1"
+              className="text-[#A09388] hover:text-rose-600 text-xs font-medium flex items-center gap-1 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" /> Limpar logs antigos (+30 dias)
             </button>
@@ -570,17 +571,17 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-800 disabled:opacity-40"
+              className="btn-secondary py-1 px-3 disabled:opacity-40"
             >
               Anterior
             </button>
-            <span className="font-bold text-slate-600 dark:text-slate-400">
+            <span className="font-mono text-xs text-[#756557] dark:text-[#B5A599]">
               Página {page} de {totalPages}
             </span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-800 disabled:opacity-40"
+              className="btn-secondary py-1 px-3 disabled:opacity-40"
             >
               Próxima
             </button>
@@ -599,39 +600,39 @@ export function Monitoring({ currentUser }: MonitoringProps) {
         {selectedLog && (
           <div className="space-y-4 text-xs">
             {/* Log Meta Card */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="p-4 rounded-3xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div>
-                <span className="font-bold text-slate-400 block text-[10px] uppercase">Nível</span>
-                <span className="font-extrabold text-slate-900 dark:text-white">{selectedLog.level}</span>
+                <span className="font-mono text-[#A09388] block text-[10px] uppercase">Nível</span>
+                <span className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{selectedLog.level}</span>
               </div>
               <div>
-                <span className="font-bold text-slate-400 block text-[10px] uppercase">Categoria</span>
-                <span className="font-extrabold text-slate-900 dark:text-white">{selectedLog.category}</span>
+                <span className="font-mono text-[#A09388] block text-[10px] uppercase">Categoria</span>
+                <span className="font-semibold text-[#1E1611] dark:text-[#F5EFE8]">{selectedLog.category}</span>
               </div>
               <div>
-                <span className="font-bold text-slate-400 block text-[10px] uppercase">Ação</span>
-                <span className="font-extrabold text-indigo-600 dark:text-indigo-400 font-mono">{selectedLog.action}</span>
+                <span className="font-mono text-[#A09388] block text-[10px] uppercase">Ação</span>
+                <span className="font-semibold text-[#C85A32] dark:text-[#F39C74] font-mono">{selectedLog.action}</span>
               </div>
               <div>
-                <span className="font-bold text-slate-400 block text-[10px] uppercase">Data & Hora</span>
-                <span className="text-slate-800 dark:text-slate-200 font-mono">
+                <span className="font-mono text-[#A09388] block text-[10px] uppercase">Data & Hora</span>
+                <span className="text-[#756557] dark:text-[#B5A599] font-mono">
                   {new Date(selectedLog.createdAt).toLocaleString('pt-BR')}
                 </span>
               </div>
               <div>
-                <span className="font-bold text-slate-400 block text-[10px] uppercase">Usuário</span>
-                <span className="text-slate-800 dark:text-slate-200">{selectedLog.userEmail || 'Sistema'}</span>
+                <span className="font-mono text-[#A09388] block text-[10px] uppercase">Usuário</span>
+                <span className="text-[#756557] dark:text-[#B5A599]">{selectedLog.userEmail || 'Sistema'}</span>
               </div>
               <div>
-                <span className="font-bold text-slate-400 block text-[10px] uppercase">IP de Origem</span>
-                <span className="text-slate-800 dark:text-slate-200 font-mono">{selectedLog.ipAddress || '—'}</span>
+                <span className="font-mono text-[#A09388] block text-[10px] uppercase">IP de Origem</span>
+                <span className="text-[#756557] dark:text-[#B5A599] font-mono">{selectedLog.ipAddress || '—'}</span>
               </div>
             </div>
 
             {/* Mensagem */}
             <div>
-              <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Mensagem do Evento:</label>
-              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-semibold leading-relaxed">
+              <label className="font-medium text-[#756557] dark:text-[#B5A599] block mb-1">Mensagem do Evento:</label>
+              <div className="p-3.5 rounded-2xl bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] text-[#1E1611] dark:text-[#F5EFE8] font-medium leading-relaxed">
                 {selectedLog.message}
               </div>
             </div>
@@ -639,10 +640,10 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             {/* Detalhes / Stack Trace */}
             {selectedLog.details && (
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1.5">
-                  <FileCode className="w-3.5 h-3.5 text-indigo-500" /> Stack Trace / Carga do Evento (JSON):
+                <label className="font-medium text-[#756557] dark:text-[#B5A599] block mb-1 flex items-center gap-1.5">
+                  <FileCode className="w-3.5 h-3.5 text-[#C85A32]" /> Stack Trace / Carga do Evento (JSON):
                 </label>
-                <pre className="p-4 rounded-2xl bg-slate-950 text-emerald-400 font-mono text-[11px] overflow-x-auto max-h-60 leading-tight">
+                <pre className="p-4 rounded-3xl bg-[#1A1412] text-[#F39C74] font-mono text-[11px] overflow-x-auto max-h-60 leading-tight border border-[#2A201C]">
                   {(() => {
                     try {
                       return JSON.stringify(JSON.parse(selectedLog.details), null, 2);
@@ -655,7 +656,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
             )}
 
             {selectedLog.userAgent && (
-              <div className="text-[10px] text-slate-400 font-mono truncate">
+              <div className="text-[10px] text-[#A09388] font-mono truncate">
                 <strong>User-Agent:</strong> {selectedLog.userAgent}
               </div>
             )}
@@ -664,7 +665,7 @@ export function Monitoring({ currentUser }: MonitoringProps) {
               <button
                 type="button"
                 onClick={() => setIsDetailModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300"
+                className="btn-secondary"
               >
                 Fechar
               </button>

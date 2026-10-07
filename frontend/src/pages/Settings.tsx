@@ -139,26 +139,27 @@ export function Settings() {
   };
 
   if (loading) {
-    return <div className="py-16 text-center text-slate-400">Carregando configurações...</div>;
+    return <div className="py-16 text-center text-[#A09388] text-xs">Carregando configurações...</div>;
   }
 
   return (
     <form onSubmit={handleSave} className="space-y-8 max-w-5xl animate-in fade-in duration-300">
-      {/* Header & Save Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#E7E7E4] dark:border-[#26262B]">
+      {/* Header Editorial & Save Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <h2 className="text-lg font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+          <p className="text-[10px] font-mono uppercase tracking-wider text-[#A09388] mb-0.5">PREFERÊNCIAS & CONEXÕES</p>
+          <h1 className="text-2xl lg:text-3xl font-serif text-[#1E1611] dark:text-[#F5EFE8] font-normal tracking-tight">
             Configurações do Sistema
-          </h2>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-            Configuração de notificações via WhatsApp, dados da empresa e agendador
+          </h1>
+          <p className="text-xs text-[#756557] dark:text-[#B5A599] mt-1">
+            Configuração de notificações via WhatsApp, dados da empresa e agendador diário
           </p>
         </div>
 
         <button
           type="submit"
           disabled={saving}
-          className="btn-primary"
+          className="btn-terracotta"
         >
           <Save className="w-3.5 h-3.5" />
           <span>{saving ? 'Salvando...' : 'Salvar Alterações'}</span>
@@ -175,36 +176,36 @@ export function Settings() {
       )}
 
       {savedSuccess && (
-        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
+        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>Configurações salvas com sucesso.</span>
         </div>
       )}
 
       {/* 1. SEÇÃO PRINCIPAL: NOTIFICAÇÃO VIA WHATSAPP (CALLMEBOT) */}
-      <div className="p-5 rounded-xl bg-white dark:bg-[#141416] border border-[#E7E7E4] dark:border-[#26262B] shadow-subtle space-y-4">
-        <div className="flex items-center justify-between border-b border-[#E7E7E4] dark:border-[#26262B] pb-3">
+      <div className="card-warm p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b hairline-border pb-3 gap-2">
           <div className="flex items-center gap-2.5">
-            <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <MessageCircle className="w-5 h-5 text-[#C85A32]" />
             <div>
-              <h3 className="text-sm font-semibold text-[#18181B] dark:text-[#EDEDEA]">
+              <h3 className="text-base font-serif text-[#1E1611] dark:text-[#F5EFE8]">
                 Notificações no WhatsApp (CallMeBot)
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#756557] dark:text-[#B5A599]">
                 Receba todos os dias no seu WhatsApp pessoal o resumo dos aniversariantes com mensagens prontas para enviar.
               </p>
             </div>
           </div>
 
-          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer shrink-0">
             <input
               type="checkbox"
               checked={form.callmebotSimulateMode}
               onChange={(e) => setForm({ ...form, callmebotSimulateMode: e.target.checked })}
-              className="w-4 h-4 rounded text-indigo-600 bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700"
+              className="w-4 h-4 rounded text-[#C85A32] bg-[#FAF6F0] dark:bg-[#15100E] border-[#EDE5DC] dark:border-[#2A211D]"
             />
-            <span className={form.callmebotSimulateMode ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-500'}>
-              {form.callmebotSimulateMode ? 'Modo Simulação Ativo (Console)' : 'Modo Disparo Real WhatsApp'}
+            <span className={form.callmebotSimulateMode ? 'text-[#C85A32] font-semibold' : 'text-[#756557] dark:text-[#B5A599]'}>
+              {form.callmebotSimulateMode ? 'Modo Simulação (Console)' : 'Modo Disparo Real WhatsApp'}
             </span>
           </label>
         </div>
@@ -212,7 +213,7 @@ export function Settings() {
         {/* Inputs do Dono */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
               Seu Número de WhatsApp (com DDD e DDI 55) *
             </label>
             <input
@@ -221,15 +222,15 @@ export function Settings() {
               value={form.ownerWhatsappPhone}
               onChange={(e) => setForm({ ...form, ownerWhatsappPhone: e.target.value })}
               placeholder="Ex: +5511999999999"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-3.5 text-sm text-slate-900 dark:text-slate-100 outline-none font-mono"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
             />
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-[#A09388] mt-1">
               Número onde você deseja receber o resumo matinal de aniversários.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">
               Sua API Key do CallMeBot *
             </label>
             <div className="flex gap-2">
@@ -238,19 +239,19 @@ export function Settings() {
                 value={form.callmebotApiKey}
                 onChange={(e) => setForm({ ...form, callmebotApiKey: e.target.value })}
                 placeholder="Ex: 123456"
-                className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-3.5 text-sm text-slate-900 dark:text-slate-100 outline-none font-mono"
+                className="flex-1 bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
               />
               <button
                 type="button"
                 onClick={handleTestCallMeBot}
                 disabled={testingBot}
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                className="btn-terracotta shrink-0"
               >
                 <Send className={`w-3.5 h-3.5 ${testingBot ? 'animate-spin' : ''}`} />
                 {testingBot ? 'Enviando...' : 'Testar Envio'}
               </button>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-[#A09388] mt-1">
               Chave gratuita gerada no WhatsApp pelo bot do CallMeBot.
             </p>
           </div>
@@ -259,7 +260,7 @@ export function Settings() {
         {/* Test Result Message */}
         {testResult && (
           <div
-            className={`p-4 rounded-2xl border text-xs flex items-center gap-2 animate-in fade-in ${
+            className={`p-3.5 rounded-2xl border text-xs flex items-center gap-2 animate-in fade-in ${
               testResult.success
                 ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
                 : 'bg-rose-50 dark:bg-rose-950/80 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300'
@@ -275,26 +276,26 @@ export function Settings() {
         )}
 
         {/* Tutorial Passo a Passo CallMeBot */}
-        <div className="p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 space-y-3">
-          <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-bold text-xs uppercase tracking-wider">
+        <div className="card-peach p-5 space-y-3">
+          <div className="flex items-center gap-2 text-[#C85A32] dark:text-[#F39C74] font-semibold text-xs uppercase tracking-wider font-mono">
             <Sparkles className="w-4 h-4" /> Como obter sua API Key gratuita do CallMeBot em 30 segundos:
           </div>
 
-          <ol className="text-xs text-slate-700 dark:text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+          <ol className="text-xs text-[#756557] dark:text-[#B5A599] space-y-2 list-decimal list-inside leading-relaxed">
             <li>
               Adicione o contato do CallMeBot no seu WhatsApp:{' '}
-              <strong className="text-indigo-600 dark:text-indigo-400 font-mono">+34 644 44 49 64</strong> (ou{' '}
-              <strong className="text-indigo-600 dark:text-indigo-400 font-mono">+34 644 59 71 62</strong>).
+              <strong className="text-[#1E1611] dark:text-[#F5EFE8] font-mono">+34 644 44 49 64</strong> (ou{' '}
+              <strong className="text-[#1E1611] dark:text-[#F5EFE8] font-mono">+34 644 59 71 62</strong>).
             </li>
             <li>
               Envie a seguinte mensagem exata para ele:{' '}
-              <span className="font-mono bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800 font-bold text-indigo-600 dark:text-indigo-300 select-all">
+              <span className="font-mono bg-white dark:bg-[#1A1513] px-2 py-0.5 rounded-md border border-[#F5D2BF] dark:border-[#4C2D20] font-semibold text-[#C85A32] dark:text-[#F39C74] select-all">
                 I allow callmebot to send me messages
               </span>
             </li>
             <li>
               O bot responderá imediatamente com sua chave pessoal (ex:{' '}
-              <code className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">apikey: 123456</code>).
+              <code className="font-mono text-[#C85A32] dark:text-[#F39C74] font-bold">apikey: 123456</code>).
             </li>
             <li>
               Cole a chave numérica no campo acima e clique em <strong>"Testar Envio"</strong> para validar a conexão!
@@ -304,33 +305,33 @@ export function Settings() {
       </div>
 
       {/* 2. Horário do Scheduler Diário */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-        <div className="flex items-center gap-2.5 text-indigo-600 dark:text-indigo-400 font-bold text-base border-b border-slate-100 dark:border-slate-800 pb-3">
-          <Clock className="w-5 h-5" /> Agendador Automático Diário
+      <div className="card-warm p-6 space-y-4">
+        <div className="flex items-center gap-2.5 text-[#1E1611] dark:text-[#F5EFE8] font-serif text-base border-b hairline-border pb-3">
+          <Clock className="w-5 h-5 text-[#C85A32]" /> Agendador Automático Diário
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Hora de Execução (0-23h)</label>
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Hora de Execução (0-23h)</label>
             <input
               type="number"
               min="0"
               max="23"
               value={form.schedulerHour}
               onChange={(e) => setForm({ ...form, schedulerHour: Number(e.target.value) })}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Minuto (0-59m)</label>
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Minuto (0-59m)</label>
             <input
               type="number"
               min="0"
               max="59"
               value={form.schedulerMinute}
               onChange={(e) => setForm({ ...form, schedulerMinute: Number(e.target.value) })}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
             />
           </div>
 
@@ -340,62 +341,62 @@ export function Settings() {
                 type="checkbox"
                 checked={form.schedulerEnabled}
                 onChange={(e) => setForm({ ...form, schedulerEnabled: e.target.checked })}
-                className="w-4 h-4 rounded text-indigo-600 bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700"
+                className="w-4 h-4 rounded text-[#C85A32] bg-[#FAF6F0] dark:bg-[#15100E] border-[#EDE5DC] dark:border-[#2A211D]"
               />
-              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Ativar Agendamento Diário</span>
+              <span className="text-xs font-semibold text-[#1E1611] dark:text-[#F5EFE8]">Ativar Agendamento Diário</span>
             </label>
           </div>
         </div>
       </div>
 
       {/* 3. Dados da Empresa Remetente */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-        <div className="flex items-center gap-2.5 text-indigo-600 dark:text-indigo-400 font-bold text-base border-b border-slate-100 dark:border-slate-800 pb-3">
-          <Building2 className="w-5 h-5" /> Dados da Empresa (para Variáveis de Template)
+      <div className="card-warm p-6 space-y-4">
+        <div className="flex items-center gap-2.5 text-[#1E1611] dark:text-[#F5EFE8] font-serif text-base border-b hairline-border pb-3">
+          <Building2 className="w-5 h-5 text-[#C85A32]" /> Dados da Empresa (para Variáveis de Template)
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome Fantasia (Marca) - usado em {'{{nome_empresa}}'}</label>
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Nome Fantasia (Marca) - usado em {'{{nome_empresa}}'}</label>
             <input
               type="text"
               value={form.tradeName}
               onChange={(e) => setForm({ ...form, tradeName: e.target.value })}
               placeholder="Ex: Enlace CRM"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Razão Social</label>
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Razão Social</label>
             <input
               type="text"
               value={form.companyName}
               onChange={(e) => setForm({ ...form, companyName: e.target.value })}
               placeholder="Ex: Enlace Tecnologia Ltda"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">CNPJ</label>
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">CNPJ</label>
             <input
               type="text"
               value={form.document}
               onChange={(e) => setForm({ ...form, document: e.target.value })}
               placeholder="00.000.000/0001-00"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Telefone de Contato</label>
+            <label className="block text-xs font-medium text-[#756557] dark:text-[#B5A599] mb-1">Telefone de Contato</label>
             <input
               type="text"
               value={form.contactPhone}
               onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
               placeholder="+5511988887777"
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none"
+              className="w-full bg-[#FAF6F0] dark:bg-[#15100E] border border-[#EDE5DC] dark:border-[#2A211D] focus:border-[#C85A32] dark:focus:border-[#F39C74] rounded-xl py-2 px-3 text-xs text-[#1E1611] dark:text-[#F5EFE8] outline-none font-mono"
             />
           </div>
         </div>
