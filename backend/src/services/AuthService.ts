@@ -133,8 +133,8 @@ export class AuthService {
     if (!cleanEmail) {
       throw new AppError('E-mail é obrigatório', 400);
     }
-    if (!password || password.length < 10) {
-      throw new AppError('A senha deve ter no mínimo 10 caracteres', 400);
+    if (!password || password.length < 6) {
+      throw new AppError('A senha deve ter no mínimo 6 caracteres', 400);
     }
 
     const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
@@ -360,8 +360,8 @@ export class AuthService {
       throw new AppError('Token de recuperação é obrigatório', 400);
     }
 
-    if (!password || password.length < 10) {
-      throw new AppError('A nova senha deve ter no mínimo 10 caracteres para conformidade de segurança', 400);
+    if (!password || password.length < 6) {
+      throw new AppError('A nova senha deve ter no mínimo 6 caracteres', 400);
     }
 
     let decoded: any;

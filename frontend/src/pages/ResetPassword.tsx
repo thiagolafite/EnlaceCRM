@@ -81,10 +81,10 @@ export function ResetPassword({ onComplete }: ResetPasswordProps) {
     e.preventDefault();
     setErrorState(null);
 
-    if (newPassword.length < 10) {
+    if (newPassword.length < 6) {
       setErrorState({
-        message: 'A nova senha deve ter no mínimo 10 caracteres.',
-        solution: 'Crie uma senha mais longa contendo uma combinação de letras, números e símbolos.',
+        message: 'A nova senha deve ter no mínimo 6 caracteres.',
+        solution: 'Crie uma senha contendo pelo menos 6 caracteres.',
       });
       return;
     }
@@ -112,7 +112,7 @@ export function ResetPassword({ onComplete }: ResetPasswordProps) {
   };
 
   // Requisitos de validação em tempo real
-  const hasMinLength = newPassword.length >= 10;
+  const hasMinLength = newPassword.length >= 6;
   const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
 
   return (
@@ -235,10 +235,10 @@ export function ResetPassword({ onComplete }: ResetPasswordProps) {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    minLength={10}
+                    minLength={6}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••••"
+                    placeholder="••••••"
                     className="w-full pl-10 pr-10 py-2.5 bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] focus:border-[#18191D] dark:focus:border-[#F4F4F6] rounded-xl text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                   />
                   <button
@@ -261,10 +261,10 @@ export function ResetPassword({ onComplete }: ResetPasswordProps) {
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     required
-                    minLength={10}
+                    minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••••"
+                    placeholder="••••••"
                     className="w-full pl-10 pr-10 py-2.5 bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] focus:border-[#18191D] dark:focus:border-[#F4F4F6] rounded-xl text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                   />
                   <button
@@ -281,7 +281,7 @@ export function ResetPassword({ onComplete }: ResetPasswordProps) {
               <div className="p-3 bg-[#EEEEF1] dark:bg-[#24252B] rounded-xl border border-[#D7D7DD] dark:border-[#33343A] space-y-1.5 text-[11px] font-mono">
                 <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-[#686971] dark:text-[#9DA0AA]'}`}>
                   <div className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-emerald-500' : 'bg-[#D7D7DD] dark:bg-[#55565C]'}`} />
-                  <span>Mínimo de 10 caracteres</span>
+                  <span>Mínimo de 6 caracteres</span>
                 </div>
                 <div className={`flex items-center gap-1.5 ${passwordsMatch ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-[#686971] dark:text-[#9DA0AA]'}`}>
                   <div className={`w-1.5 h-1.5 rounded-full ${passwordsMatch ? 'bg-emerald-500' : 'bg-[#D7D7DD] dark:bg-[#55565C]'}`} />

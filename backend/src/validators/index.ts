@@ -19,7 +19,7 @@ export const loginSchema = z.object({
 export const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').trim(),
   email: emailSchema,
-  password: z.string().min(10, 'A senha deve ter no mínimo 10 caracteres para conformidade de segurança'),
+  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   termsAccepted: z.boolean().optional().default(true),
   termsVersion: z.string().optional().default('1.0'),
 });
@@ -30,7 +30,7 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Token de recuperação é obrigatório'),
-  password: z.string().min(10, 'A nova senha deve ter no mínimo 10 caracteres para conformidade de segurança'),
+  password: z.string().min(6, 'A nova senha deve ter no mínimo 6 caracteres'),
 });
 
 // ==========================================
@@ -185,14 +185,14 @@ export const updateSettingsSchema = z.object({
 export const createUserSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório').trim(),
   email: emailSchema,
-  password: z.string().min(10, 'A senha deve ter no mínimo 10 caracteres'),
+  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   role: z.enum(['ADMIN', 'OPERATOR']).default('OPERATOR'),
 });
 
 export const updateUserSchema = z.object({
   name: z.string().min(2).optional(),
   email: emailSchema.optional(),
-  password: z.string().min(10).optional(),
+  password: z.string().min(6).optional(),
   role: z.enum(['ADMIN', 'OPERATOR', 'MASTER']).optional(),
   status: z.enum(['ACTIVE', 'PENDING_APPROVAL', 'BLOCKED']).optional(),
 });

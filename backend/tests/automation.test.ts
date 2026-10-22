@@ -226,10 +226,10 @@ async function runTests() {
     const validLogin = loginSchema.safeParse({ email: 'Test@Domain.COM ', password: '123' });
     assert(validLogin.success && validLogin.data.email === 'test@domain.com', 'loginSchema normaliza e valida email');
 
-    const invalidRegister = registerSchema.safeParse({ name: 'A', email: 'invalid', password: 'short' });
-    assert(!invalidRegister.success, 'registerSchema rejeita senha menor que 10 caracteres');
+    const invalidRegister = registerSchema.safeParse({ name: 'A', email: 'invalid', password: '12345' });
+    assert(!invalidRegister.success, 'registerSchema rejeita senha menor que 6 caracteres');
 
-    const validRegister = registerSchema.safeParse({ name: 'Admin', email: 'admin@domain.com', password: 'secure_password_10' });
+    const validRegister = registerSchema.safeParse({ name: 'Admin', email: 'admin@domain.com', password: '123456' });
     assert(validRegister.success, 'registerSchema aceita cadastro válido');
 
     const validClient = createClientSchema.safeParse({
@@ -243,11 +243,11 @@ async function runTests() {
     const validForgot = forgotPasswordSchema.safeParse({ email: 'Usuario@Empresa.com' });
     assert(validForgot.success && validForgot.data.email === 'usuario@empresa.com', 'forgotPasswordSchema normaliza e valida email');
 
-    const invalidReset = resetPasswordSchema.safeParse({ token: 'tok_123', password: 'curta' });
-    assert(!invalidReset.success, 'resetPasswordSchema rejeita senha menor que 10 caracteres');
+    const invalidReset = resetPasswordSchema.safeParse({ token: 'tok_123', password: '12345' });
+    assert(!invalidReset.success, 'resetPasswordSchema rejeita senha menor que 6 caracteres');
 
-    const validReset = resetPasswordSchema.safeParse({ token: 'tok_123', password: 'nova_senha_segura_10' });
-    assert(validReset.success, 'resetPasswordSchema aceita senha com 10+ caracteres');
+    const validReset = resetPasswordSchema.safeParse({ token: 'tok_123', password: '123456' });
+    assert(validReset.success, 'resetPasswordSchema aceita senha com 6+ caracteres');
 
     const validQuery500 = listClientQuerySchema.safeParse({ limit: '500', page: '1' });
     assert(validQuery500.success && validQuery500.data.limit === 500, 'listClientQuerySchema aceita limite 500');

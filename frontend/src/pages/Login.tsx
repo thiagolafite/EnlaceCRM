@@ -86,10 +86,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
       return;
     }
 
-    if (regPassword.length < 10) {
+    if (regPassword.length < 6) {
       setErrorState({
-        message: 'A senha deve ter no mínimo 10 caracteres para conformidade de segurança.',
-        solution: 'Crie uma senha mais longa combinando letras, números e símbolos.',
+        message: 'A senha deve ter no mínimo 6 caracteres.',
+        solution: 'Crie uma senha contendo pelo menos 6 caracteres.',
       });
       setLoading(false);
       return;
@@ -407,17 +407,17 @@ export function Login({ onLoginSuccess }: LoginProps) {
 
               <div className="space-y-1">
                 <label className="block text-xs font-medium text-[#686971] dark:text-[#9DA0AA]">
-                  Senha (mínimo 10 caracteres)
+                  Senha (mínimo 6 caracteres)
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#686971] dark:text-[#9DA0AA] pointer-events-none" />
                   <input
                     type="password"
                     required
-                    minLength={10}
+                    minLength={6}
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="••••••••••"
+                    placeholder="••••••"
                     className="w-full pl-10 pr-3.5 py-2.5 bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] focus:border-[#18191D] dark:focus:border-[#F4F4F6] rounded-xl text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                   />
                 </div>
@@ -432,10 +432,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
                   <input
                     type="password"
                     required
-                    minLength={10}
+                    minLength={6}
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    placeholder="••••••••••"
+                    placeholder="••••••"
                     className="w-full pl-10 pr-3.5 py-2.5 bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] focus:border-[#18191D] dark:focus:border-[#F4F4F6] rounded-xl text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
                   />
                 </div>
