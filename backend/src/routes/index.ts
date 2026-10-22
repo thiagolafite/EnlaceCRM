@@ -19,6 +19,9 @@ const routes = Router();
 // ==========================================
 routes.post('/auth/login', AuthController.login);
 routes.post('/auth/register', AuthController.register);
+routes.post('/auth/forgot-password', AuthController.forgotPassword);
+routes.get('/auth/verify-reset-token', AuthController.verifyResetToken);
+routes.post('/auth/reset-password', AuthController.resetPassword);
 
 // ==========================================
 // 2. Proteção JWT Global para todas as rotas seguintes

@@ -24,6 +24,15 @@ export const registerSchema = z.object({
   termsVersion: z.string().optional().default('1.0'),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token de recuperação é obrigatório'),
+  password: z.string().min(10, 'A nova senha deve ter no mínimo 10 caracteres para conformidade de segurança'),
+});
+
 // ==========================================
 // 2. CLIENTES
 // ==========================================
@@ -78,7 +87,7 @@ export const listClientQuerySchema = z.object({
   lgpdConsent: z.enum(['true', 'false']).optional().transform((v) => (v === undefined ? undefined : v === 'true')),
   optOut: z.enum(['true', 'false']).optional().transform((v) => (v === undefined ? undefined : v === 'true')),
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(1000).default(20),
 });
 
 // ==========================================

@@ -5,12 +5,9 @@ const prisma = new PrismaClient();
 async function cleanDatabase() {
   console.log('🧹 Limpando dados de teste do Enlace CRM no Supabase...');
 
-  // Deletar alertas, fila de jobs, familiares e clientes
+  // Deletar alertas, familiares e clientes
   const deletedAlerts = await prisma.alert.deleteMany({});
   console.log(`🗑️ Alertas removidos: ${deletedAlerts.count}`);
-
-  const deletedJobs = await prisma.queueJob.deleteMany({});
-  console.log(`🗑️ Jobs na fila removidos: ${deletedJobs.count}`);
 
   const deletedFamily = await prisma.familyMember.deleteMany({});
   console.log(`🗑️ Familiares de teste removidos: ${deletedFamily.count}`);

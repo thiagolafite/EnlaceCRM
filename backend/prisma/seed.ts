@@ -650,17 +650,27 @@ async function main() {
     console.log('ℹ️ [SEED] Nenhum usuário bootstrap criado (defina BOOTSTRAP_ADMIN_EMAIL e BOOTSTRAP_ADMIN_PASSWORD para inicializar admin via seed).');
   }
 
-  // 2. Configurações padrão da empresa (sem dados sensíveis)
-  await prisma.companySettings.upsert({
+  // 2. Garantir a empresa padrão (raiz multi-tenant) e suas configurações
+  await prisma.company.upsert({
     where: { id: 'default_company' },
     update: {},
     create: {
       id: 'default_company',
-      companyName: 'Enlace Soluções Corporativas',
+      name: 'Enlace Soluções Corporativas',
       tradeName: 'Enlace CRM',
       document: '',
-      contactEmail: '',
-      contactPhone: '',
+      status: 'ACTIVE',
+      plan: 'STARTER',
+      maxClients: 500,
+    },
+  });
+  console.log('✅ [SEED] Empresa padrão "default_company" garantida');
+
+  await prisma.companySettings.upsert({
+    where: { companyId: 'default_company' },
+    update: {},
+    create: {
+      companyId: 'default_company',
       ownerWhatsappPhone: '',
       callmebotApiKey: '',
       callmebotEnabled: true,

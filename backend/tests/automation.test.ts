@@ -2,7 +2,7 @@ import { interpolateTemplate } from '../src/utils/interpolator';
 import { encrypt, decrypt } from '../src/utils/crypto';
 import { normalizePhoneBR } from '../src/utils/phone';
 import { scopeByCompany } from '../src/utils/tenant';
-import { loginSchema, registerSchema, createClientSchema } from '../src/validators';
+import { loginSchema, registerSchema, createClientSchema, forgotPasswordSchema, resetPasswordSchema, listClientQuerySchema } from '../src/validators';
 import {
   todayInSaoPaulo,
   matchesBirthdaySP,
@@ -239,6 +239,18 @@ async function runTests() {
       isMother: true,
     });
     assert(validClient.success && validClient.data.phone === '+5511987654321', 'createClientSchema normaliza telefone E.164');
+
+    const validForgot = forgotPasswordSchema.safeParse({ email: 'Usuario@Empresa.com' });
+    assert(validForgot.success && validForgot.data.email === 'usuario@empresa.com', 'forgotPasswordSchema normaliza e valida email');
+
+    const invalidReset = resetPasswordSchema.safeParse({ token: 'tok_123', password: 'curta' });
+    assert(!invalidReset.success, 'resetPasswordSchema rejeita senha menor que 10 caracteres');
+
+    const validReset = resetPasswordSchema.safeParse({ token: 'tok_123', password: 'nova_senha_segura_10' });
+    assert(validReset.success, 'resetPasswordSchema aceita senha com 10+ caracteres');
+
+    const validQuery500 = listClientQuerySchema.safeParse({ limit: '500', page: '1' });
+    assert(validQuery500.success && validQuery500.data.limit === 500, 'listClientQuerySchema aceita limite 500');
 
     // -------------------------------------------------------------
     // Teste 9: LGPD — Validação e Mascaramento de CPF/CNPJ

@@ -78,6 +78,18 @@ export const api = {
       body: JSON.stringify(data),
     }),
   getMe: () => request<User>('/auth/me'),
+  forgotPassword: (email: string) =>
+    request<{ success: boolean; message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  verifyResetToken: (token: string) =>
+    request<{ valid: boolean; email: string; name: string }>(`/auth/verify-reset-token?token=${encodeURIComponent(token)}`),
+  resetPassword: (data: { token: string; password: string }) =>
+    request<{ success: boolean; message: string }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 
   // Dashboard & Stats
   getDashboardStats: () => request<DashboardStats>('/alerts/stats'),

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail, User as UserIcon, ShieldCheck, Sun, Moon, ArrowRight } from 'lucide-react';
+import { Lock, Mail, User as UserIcon, ShieldCheck, Sun, Moon, ArrowRight, KeyRound, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 import { User as UserType } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -11,11 +11,15 @@ interface LoginProps {
 
 export function Login({ onLoginSuccess }: LoginProps) {
   const { theme, toggleTheme } = useTheme();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
 
   // Login form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Forgot password form
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   // Register form
   const [regName, setRegName] = useState('');
@@ -27,6 +31,26 @@ export function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [errorState, setErrorState] = useState<{ message: string; solution?: string } | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorState(null);
+    setForgotSuccess(false);
+
+    try {
+      const res = await api.forgotPassword(forgotEmail);
+      setForgotSuccess(true);
+      setSuccessMessage(res.message || 'Se o e-mail informado estiver cadastrado, um link de recuperação foi enviado.');
+    } catch (err: any) {
+      setErrorState({
+        message: err.message || 'Erro ao solicitar recuperação de senha',
+        solution: err.solution || 'Verifique o e-mail digitado e tente novamente.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,41 +166,66 @@ export function Login({ onLoginSuccess }: LoginProps) {
         {/* Card */}
         <div className="card-warm p-6 sm:p-8 space-y-5 shadow-panel">
           {/* Tabs Mode */}
-          <div className="flex p-1 bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] rounded-xl text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => {
-                setMode('login');
-                setErrorState(null);
-                setSuccessMessage('');
-              }}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                mode === 'login'
-                  ? 'bg-white dark:bg-[#18191D] text-[#18191D] dark:text-[#F4F4F6] shadow-xs font-semibold'
-                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#9DA0AA] dark:hover:text-[#F4F4F6]'
-              }`}
-            >
-              Entrar
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode('register');
-                setErrorState(null);
-                setSuccessMessage('');
-              }}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                mode === 'register'
-                  ? 'bg-white dark:bg-[#18191D] text-[#18191D] dark:text-[#F4F4F6] shadow-xs font-semibold'
-                  : 'text-[#686971] hover:text-[#18191D] dark:text-[#9DA0AA] dark:hover:text-[#F4F4F6]'
-              }`}
-            >
-              Criar Conta
-            </button>
-          </div>
+          {mode !== 'forgot' ? (
+            <div className="flex p-1 bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] rounded-xl text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setErrorState(null);
+                  setSuccessMessage('');
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  mode === 'login'
+                    ? 'bg-white dark:bg-[#18191D] text-[#18191D] dark:text-[#F4F4F6] shadow-xs font-semibold'
+                    : 'text-[#686971] hover:text-[#18191D] dark:text-[#9DA0AA] dark:hover:text-[#F4F4F6]'
+                }`}
+              >
+                Entrar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register');
+                  setErrorState(null);
+                  setSuccessMessage('');
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  mode === 'register'
+                    ? 'bg-white dark:bg-[#18191D] text-[#18191D] dark:text-[#F4F4F6] shadow-xs font-semibold'
+                    : 'text-[#686971] hover:text-[#18191D] dark:text-[#9DA0AA] dark:hover:text-[#F4F4F6]'
+                }`}
+              >
+                Criar Conta
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between pb-2 border-b border-[#E2E2E8] dark:border-[#292A30]">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-[#E54833]/10 text-[#E54833] flex items-center justify-center">
+                  <KeyRound className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-xs font-semibold text-[#18191D] dark:text-[#F4F4F6]">
+                  Recuperação de Senha
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setErrorState(null);
+                  setSuccessMessage('');
+                  setForgotSuccess(false);
+                }}
+                className="text-xs text-[#686971] dark:text-[#9DA0AA] hover:text-[#18191D] dark:hover:text-[#F4F4F6] underline"
+              >
+                Voltar
+              </button>
+            </div>
+          )}
 
           {/* Success / Pending Alert */}
-          {successMessage && (
+          {successMessage && mode !== 'forgot' && (
             <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs leading-relaxed space-y-1">
               <div className="font-semibold flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -196,7 +245,71 @@ export function Login({ onLoginSuccess }: LoginProps) {
           )}
 
           {/* Form */}
-          {mode === 'login' ? (
+          {mode === 'forgot' ? (
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-xs text-[#686971] dark:text-[#9DA0AA] leading-relaxed">
+                  Digite seu e-mail cadastrado. Enviaremos um link seguro para você redefinir sua senha.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-[#686971] dark:text-[#9DA0AA]">
+                  E-mail Cadastrado
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#686971] dark:text-[#9DA0AA] pointer-events-none" />
+                  <input
+                    type="email"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-[#EEEEF1] dark:bg-[#24252B] border border-[#D7D7DD] dark:border-[#33343A] focus:border-[#18191D] dark:focus:border-[#F4F4F6] rounded-xl text-xs text-[#18191D] dark:text-[#F4F4F6] outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              {forgotSuccess ? (
+                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs leading-relaxed space-y-2">
+                  <div className="font-semibold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>E-mail Enviado</span>
+                  </div>
+                  <p>
+                    Se o endereço estiver cadastrado, enviamos um link para <strong className="font-mono text-[#18191D] dark:text-[#F4F4F6]">{forgotEmail}</strong>. Verifique sua caixa de entrada e pasta de spam.
+                  </p>
+                  <p className="text-[11px] text-[#686971] dark:text-[#9DA0AA]">
+                    ⏱ O link expira em 60 minutos.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={loading || !forgotEmail}
+                  className="btn-primary w-full py-2.5 mt-2 disabled:opacity-50"
+                >
+                  <span>{loading ? 'Enviando link...' : 'Enviar Link de Recuperação'}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setErrorState(null);
+                    setSuccessMessage('');
+                    setForgotSuccess(false);
+                  }}
+                  className="text-xs text-[#686971] dark:text-[#9DA0AA] hover:text-[#18191D] dark:hover:text-[#F4F4F6] underline"
+                >
+                  Voltar para tela de Login
+                </button>
+              </div>
+            </form>
+          ) : mode === 'login' ? (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-[#686971] dark:text-[#9DA0AA]">
@@ -216,9 +329,24 @@ export function Login({ onLoginSuccess }: LoginProps) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-[#686971] dark:text-[#9DA0AA]">
-                  Senha
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-medium text-[#686971] dark:text-[#9DA0AA]">
+                    Senha
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('forgot');
+                      setErrorState(null);
+                      setSuccessMessage('');
+                      setForgotSuccess(false);
+                      setForgotEmail(email);
+                    }}
+                    className="text-[11px] text-[#686971] dark:text-[#9DA0AA] hover:text-[#18191D] dark:hover:text-[#F4F4F6] underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#686971] dark:text-[#9DA0AA] pointer-events-none" />
                   <input

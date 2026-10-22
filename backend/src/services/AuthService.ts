@@ -4,6 +4,7 @@ import { prisma } from '../utils/prisma';
 import { config } from '../config';
 import { LogService } from './LogService';
 import { AppError } from '../utils/AppError';
+import { EmailProvider } from '../providers/notification/EmailProvider';
 
 // Hash fictício de tamanho realista para evitar timing attacks quando o usuário não existe
 const DUMMY_HASH = '$2a$10$7EqJtq98hPqEX7fNZaFWoO9y9bL/o5l7m3Y3wz3Wq1j.9H1rY/m4q';
@@ -237,5 +238,185 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  static async forgotPassword(email: string, origin?: string, reqContext?: { ip?: string; userAgent?: string }) {
+    const cleanEmail = email.toLowerCase().trim();
+    if (!cleanEmail) {
+      throw new AppError('E-mail é obrigatório', 400);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+    });
+
+    const standardResponse = {
+      success: true,
+      message: 'Se o e-mail informado estiver cadastrado em nossa base, você receberá um link com instruções para redefinir sua senha em instantes.',
+    };
+
+    if (!user) {
+      await bcrypt.compare('dummy_password_timing', DUMMY_HASH);
+      await LogService.createLog({
+        level: 'WARN',
+        category: 'AUTH',
+        action: 'FORGOT_PASSWORD_USER_NOT_FOUND',
+        message: `Tentativa de recuperação para e-mail não existente: ${cleanEmail}`,
+        userEmail: cleanEmail,
+        ipAddress: reqContext?.ip,
+        userAgent: reqContext?.userAgent,
+      });
+      return standardResponse;
+    }
+
+    if (user.status === 'BLOCKED') {
+      await LogService.createLog({
+        level: 'SECURITY',
+        category: 'AUTH',
+        action: 'FORGOT_PASSWORD_BLOCKED_USER',
+        message: `Tentativa de recuperação para usuário bloqueado: ${cleanEmail}`,
+        userId: user.id,
+        userEmail: user.email,
+        ipAddress: reqContext?.ip,
+        userAgent: reqContext?.userAgent,
+      });
+      throw new AppError('Esta conta está bloqueada pelo administrador. Entre em contato com o suporte.', 403);
+    }
+
+    const resetSecret = `${config.jwtSecret}_${user.passwordHash}`;
+    const token = jwt.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        type: 'pwd_reset',
+      },
+      resetSecret,
+      { expiresIn: '1h' }
+    );
+
+    const baseUrl = (origin || config.appUrl || 'https://enlace-crm.vercel.app').replace(/\/+$/, '');
+    const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+
+    await EmailProvider.sendPasswordResetEmail(user.email, user.name, resetUrl);
+
+    await LogService.createLog({
+      level: 'INFO',
+      category: 'AUTH',
+      action: 'PASSWORD_RESET_REQUESTED',
+      message: `Link de recuperação de senha gerado e enviado para ${user.email}`,
+      userId: user.id,
+      userEmail: user.email,
+      companyId: user.companyId || undefined,
+      ipAddress: reqContext?.ip,
+      userAgent: reqContext?.userAgent,
+    });
+
+    return standardResponse;
+  }
+
+  static async verifyResetToken(token: string) {
+    if (!token || typeof token !== 'string') {
+      throw new AppError('Token de recuperação é obrigatório', 400);
+    }
+
+    let decoded: any;
+    try {
+      decoded = jwt.decode(token);
+    } catch {
+      throw new AppError('Token de recuperação inválido ou corrompido', 400);
+    }
+
+    if (!decoded || !decoded.sub || decoded.type !== 'pwd_reset') {
+      throw new AppError('Token de recuperação inválido ou com formato incorreto', 400);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.sub },
+    });
+
+    if (!user) {
+      throw new AppError('Usuário associado a este token não foi encontrado', 404);
+    }
+
+    const resetSecret = `${config.jwtSecret}_${user.passwordHash}`;
+    try {
+      jwt.verify(token, resetSecret);
+    } catch (err: any) {
+      if (err.name === 'TokenExpiredError') {
+        throw new AppError('Este link de recuperação expirou. Por motivos de segurança, solicite um novo link.', 400);
+      }
+      throw new AppError('Este link de recuperação é inválido ou já foi utilizado anteriormente.', 400);
+    }
+
+    return {
+      valid: true,
+      email: user.email,
+      name: user.name,
+    };
+  }
+
+  static async resetPassword(token: string, password: string, reqContext?: { ip?: string; userAgent?: string }) {
+    if (!token) {
+      throw new AppError('Token de recuperação é obrigatório', 400);
+    }
+
+    if (!password || password.length < 10) {
+      throw new AppError('A nova senha deve ter no mínimo 10 caracteres para conformidade de segurança', 400);
+    }
+
+    let decoded: any;
+    try {
+      decoded = jwt.decode(token);
+    } catch {
+      throw new AppError('Token de recuperação inválido ou corrompido', 400);
+    }
+
+    if (!decoded || !decoded.sub || decoded.type !== 'pwd_reset') {
+      throw new AppError('Token de recuperação inválido', 400);
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.sub },
+    });
+
+    if (!user) {
+      throw new AppError('Usuário não encontrado', 404);
+    }
+
+    const resetSecret = `${config.jwtSecret}_${user.passwordHash}`;
+    try {
+      jwt.verify(token, resetSecret);
+    } catch (err: any) {
+      if (err.name === 'TokenExpiredError') {
+        throw new AppError('Este link de recuperação expirou. Por favor, solicite um novo link.', 400);
+      }
+      throw new AppError('Este link de recuperação é inválido ou já foi utilizado.', 400);
+    }
+
+    const newPasswordHash = await bcrypt.hash(password, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: newPasswordHash,
+      },
+    });
+
+    await LogService.createLog({
+      level: 'INFO',
+      category: 'AUTH',
+      action: 'PASSWORD_RESET_SUCCESS',
+      message: `Senha redefinida com sucesso para o usuário ${user.name} (${user.email})`,
+      userId: user.id,
+      userEmail: user.email,
+      companyId: user.companyId || undefined,
+      ipAddress: reqContext?.ip,
+      userAgent: reqContext?.userAgent,
+    });
+
+    return {
+      success: true,
+      message: 'Sua senha foi redefinida com sucesso! Você já pode realizar o login com suas novas credenciais.',
+    };
   }
 }

@@ -465,7 +465,7 @@ export function Calendar({ defaultTab = 'year' }: CalendarProps) {
     const clientFirstName = recipient.clientName.split(' ')[0];
 
     let defaultContent = '';
-    let defaultSubject = `🌟 Votos de Feliz ${holiday.name} — {{nome_empresa}}`;
+    const defaultSubject = `🌟 Votos de Feliz ${holiday.name} — {{nome_empresa}}`;
 
     if (recipient.type === 'CLIENT') {
       defaultContent =

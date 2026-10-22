@@ -14,6 +14,7 @@ import { Users } from './pages/Users';
 import { Monitoring } from './pages/Monitoring';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfUse } from './pages/TermsOfUse';
+import { ResetPassword } from './pages/ResetPassword';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { RefreshCw } from 'lucide-react';
@@ -45,7 +46,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     try {
       localStorage.clear();
       sessionStorage.clear();
-    } catch (e) {}
+    } catch { /* armazenamento pode estar indisponível (ex.: modo privado) */ }
     window.location.href = '/';
   };
 
@@ -138,6 +139,13 @@ export function AppContent() {
   }
 
   const currentPath = window.location.pathname;
+  const searchParams = new URLSearchParams(window.location.search);
+  const hasResetToken = searchParams.has('token') || searchParams.has('resetToken');
+
+  if (currentPath === '/reset-password' || currentPath === '/redefinir-senha' || (hasResetToken && !user)) {
+    return <ResetPassword onComplete={() => { window.location.href = '/'; }} />;
+  }
+
   if (currentPath === '/privacy-policy' || currentPath === '/politica-de-privacidade') {
     return <PrivacyPolicy />;
   }

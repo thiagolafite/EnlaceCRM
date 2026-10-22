@@ -237,20 +237,6 @@ model Alert {
   @@index([companyId, eventType])
 }
 
-model QueueJob {
-  id           String    @id @default(uuid())
-  type         String    // NOTIFY_OWNER, SCAN_DATES
-  payload      String    // JSON string
-  status       String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
-  attempts     Int       @default(0)
-  maxAttempts  Int       @default(3)
-  error        String?
-  scheduledFor DateTime  @default(now())
-  processedAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-}
-
 model SystemLog {
   id          String   @id @default(uuid())
   level       String   @default("INFO") // INFO, WARN, ERROR, SECURITY, CRITICAL

@@ -93,10 +93,25 @@ const registerLimiter = rateLimit({
   },
 });
 
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Muitas solicitações de recuperação de senha em curto período.',
+    solution: 'Por motivos de segurança, aguarde alguns minutos antes de tentar novamente.',
+  },
+});
+
 app.use('/api/auth/login', loginLimiter);
 app.use('/auth/login', loginLimiter);
 app.use('/api/auth/register', registerLimiter);
 app.use('/auth/register', registerLimiter);
+app.use('/api/auth/forgot-password', passwordResetLimiter);
+app.use('/auth/forgot-password', passwordResetLimiter);
+app.use('/api/auth/reset-password', passwordResetLimiter);
+app.use('/auth/reset-password', passwordResetLimiter);
 app.use('/api', globalApiLimiter);
 app.use('/', globalApiLimiter);
 
