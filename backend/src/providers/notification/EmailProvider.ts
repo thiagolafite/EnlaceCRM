@@ -31,6 +31,38 @@ export class EmailProvider implements NotificationProvider {
       };
     }
 
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const fromEmail = process.env.RESEND_FROM || process.env.SMTP_FROM || 'Enlace CRM <onboarding@resend.dev>';
+        const subject = options.subject || `🔔 Resumo Diário de Felicitações — ${options.companyName || 'Enlace CRM'}`;
+        const html = `<pre style="font-family: sans-serif; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${message}</pre>`;
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [to],
+            subject,
+            html,
+            text: message,
+          }),
+        });
+        if (resendRes.ok) {
+          const resData: any = await resendRes.json();
+          return {
+            success: true,
+            channel: 'EMAIL',
+            messageId: resData?.id,
+          };
+        }
+      } catch (err: any) {
+        console.error('[EmailProvider - Resend Notification Error]', err.message);
+      }
+    }
+
     try {
       // Cria transportador para envio de e-mail (usando stream/mock em desenvolvimento caso não haja SMTP configurado)
       const transporter = nodemailer.createTransport({
@@ -121,37 +153,71 @@ export class EmailProvider implements NotificationProvider {
     `;
     const text = `Olá, ${userName || 'Usuário'}!\n\nRecebemos uma solicitação para redefinir a senha da sua conta no Enlace CRM.\n\nPara redefinir sua senha, acesse o link abaixo (válido por 60 minutos):\n${resetUrl}\n\nSe você não solicitou a alteração, ignore este e-mail.\n\nEnlace CRM`;
 
+    const hasResend = Boolean(process.env.RESEND_API_KEY);
     const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
-    if (!hasSmtp) {
-      console.log(`[EmailProvider - RESET SENHA SIMULADO/DEV] Destinatário: ${to} | Link: ${resetUrl}`);
-      return { success: true };
+
+    // 1. Envio via Resend API (HTTP REST — ideal para Vercel Serverless sem bloqueio de portas SMTP)
+    if (hasResend) {
+      try {
+        const fromEmail = process.env.RESEND_FROM || process.env.SMTP_FROM || 'Enlace CRM <onboarding@resend.dev>';
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [to],
+            subject,
+            html,
+            text,
+          }),
+        });
+
+        if (resendRes.ok) {
+          return { success: true };
+        } else {
+          const errData: any = await resendRes.json().catch(() => ({}));
+          console.error('[EmailProvider - Resend Falhou]:', errData);
+        }
+      } catch (resendErr: any) {
+        console.error('[EmailProvider - Resend Exceção]:', resendErr.message);
+      }
     }
 
-    try {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587', 10),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS || '',
-        },
-      });
+    // 2. Envio via SMTP (Nodemailer)
+    if (hasSmtp) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || '587', 10),
+          secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS || '',
+          },
+        });
 
-      await transporter.sendMail({
-        from: `"${process.env.SMTP_FROM_NAME || 'Enlace CRM'}" <${process.env.SMTP_FROM || 'noreply@enlacecrm.com.br'}>`,
-        to,
-        subject,
-        text,
-        html,
-      });
+        await transporter.sendMail({
+          from: `"${process.env.SMTP_FROM_NAME || 'Enlace CRM'}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+          to,
+          subject,
+          text,
+          html,
+        });
 
-      return { success: true };
-    } catch (err: any) {
-      console.error('[EmailProvider] Erro ao enviar e-mail de recuperação:', err.message);
-      console.log(`[EmailProvider - LINK DE RECUPERAÇÃO DE EMERGÊNCIA]: ${resetUrl}`);
-      return { success: false, error: err.message };
+        return { success: true };
+      } catch (err: any) {
+        console.error('[EmailProvider] Erro ao enviar e-mail via SMTP:', err.message);
+        console.log(`[EmailProvider - LINK DE RECUPERAÇÃO DE EMERGÊNCIA]: ${resetUrl}`);
+        return { success: false, error: err.message };
+      }
     }
+
+    // 3. Fallback de Desenvolvimento / Sem credenciais configuradas
+    console.log(`[EmailProvider - RESET SENHA SIMULADO/DEV] Destinatário: ${to} | Link: ${resetUrl}`);
+    return { success: true };
   }
 }
 
